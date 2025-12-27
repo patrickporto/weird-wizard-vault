@@ -1,8 +1,8 @@
 <script>
-  import { base } from "$app/paths";
+  import { resolve } from "$app/paths";
 </script>
 
 <h1>sveltekit-gh-pages</h1>
 <p>Deployed to GitHub Pages.</p>
-<a href="{base}/about">About</a>
-<a href="{base}/room">Room</a>
+<a href="{resolve('/about')}">About</a>
+<a href="{resolve('/room')}">Room</a>
