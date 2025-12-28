@@ -21,6 +21,9 @@
     "lucide-svelte": "^0.562.0",
     "svelte-i18n": "^4.0.1",
     "tailwindcss": "^4.1.18",
-    "trystero": "^0.22.0"
+    "trystero": "^0.22.0",
+    "uuidv7": "^1.1.0",
+    "y-indexeddb": "^9.0.12",
+    "yjs": "^13.6.28"
   }
 }
