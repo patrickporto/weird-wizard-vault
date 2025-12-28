@@ -1,6 +1,6 @@
 <script>
     import { modalState, characterActions, character, activeEffects, damage, normalHealth, currentHealth } from '$lib/stores/characterStore';
-    import { X, Trash2, Plus, Minus } from 'lucide-svelte';
+    import { X, Trash2, Plus, Minus, Zap, Wand2, Check } from 'lucide-svelte';
     import { ITEM_TYPES, GRIPS, MAGIC_TRADITIONS, DURATION_TYPES, MOD_TYPES, MOD_TARGETS } from '../../../../routes/sofww';
 
     // Local state for forms
@@ -126,19 +126,35 @@
 
 {#if $modalState.isOpen}
     <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200" on:click|self={closeModal}>
-      <div class="bg-slate-800 border border-slate-600 rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+    <div 
+        class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200" 
+        on:click|self={closeModal}
+        role="presentation"
+    >
+      <div 
+        class="bg-slate-800 border border-slate-600 rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col"
+        role="dialog"
+        aria-modal="true"
+      >
         <div class="bg-slate-900 p-4 border-b border-slate-700 flex justify-between items-center shrink-0">
           <h3 class="font-bold text-lg text-white flex items-center gap-2">
             {#if $modalState.type === 'item'}Editor de Item
-            {:else if $modalState.type === 'spell'}Grimório
-            {:else if $modalState.type === 'talent'}Talento
+            {:else if $modalState.type === 'spell'}Editar Magia
+            {:else if $modalState.type === 'talent'}Editar Talento
             {:else if $modalState.type === 'effect'}Gerenciar Efeito
             {:else if $modalState.type === 'pre_roll'}Confirmar Rolagem
-            {:else}Info
+            {:else if $modalState.type === 'confirm_spell'}Confirmar Conjuração
+            {:else if $modalState.type === 'confirm_talent'}Confirmar Ativação
+            {:else if $modalState.type === 'cast_spell'}Grimório
+            {:else if $modalState.type === 'select_talent'}Seus Talentos
+            {:else if $modalState.type === 'weapon_menu'}Opções de Ataque
+            {:else if $modalState.type === 'character_info'}Informações do Personagem
+            {:else if $modalState.type === 'health'}Vigor & Dano
+            {:else if $modalState.type === 'attribute'}Atributo
+            {:else}Informação
             {/if}
           </h3>
-          <button on:click={closeModal} class="text-slate-400 hover:text-white transition-colors"><X size={20} /></button>
+          <button on:click={closeModal} class="text-slate-400 hover:text-white transition-colors" aria-label="Fechar"><X size={20} /></button>
         </div>
         <div class="p-6 overflow-y-auto custom-scrollbar">
             <!-- CONTEÚDO DO MODAL BASEADO NO TIPO -->
@@ -185,8 +201,8 @@
                         </select>
                     </div>
                     <div class="flex items-center gap-2 bg-slate-900 p-2 rounded border border-slate-700">
-                        <label class="text-xs text-slate-400 uppercase">Castings</label>
-                        <input type="number" class="w-16 bg-slate-800 border border-slate-600 rounded p-1 text-white text-center" bind:value={formData.maxCastings} on:input={() => formData.castings = formData.maxCastings} />
+                        <label for="maxCastings" class="text-xs text-slate-400 uppercase">Castings</label>
+                        <input id="maxCastings" type="number" class="w-16 bg-slate-800 border border-slate-600 rounded p-1 text-white text-center" bind:value={formData.maxCastings} on:input={() => formData.castings = formData.maxCastings} />
                     </div>
                     <div class="bg-slate-900 p-2 rounded border border-slate-700 flex justify-between items-center">
                          <span class="text-xs text-slate-400 font-bold uppercase">Efeito Associado</span>
@@ -209,8 +225,8 @@
                          <label for="isPassive" class="text-xs text-slate-400 uppercase font-bold flex-1 cursor-pointer">Passivo / Ilimitado</label>
                          {#if !formData.isPassive}
                             <div class="flex items-center gap-2 border-l border-slate-700 pl-2">
-                                <label class="text-xs text-slate-400 uppercase">Max Uses</label>
-                                <input type="number" class="w-16 bg-slate-800 border border-slate-600 rounded p-1 text-white text-center" bind:value={formData.maxUses} />
+                                <label for="maxUses" class="text-xs text-slate-400 uppercase">Max Uses</label>
+                                <input id="maxUses" type="number" class="w-16 bg-slate-800 border border-slate-600 rounded p-1 text-white text-center" bind:value={formData.maxUses} />
                             </div>
                          {/if}
                     </div>
@@ -230,13 +246,13 @@
             {:else if $modalState.type === 'effect'}
                 <div class="space-y-4">
                     {#if !$modalState.data?.parentType}
-                        <div><label class="text-xs font-bold text-slate-400 uppercase">Nome</label><input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formEffectData.name} /></div>
+                        <div><label for="effectName" class="text-xs font-bold text-slate-400 uppercase">Nome</label><input id="effectName" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formEffectData.name} /></div>
                     {:else}
                          <div class="text-center text-xs text-slate-500 italic mb-2">Nome e Descrição herdados do item pai.</div>
                     {/if}
-                    <div><label class="text-xs font-bold text-slate-400 uppercase">Duração</label>
+                    <div><label for="effectDuration" class="text-xs font-bold text-slate-400 uppercase">Duração</label>
                         <div class="grid grid-cols-2 gap-2">
-                            <select class="bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm" bind:value={formEffectData.duration}>
+                            <select id="effectDuration" class="bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm" bind:value={formEffectData.duration}>
                                 {#each Object.entries(DURATION_TYPES) as [k,v]}<option value={k}>{v}</option>{/each}
                             </select>
                             {#if formEffectData.duration === 'ROUNDS'}
@@ -303,17 +319,58 @@
                 </div>
 
             {:else if $modalState.type === 'confirm_spell' || $modalState.type === 'confirm_talent'}
-                <div class="space-y-4 text-center">
-                    <h3 class="text-white font-bold text-lg">Confirmar Uso</h3>
-                    <div class="bg-slate-900 p-3 rounded border border-slate-700 text-left">
-                        <p class="text-indigo-300 font-bold text-xl mb-1 text-center">{$modalState.data.name}</p>
-                        <p class="text-slate-400 text-sm italic mb-2 text-center">{$modalState.data.description}</p>
+                <div class="space-y-4">
+                    <div class="bg-slate-900 p-4 rounded-lg border border-slate-700">
+                        <p class="text-indigo-300 font-bold text-2xl mb-1 text-center">{$modalState.data.name}</p>
+                        <p class="text-slate-400 text-sm italic mb-4 text-center">{$modalState.data.description}</p>
+                        
                         {#if $modalState.data.effect}
-                            <div class="mt-4 border-t border-slate-700 pt-3">
-                                <div class="flex items-center gap-2 mb-2 text-xs font-bold text-green-400 uppercase">Efeito Associado</div>
-                                <button on:click={() => { characterActions.applyEffectToCharacter($modalState.data.effect, $modalState.data); if($modalState.type === 'confirm_spell') characterActions.commitSpellCast($modalState.data); else characterActions.commitTalentUse($modalState.data); }} class="w-full bg-green-900/50 hover:bg-green-800 text-green-200 border border-green-700 p-2 rounded text-xs font-bold flex items-center justify-center gap-2">APLICAR EFEITO E CONFIRMAR</button>
+                            <div class="mt-4 p-3 bg-green-900/20 border border-green-900/50 rounded-lg">
+                                <div class="flex items-center gap-2 mb-1 text-[10px] font-bold text-green-400 uppercase tracking-wider">Efeito Associado</div>
+                                <div class="text-xs text-green-200/70">{$modalState.data.effect.name}: {$modalState.data.effect.description}</div>
                             </div>
                         {/if}
+                    </div>
+
+                    <div class="flex flex-col gap-2 pt-2">
+                        {#if $modalState.data.effect}
+                            <button 
+                                on:click={() => { 
+                                    characterActions.applyEffectToCharacter($modalState.data.effect, $modalState.data); 
+                                    if($modalState.type === 'confirm_spell') characterActions.commitSpellCast($modalState.data); 
+                                    else characterActions.commitTalentUse($modalState.data); 
+                                }} 
+                                class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                            >
+                                <Check size={18} /> APLICAR EFEITO E USAR
+                            </button>
+                            <button 
+                                on:click={() => { 
+                                    if($modalState.type === 'confirm_spell') characterActions.commitSpellCast($modalState.data); 
+                                    else characterActions.commitTalentUse($modalState.data); 
+                                }} 
+                                class="w-full bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold py-2 rounded-lg text-sm transition-colors"
+                            >
+                                USAR SEM APLICAR EFEITO
+                            </button>
+                        {:else}
+                            <button 
+                                on:click={() => { 
+                                    if($modalState.type === 'confirm_spell') characterActions.commitSpellCast($modalState.data); 
+                                    else characterActions.commitTalentUse($modalState.data); 
+                                }} 
+                                class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                            >
+                                <Zap size={18} /> CONFIRMAR USO
+                            </button>
+                        {/if}
+                        
+                        <button 
+                            on:click={closeModal} 
+                            class="w-full text-slate-500 hover:text-slate-300 text-xs font-bold uppercase tracking-widest py-2 transition-colors mt-2"
+                        >
+                            CANCELAR
+                        </button>
                     </div>
                 </div>
 
@@ -342,34 +399,110 @@
                 </div>
             
             {:else if $modalState.type === 'weapon_menu'}
-                <div class="space-y-4 text-center">
-                    <h3 class="text-xl font-bold text-white mb-2">{$modalState.data.name}</h3>
-                    <div class="grid grid-cols-2 gap-4">
-                        <button on:click={() => modalState.update(m => ({ ...m, type: 'pre_roll', data: { type: 'weapon_attack', source: $modalState.data } }))} class="flex flex-col items-center justify-center p-6 bg-slate-700 hover:bg-indigo-600 rounded-xl border border-slate-600 transition-colors"><span class="font-bold text-white">ATAQUE</span></button>
-                        <button on:click={() => modalState.update(m => ({ ...m, type: 'pre_roll', data: { type: 'weapon_damage', source: $modalState.data } }))} class="flex flex-col items-center justify-center p-6 bg-slate-700 hover:bg-red-600 rounded-xl border border-slate-600 transition-colors"><span class="font-bold text-white">DANO</span></button>
+                <div class="space-y-6 text-center">
+                    <div class="bg-indigo-900/20 border border-indigo-500/30 p-4 rounded-xl">
+                        <h3 class="text-2xl font-bold text-white mb-1">{$modalState.data.name}</h3>
+                        <p class="text-xs text-indigo-300 uppercase tracking-widest font-bold">{$modalState.data.traits || 'Sem Atributos'}</p>
                     </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <button 
+                            on:click={() => modalState.update(m => ({ ...m, type: 'pre_roll', data: { type: 'weapon_attack', source: $modalState.data } }))} 
+                            class="flex flex-col items-center justify-center p-6 bg-slate-900/80 hover:bg-indigo-600 border border-slate-700 hover:border-indigo-400 rounded-2xl transition-all group"
+                        >
+                            <div class="p-3 rounded-full bg-slate-800 text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white mb-3 shadow-lg">
+                                <Zap size={24} />
+                            </div>
+                            <span class="font-black text-white tracking-widest uppercase text-sm">Ataque</span>
+                        </button>
+                        
+                        <button 
+                            on:click={() => modalState.update(m => ({ ...m, type: 'pre_roll', data: { type: 'weapon_damage', source: $modalState.data } }))} 
+                            class="flex flex-col items-center justify-center p-6 bg-slate-900/80 hover:bg-red-600 border border-slate-700 hover:border-red-400 rounded-2xl transition-all group"
+                        >
+                            <div class="p-3 rounded-full bg-slate-800 text-red-500 group-hover:bg-red-500 group-hover:text-white mb-3 shadow-lg">
+                                <Plus size={24} />
+                            </div>
+                            <span class="font-black text-white tracking-widest uppercase text-sm">Dano</span>
+                        </button>
+                    </div>
+                    
+                    <button on:click={closeModal} class="text-slate-500 hover:text-slate-300 text-[10px] font-bold uppercase tracking-[0.2em]">Voltar</button>
                 </div>
 
             {:else if $modalState.type === 'select_talent'}
-                  <div class="space-y-2 max-h-60 overflow-y-auto">
-                      {#each $character.talents as talent}
-                          <button on:click={() => modalState.update(m => ({...m, type: 'confirm_talent', data: talent}))} disabled={!talent.isPassive && talent.maxUses > 0 && talent.uses === 0} class="w-full text-left p-2 bg-slate-900 border border-slate-700 rounded hover:bg-yellow-900/30 flex justify-between disabled:opacity-50">
-                              <span class="text-white font-bold">{talent.name}</span>
-                              {#if talent.isPassive}<span class="text-xs text-slate-500 flex items-center gap-1">Passivo</span>
-                              {:else}<span class="text-xs font-mono {talent.uses > 0 ? 'text-green-400' : 'text-red-400'}">{talent.uses}/{talent.maxUses}</span>{/if}
-                          </button>
-                      {/each}
-                  </div>
+                <div class="space-y-3 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1">
+                    {#each $character.talents as talent}
+                        <button 
+                            on:click={() => modalState.update(m => ({...m, type: 'confirm_talent', data: talent}))} 
+                            disabled={!talent.isPassive && talent.maxUses > 0 && talent.uses === 0} 
+                            class="w-full text-left p-4 bg-slate-900/50 border border-slate-700 rounded-xl hover:bg-yellow-900/20 hover:border-yellow-600/50 flex items-center justify-between transition-all group disabled:opacity-30 disabled:hover:bg-slate-900/50 disabled:hover:border-slate-700 active:scale-[0.99]"
+                        >
+                            <div class="flex items-center gap-4">
+                                <div class="p-2.5 rounded-lg bg-slate-800 text-yellow-500 group-hover:scale-110 transition-transform">
+                                    <Zap size={20} />
+                                </div>
+                                <div>
+                                    <p class="text-white font-bold">{talent.name}</p>
+                                    <p class="text-[10px] text-slate-500 italic max-w-xs">{talent.description}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="text-right shrink-0">
+                                {#if talent.isPassive}
+                                    <span class="text-[10px] text-slate-500 uppercase font-black tracking-widest">Passivo</span>
+                                {:else}
+                                    <span class="block text-[10px] text-slate-500 uppercase font-bold text-center">Cargas</span>
+                                    <p class="flex items-center justify-center gap-1">
+                                        {#each Array(talent.maxUses) as _, i}
+                                            <span class="w-1.5 h-1.5 rounded-full {i < talent.uses ? 'bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]' : 'bg-slate-700'}"></span>
+                                        {/each}
+                                    </p>
+                                    <span class="font-mono font-bold text-xs {talent.uses > 0 ? 'text-green-400' : 'text-red-400'}">{talent.uses}/{talent.maxUses}</span>
+                                {/if}
+                            </div>
+                        </button>
+                    {:else}
+                        <div class="text-center py-10 bg-slate-900/30 rounded-xl border border-dashed border-slate-700">
+                            <Zap size={32} class="mx-auto text-slate-700 mb-2 opacity-20" />
+                            <p class="text-slate-500 italic text-sm">Nenhum talento disponível.</p>
+                        </div>
+                    {/each}
+                </div>
             
              {:else if $modalState.type === 'cast_spell'}
-                  <div class="space-y-2 max-h-60 overflow-y-auto">
-                      {#each $character.spells as spell}
-                          <button on:click={() => modalState.update(m => ({...m, type: 'confirm_spell', data: spell}))} disabled={spell.castings === 0} class="w-full text-left p-2 bg-slate-900 border border-slate-700 rounded hover:bg-indigo-900/30 flex justify-between disabled:opacity-50">
-                              <span class="text-white font-bold">{spell.name}</span>
-                              <span class="text-xs font-mono {spell.castings > 0 ? 'text-green-400' : 'text-red-400'}">{spell.castings}/{spell.maxCastings}</span>
-                          </button>
-                      {/each}
-                  </div>
+                <div class="space-y-3 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1">
+                    {#each $character.spells as spell}
+                        <button 
+                            on:click={() => modalState.update(m => ({...m, type: 'confirm_spell', data: spell}))} 
+                            disabled={spell.castings === 0} 
+                            class="w-full text-left p-4 bg-slate-900/50 border border-slate-700 rounded-xl hover:bg-indigo-900/20 hover:border-indigo-600 text-indigo-400/0 hover:text-indigo-400 flex items-center justify-between transition-all group disabled:opacity-30 active:scale-[0.99]"
+                        >
+                            <div class="flex items-center gap-4">
+                                <div class="p-2.5 rounded-lg bg-slate-800 text-indigo-400 group-hover:scale-110 transition-all border border-transparent group-hover:border-indigo-500/30">
+                                    <Wand2 size={20} />
+                                </div>
+                                <div>
+                                    <p class="text-white font-bold group-hover:text-indigo-300 transition-colors">{spell.name}</p>
+                                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-tight">{spell.tradition} • {spell.tier}</p>
+                                </div>
+                            </div>
+                            <div class="text-right shrink-0">
+                                <span class="block text-[10px] text-slate-500 uppercase font-bold text-center mb-1">Casts</span>
+                                <div class="flex gap-0.5">
+                                    {#each Array(spell.maxCastings) as _, i}
+                                        <div class="w-3 h-1 rounded-full {i < spell.castings ? 'bg-indigo-500' : 'bg-slate-700'}"></div>
+                                    {/each}
+                                </div>
+                            </div>
+                        </button>
+                    {:else}
+                        <div class="text-center py-10 bg-slate-900/30 rounded-xl border border-dashed border-slate-700">
+                            <Wand2 size={32} class="mx-auto text-slate-700 mb-2 opacity-20" />
+                            <p class="text-slate-500 italic text-sm">Grimório vazio.</p>
+                        </div>
+                    {/each}
+                </div>
 
             {/if}
         </div>

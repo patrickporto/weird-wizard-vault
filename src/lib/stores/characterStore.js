@@ -206,6 +206,7 @@ export const characterActions = {
             { id: Date.now(), timestamp: new Date(), charName: get(character).name, ...rollData },
             ...h
         ]);
+        isHistoryOpen.set(true);
     },
 
     clearHistory: () => rollHistory.set([]),
