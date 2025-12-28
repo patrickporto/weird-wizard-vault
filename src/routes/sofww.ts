@@ -8,7 +8,7 @@ export const MAGIC_TRADITIONS = [
     "Technomancy", "Teleportation", "War"
 ];
 
-const DURATION_TYPES = {
+export const DURATION_TYPES = {
     NEXT_ROLL: 'Próxima Rolagem',
     ROUNDS: 'Rodadas',
     MINUTES: 'Minutos',
@@ -18,7 +18,7 @@ const DURATION_TYPES = {
     PERMANENT: 'Indeterminado'
 };
 
-const ITEM_TYPES = {
+export const ITEM_TYPES = {
     WEAPON: 'Weapon',
     ARMOR: 'Armor',
     SHIELD: 'Shield',
@@ -27,13 +27,13 @@ const ITEM_TYPES = {
     OTHER: 'Other'
 };
 
-const MOD_TYPES = {
+export const MOD_TYPES = {
     ADD: 'ADD',
     SET: 'SET',
     MULT: 'MULT'
 };
 
-const MOD_TARGETS = {
+export const MOD_TARGETS = {
     str: 'Força',
     agi: 'Agilidade',
     int: 'Intelecto',
@@ -45,7 +45,7 @@ const MOD_TARGETS = {
     boons: 'Boons/Banes'
 };
 
-const AFFLICTIONS_DATA = {
+export const AFFLICTIONS_DATA = {
     "Blinded": { effect: "Make rolls with 3 banes. No sight reactions. Speed halved.", speedMult: 0.5, rollMod: -3 },
     "Confused": { effect: "No reactions. Intellect and Will rolls with 1 bane.", rollMod: -1, attributes: ['int', 'wil'] },
     "Controlled": { effect: "Controller decides your turn. Regard source as ally." },
@@ -65,6 +65,6 @@ const AFFLICTIONS_DATA = {
     "Weakened": { effect: "Strength/Agility rolls with 1 bane. Grant 1 boon vs Str/Agi. Speed halved.", speedMult: 0.5, attributes: ['str', 'agi'], rollMod: -1 }
 };
 
-const GRIPS = { OFF: 'Off', ONE: 'One', TWO: 'Two' };
-const AVAILABILITY = ['Common', 'Uncommon', 'Rare', 'Exotic'];
-const QUALITY = ['Standard', 'Inferior', 'Superior'];
+export const GRIPS = { OFF: 'Off', ONE: 'One', TWO: 'Two' };
+export const AVAILABILITY = ['Common', 'Uncommon', 'Rare', 'Exotic'];
+export const QUALITY = ['Standard', 'Inferior', 'Superior'];
