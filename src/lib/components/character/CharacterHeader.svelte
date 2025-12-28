@@ -1,12 +1,10 @@
 <script>
-  import { character, modalState, damage, effectiveMaxHealth, tempHealth, isInjured, isIncapacitated, damagePercentage, rollHistory, characterActions } from '$lib/stores/characterStore';
+  import { character, modalState, damage, effectiveMaxHealth, tempHealth, isInjured, isIncapacitated, damagePercentage, rollHistory, characterActions, isHistoryOpen } from '$lib/stores/characterStore';
   import { Settings, Moon, Dices, X } from 'lucide-svelte';
 
   function openModal(type) {
     modalState.update(m => ({ ...m, type: type, isOpen: true }));
   }
-
-  export let isHistoryOpen = false;
 </script>
 
 <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 shadow-xl">
@@ -44,7 +42,7 @@
 
           <div class="flex gap-2">
              <button on:click={() => openModal('rest_confirm')} class="p-2 bg-slate-800 rounded hover:bg-indigo-900/50 text-indigo-300 transition-colors" title="Descanso"><Moon size={18}/></button>
-             <button on:click={() => isHistoryOpen = !isHistoryOpen} class="p-2 bg-slate-800 rounded hover:bg-indigo-900/50 text-indigo-300 transition-colors relative" title="Histórico">
+             <button on:click={() => isHistoryOpen.update(v => !v)} class="p-2 bg-slate-800 rounded hover:bg-indigo-900/50 text-indigo-300 transition-colors relative" title="Histórico">
                  <Dices size={18}/>
                  {#if $rollHistory.length > 0}<span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>{/if}
              </button>

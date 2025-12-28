@@ -1,6 +1,12 @@
 <script>
-    import { activeTab, modalState, rollHistory, character } from '$lib/stores/characterStore';
+    import { activeTab, modalState, rollHistory, character, defaultCharacter, isHistoryOpen } from '$lib/stores/characterStore';
     
+    // Yjs / DB
+    import { page } from '$app/stores';
+    import { charactersMap, waitForSync } from '$lib/db';
+    import { get } from 'svelte/store';
+    import { onDestroy } from 'svelte';
+
     // Components
     import CharacterHeader from '$lib/components/character/CharacterHeader.svelte';
     import HistorySidebar from '$lib/components/character/HistorySidebar.svelte';
@@ -21,17 +27,65 @@
     import NotesTab from '$lib/components/character/NotesTab.svelte';
     import { ChevronRight, Clover } from 'lucide-svelte';
 
-    let isHistoryOpen = false;
+    let loaded = false;
+    let currentId = null;
+    let unsubscribeStore = null;
+
+    // Reactive statement to handle ID changes
+    $: if ($page.params.id) {
+        handleIdChange($page.params.id);
+    }
+
+    async function handleIdChange(id) {
+        // If switching IDs, show loading to prevent showing previous character data
+        if (currentId !== id) loaded = false;
+        
+        if (currentId === id) return;
+        currentId = id;
+        
+        // Clean up previous subscription
+        if (unsubscribeStore) {
+            unsubscribeStore();
+            unsubscribeStore = null;
+        }
+
+        await waitForSync();
+
+        // Load or Initialize
+        if (charactersMap.has(id)) {
+            const data = charactersMap.get(id);
+            character.set(data);
+        } else {
+            // Initialize with default (deep copy to avoid ref issues if modified)
+            const newChar = JSON.parse(JSON.stringify(defaultCharacter));
+            character.set(newChar);
+            charactersMap.set(id, newChar);
+        }
+
+        // Subscribe to changes
+        unsubscribeStore = character.subscribe(val => {
+           if (currentId === id) {
+               charactersMap.set(id, val);
+           }
+        });
+        
+        loaded = true;
+    }
+
+    onDestroy(() => {
+        if (unsubscribeStore) unsubscribeStore();
+    });
 </script>
 
 <div class="min-h-screen bg-slate-950 text-slate-100 font-sans pb-20 relative overflow-x-hidden">
   
-  <HistorySidebar isOpen={isHistoryOpen} onClose={() => isHistoryOpen = false} />
+  {#if loaded}
+  <HistorySidebar isOpen={$isHistoryOpen} onClose={() => isHistoryOpen.set(false)} />
   
   <ModalManager />
 
   <!-- HEADER -->
-  <CharacterHeader bind:isHistoryOpen={isHistoryOpen} />
+  <CharacterHeader />
   <!-- History toggle was simulated in header, real toggle logic is via local state or store. 
        We can pass isHistoryOpen binding or equivalent. 
        Ideally Header should emit event or use store. 
@@ -87,4 +141,9 @@
         </div>
      </section>
   </main>
+  {:else}
+    <div class="flex items-center justify-center min-h-screen">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
+    </div>
+  {/if}
 </div>

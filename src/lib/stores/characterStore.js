@@ -9,7 +9,7 @@ import {
 
 // --- STATE ---
 
-const defaultCharacter = {
+export const defaultCharacter = {
     name: "Alaric, o Errante",
     level: 3,
     ancestry: "Humano",
@@ -70,6 +70,7 @@ export const activeTab = writable('acoes');
 export const normalHealth = writable(24);
 export const currentHealth = writable(24);
 export const damage = writable(0);
+export const isHistoryOpen = writable(false);
 
 // --- DERIVED STORES & HELPERS ---
 
@@ -374,6 +375,7 @@ export const characterActions = {
         }
 
         modalState.set({ type: null, isOpen: false, data: null });
+        isHistoryOpen.set(true);
     },
 
     // Spells / Talents Management
