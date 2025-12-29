@@ -413,7 +413,20 @@ export const characterActions = {
     addEffect: (effect) => character.update(c => ({ ...c, effects: [...c.effects, effect] })),
     updateEffect: (effect) => character.update(c => ({ ...c, effects: c.effects.map(e => e.id === effect.id ? effect : e) })),
     deleteEffect: (id) => character.update(c => ({ ...c, effects: c.effects.filter(e => e.id !== id) })),
-    toggleEffect: (id) => character.update(c => ({ ...c, effects: c.effects.map(e => e.id === id ? { ...e, isActive: !e.isActive } : e) })),
+    toggleEffect: (id) => character.update(c => ({
+        ...c,
+        effects: c.effects.map(e => {
+            if (e.id === id) {
+                const becomingActive = !e.isActive;
+                return {
+                    ...e,
+                    isActive: becomingActive,
+                    roundsLeft: (becomingActive && e.duration === 'ROUNDS') ? (e.initialRounds || e.roundsLeft) : e.roundsLeft
+                };
+            }
+            return e;
+        })
+    })),
     cleanInactiveEffects: () => character.update(c => ({ ...c, effects: c.effects.filter(e => e.isActive) })),
 
     applyEffectToCharacter: (effect, parentItem) => {
