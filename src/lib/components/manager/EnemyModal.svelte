@@ -1,72 +1,98 @@
-<script>
+<script lang="ts">
     import { X, Plus, Trash2, Save, Eye } from 'lucide-svelte';
     
-    export let isOpen = false;
-    export let initialData = "{}";
-    export let onClose;
-    export let onSave;
+    interface Props {
+        isOpen: boolean;
+        initialData?: string;
+        onClose: () => void;
+        onSave: (form: any) => void;
+    }
 
-    let form = createDefaultForm();
-    let tab = 'stats';
+    let { isOpen = false, initialData = "{}", onClose, onSave }: Props = $props();
+
+    let form = $state(createDefaultForm());
+    let tab = $state<'stats' | 'attributes' | 'abilities'>('stats');
 
     function createDefaultForm() {
         return { 
             name: '', difficulty: 1, defense: 10, health: 10, damage: 0, size: 1, speed: 10, 
-            senses: '', languages: '', immune: '',
+            description: '', senses: '', languages: '', immune: '',
             stats: { str: 10, agi: 10, int: 10, wil: 10 },
-            traits: [], actions: [], reactions: [], endOfRound: []
+            traits: [] as {name: string, desc: string}[], 
+            actions: [] as {name: string, desc: string}[], 
+            reactions: [] as {name: string, desc: string}[], 
+            endOfRound: [] as {name: string, desc: string}[]
         };
     }
 
-    $: if (isOpen && initialData) {
-        try {
-            const parsed = JSON.parse(initialData);
-            if (Object.keys(parsed).length === 0) form = createDefaultForm();
-            else form = { ...createDefaultForm(), ...parsed };
-        } catch(e) {
-            form = createDefaultForm();
+    $effect(() => {
+        if (isOpen && initialData) {
+            try {
+                const parsed = JSON.parse(initialData);
+                if (Object.keys(parsed).length === 0) {
+                    form = createDefaultForm();
+                } else {
+                    form = { ...createDefaultForm(), ...parsed };
+                }
+            } catch(e) {
+                form = createDefaultForm();
+            }
         }
-    }
+    });
 
-    function addAbility(key) {
+    function addAbility(key: 'traits' | 'actions' | 'reactions' | 'endOfRound') {
         form[key] = [...form[key], { name: '', desc: '' }];
     }
     
-    function removeAbility(key, index) {
+    function removeAbility(key: 'traits' | 'actions' | 'reactions' | 'endOfRound', index: number) {
         form[key] = form[key].filter((_, i) => i !== index);
+    }
+
+    function handleBackdropClick(e: MouseEvent) {
+        if (e.target === e.currentTarget) {
+            onClose();
+        }
     }
 </script>
 
 {#if isOpen}
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" on:click|self={onClose}>
-    <div class="bg-slate-800 rounded-xl w-full max-w-6xl h-[90vh] border border-slate-700 shadow-2xl overflow-hidden flex flex-col lg:flex-row">
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onclick={handleBackdropClick} role="button" aria-label="Fechar modal" tabindex="-1">
+    <div class="bg-slate-800 rounded-xl w-full max-w-6xl h-[90vh] border border-slate-700 shadow-2xl overflow-hidden flex flex-col lg:flex-row" role="dialog" aria-modal="true" aria-labelledby="modal-title">
           
           <!-- Editor Column -->
           <div class="w-full lg:w-1/2 flex flex-col h-full border-r border-slate-700">
                 <div class="p-4 border-b border-slate-700 bg-slate-900 flex justify-between items-center">
-                    <h3 class="font-bold text-white text-lg">Editor de Inimigo</h3>
-                    <button on:click={onClose} class="lg:hidden text-slate-400 hover:text-white"><X size={20}/></button>
+                    <h3 id="modal-title" class="font-bold text-white text-lg">Editor de Inimigo</h3>
+                    <button onclick={onClose} class="lg:hidden text-slate-400 hover:text-white"><X size={20}/></button>
                 </div>
                 
                 <div class="flex border-b border-slate-700 bg-slate-900/50">
-                    <button on:click={() => tab = 'stats'} class="flex-1 py-3 text-sm font-bold border-b-2 transition-colors {tab === 'stats' ? 'border-indigo-500 text-indigo-400 bg-slate-800' : 'border-transparent text-slate-500 hover:text-white'}">Geral</button>
-                    <button on:click={() => tab = 'attributes'} class="flex-1 py-3 text-sm font-bold border-b-2 transition-colors {tab === 'attributes' ? 'border-indigo-500 text-indigo-400 bg-slate-800' : 'border-transparent text-slate-500 hover:text-white'}">Atributos</button>
-                    <button on:click={() => tab = 'abilities'} class="flex-1 py-3 text-sm font-bold border-b-2 transition-colors {tab === 'abilities' ? 'border-indigo-500 text-indigo-400 bg-slate-800' : 'border-transparent text-slate-500 hover:text-white'}">Habilidades</button>
+                    <button onclick={() => tab = 'stats'} class="flex-1 py-3 text-sm font-bold border-b-2 transition-colors {tab === 'stats' ? 'border-indigo-500 text-indigo-400 bg-slate-800' : 'border-transparent text-slate-500 hover:text-white'}">Geral</button>
+                    <button onclick={() => tab = 'attributes'} class="flex-1 py-3 text-sm font-bold border-b-2 transition-colors {tab === 'attributes' ? 'border-indigo-500 text-indigo-400 bg-slate-800' : 'border-transparent text-slate-500 hover:text-white'}">Atributos</button>
+                    <button onclick={() => tab = 'abilities'} class="flex-1 py-3 text-sm font-bold border-b-2 transition-colors {tab === 'abilities' ? 'border-indigo-500 text-indigo-400 bg-slate-800' : 'border-transparent text-slate-500 hover:text-white'}">Habilidades</button>
                 </div>
                 
                 <div class="flex-1 overflow-y-auto p-6 custom-scrollbar bg-slate-800/50">
                     {#if tab === 'stats'}
                         <div class="space-y-4">
-                             <div><label class="text-xs text-slate-500 uppercase font-bold block mb-1">Nome</label><input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white font-bold text-lg" bind:value={form.name} /></div>
+                             <div><label for="enemy-name" class="text-xs text-slate-500 uppercase font-bold block mb-1">Nome</label><input id="enemy-name" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white font-bold text-lg" bind:value={form.name} /></div>
                              <div class="grid grid-cols-2 gap-4">
-                                 <div><label class="text-xs text-slate-500 uppercase font-bold block mb-1">Dificuldade</label><input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={form.difficulty} /></div>
-                                 <div><label class="text-xs text-slate-500 uppercase font-bold block mb-1">Tamanho (Size)</label><input type="number" step="0.5" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={form.size} /></div>
+                                 <div><label for="enemy-diff" class="text-xs text-slate-500 uppercase font-bold block mb-1">Dificuldade</label><input id="enemy-diff" type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={form.difficulty} /></div>
+                                 <div><label for="enemy-size" class="text-xs text-slate-500 uppercase font-bold block mb-1">Tamanho (Size)</label><input id="enemy-size" type="number" step="0.5" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={form.size} /></div>
                              </div>
-                             <div class="grid grid-cols-3 gap-4">
-                                 <div><label class="text-xs text-slate-500 uppercase font-bold block mb-1">Defesa</label><input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={form.defense} /></div>
-                                 <div><label class="text-xs text-slate-500 uppercase font-bold block mb-1">Vida</label><input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={form.health} /></div>
-                                 <div><label class="text-xs text-slate-500 uppercase font-bold block mb-1">Speed</label><input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={form.speed} /></div>
+                             <div>
+                                 <label for="enemy-desc" class="text-xs text-slate-500 uppercase font-bold block mb-1">Descrição</label>
+                                 <textarea 
+                                     id="enemy-desc"
+                                     class="w-full bg-slate-900 border border-slate-700 rounded p-3 text-white text-sm min-h-[100px] resize-none focus:border-indigo-500 focus:outline-none transition-colors" 
+                                     placeholder="Breve descrição ou notas sobre a criatura..." 
+                                     bind:value={form.description}
+                                 ></textarea>
+                             </div>
+                             <div class="grid grid-cols-1">
+                                 <div><label for="enemy-speed" class="text-xs text-slate-500 uppercase font-bold block mb-1">Speed</label><input id="enemy-speed" type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={form.speed} /></div>
                              </div>
                         </div>
                     {:else if tab === 'attributes'}
@@ -76,31 +102,31 @@
                                 <div class="grid grid-cols-4 gap-3">
                                     {#each ['str', 'agi', 'int', 'wil'] as attr}
                                         <div class="bg-slate-900 p-2 rounded border border-slate-700 text-center">
-                                            <label class="text-[10px] text-slate-500 uppercase font-bold block mb-1">{attr}</label>
-                                            <input type="number" class="w-full bg-transparent text-center font-bold text-white text-xl focus:outline-none mb-1" bind:value={form.stats[attr]} />
-                                            <div class="text-xs font-bold {(form.stats[attr] - 10) >= 0 ? 'text-green-500' : 'text-red-500'}">{(form.stats[attr] - 10) >= 0 ? '+' : ''}{form.stats[attr] - 10}</div>
+                                            <label for="attr-{attr}" class="text-[10px] text-slate-500 uppercase font-bold block mb-1">{attr}</label>
+                                            <input id="attr-{attr}" type="number" class="w-full bg-transparent text-center font-bold text-white text-xl focus:outline-none mb-1" bind:value={form.stats[attr as 'str' | 'agi' | 'int' | 'wil']} />
+                                            <div class="text-xs font-bold {(form.stats[attr as 'str' | 'agi' | 'int' | 'wil'] - 10) >= 0 ? 'text-green-500' : 'text-red-500'}">{(form.stats[attr as 'str' | 'agi' | 'int' | 'wil'] - 10) >= 0 ? '+' : ''}{form.stats[attr as 'str' | 'agi' | 'int' | 'wil'] - 10}</div>
                                         </div>
                                     {/each}
                                 </div>
                             </div>
                             <div class="space-y-3">
-                                <div><label class="text-xs text-slate-500 uppercase font-bold block mb-1">Sentidos</label><input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm" placeholder="Ex: Visão no escuro" bind:value={form.senses} /></div>
-                                <div><label class="text-xs text-slate-500 uppercase font-bold block mb-1">Idiomas</label><input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm" placeholder="Ex: Comum, Élfico" bind:value={form.languages} /></div>
-                                <div><label class="text-xs text-slate-500 uppercase font-bold block mb-1">Imunidades</label><input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm" placeholder="Ex: Fogo, Veneno" bind:value={form.immune} /></div>
+                                <div><label for="enemy-senses" class="text-xs text-slate-500 uppercase font-bold block mb-1">Sentidos</label><input id="enemy-senses" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm" placeholder="Ex: Visão no escuro" bind:value={form.senses} /></div>
+                                <div><label for="enemy-langs" class="text-xs text-slate-500 uppercase font-bold block mb-1">Idiomas</label><input id="enemy-langs" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm" placeholder="Ex: Comum, Élfico" bind:value={form.languages} /></div>
+                                <div><label for="enemy-immune" class="text-xs text-slate-500 uppercase font-bold block mb-1">Imunidades</label><input id="enemy-immune" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm" placeholder="Ex: Fogo, Veneno" bind:value={form.immune} /></div>
                             </div>
                         </div>
                     {:else if tab === 'abilities'}
                          <div class="space-y-6">
                             {#each [
-                                { key: 'traits', title: 'Traços (Traits)', color: 'text-indigo-400', border: 'border-indigo-500/30' },
-                                { key: 'actions', title: 'Ações', color: 'text-red-400', border: 'border-red-500/30' },
-                                { key: 'reactions', title: 'Reações', color: 'text-orange-400', border: 'border-orange-500/30' },
-                                { key: 'endOfRound', title: 'Fim da Rodada', color: 'text-yellow-400', border: 'border-yellow-500/30' }
+                                { key: 'traits' as const, title: 'Traços (Traits)', color: 'text-indigo-400', border: 'border-indigo-500/30' },
+                                { key: 'actions' as const, title: 'Ações', color: 'text-red-400', border: 'border-red-500/30' },
+                                { key: 'reactions' as const, title: 'Reações', color: 'text-orange-400', border: 'border-orange-500/30' },
+                                { key: 'endOfRound' as const, title: 'Fim da Rodada', color: 'text-yellow-400', border: 'border-yellow-500/30' }
                             ] as section}
                                 <div class="p-4 bg-slate-900 rounded border {section.border}">
                                     <div class="flex justify-between items-center mb-3">
                                         <h4 class="font-bold text-sm uppercase {section.color}">{section.title}</h4>
-                                        <button on:click={() => addAbility(section.key)} class="text-xs bg-slate-800 px-2 py-1 rounded hover:bg-slate-700 text-white flex items-center gap-1 border border-slate-700"><Plus size={12}/> Adicionar</button>
+                                        <button onclick={() => addAbility(section.key)} class="text-xs bg-slate-800 px-2 py-1 rounded hover:bg-slate-700 text-white flex items-center gap-1 border border-slate-700"><Plus size={12}/> Adicionar</button>
                                     </div>
                                     <div class="space-y-3">
                                         {#each form[section.key] as item, idx}
@@ -109,7 +135,7 @@
                                                     <input class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-sm font-bold placeholder-slate-600 focus:border-indigo-500 focus:outline-none" placeholder="Nome" bind:value={item.name} />
                                                     <textarea class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-sm placeholder-slate-600 resize-none focus:border-indigo-500 focus:outline-none" rows="2" placeholder="Descrição..." bind:value={item.desc}></textarea>
                                                 </div>
-                                                <button on:click={() => removeAbility(section.key, idx)} class="mt-1 text-slate-600 hover:text-red-400 p-2 hover:bg-slate-800 rounded"><Trash2 size={16}/></button>
+                                                <button onclick={() => removeAbility(section.key, idx)} class="mt-1 text-slate-600 hover:text-red-400 p-2 hover:bg-slate-800 rounded"><Trash2 size={16}/></button>
                                             </div>
                                         {/each}
                                         {#if form[section.key].length === 0}
@@ -123,8 +149,8 @@
                 </div>
 
                 <div class="p-4 border-t border-slate-700 bg-slate-900 flex justify-end gap-3">
-                    <button on:click={onClose} class="px-6 py-2 rounded bg-slate-800 hover:bg-slate-700 text-white font-bold transition-colors">Cancelar</button>
-                    <button on:click={() => onSave(form)} class="px-6 py-2 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-bold flex items-center gap-2 transition-colors"><Save size={18}/> Salvar</button>
+                    <button onclick={onClose} class="px-6 py-2 rounded bg-slate-800 hover:bg-slate-700 text-white font-bold transition-colors">Cancelar</button>
+                    <button onclick={() => onSave(form)} class="px-6 py-2 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-bold flex items-center gap-2 transition-colors"><Save size={18}/> Salvar</button>
                 </div>
           </div>
           
@@ -152,7 +178,7 @@
                              {#each ['str', 'agi', 'int', 'wil'] as attr}
                                  <div class="bg-slate-950 p-2 rounded border border-slate-800">
                                      <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">{attr}</div>
-                                     <div class="text-white font-bold">{form.stats[attr]} <span class="text-xs {(form.stats[attr] - 10) >= 0 ? 'text-green-500' : 'text-red-500'}">({(form.stats[attr] - 10) >= 0 ? '+' : ''}{form.stats[attr] - 10})</span></div>
+                                     <div class="text-white font-bold">{form.stats[attr as 'str' | 'agi' | 'int' | 'wil']} <span class="text-xs {(form.stats[attr as 'str' | 'agi' | 'int' | 'wil'] - 10) >= 0 ? 'text-green-500' : 'text-red-500'}">({(form.stats[attr as 'str' | 'agi' | 'int' | 'wil'] - 10) >= 0 ? '+' : ''}{form.stats[attr as 'str' | 'agi' | 'int' | 'wil'] - 10})</span></div>
                                  </div>
                              {/each}
                          </div>
@@ -198,7 +224,7 @@
                                   {/each}</div>
                               {/if}
                          </div>
-                    </div>
+                     </div>
                 </div>
           </div>
     </div>

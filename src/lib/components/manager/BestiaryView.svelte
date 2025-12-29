@@ -1,66 +1,102 @@
-<script>
+<script lang="ts">
     import { liveEnemies, liveEncounters } from '$lib/stores/live';
     import { Ghost, Layers, Plus, Edit, Trash2, GripVertical, Play } from 'lucide-svelte';
     import { enemiesMap, encountersMap, campaignsMap } from '$lib/db';
     import { uuidv7 } from 'uuidv7';
     import EnemyModal from './EnemyModal.svelte';
     import EncounterModal from './EncounterModal.svelte';
+    import ConfirmationModal from './ConfirmationModal.svelte';
     import { page } from '$app/stores'; // To get campaign ID for running encounter
 
-    let isEnemyModalOpen = false;
-    let editingEnemyId = null;
-    let enemyFormStr = "{}";
+    let isEnemyModalOpen = $state(false);
+    let editingEnemyId = $state<string | null>(null);
+    let enemyFormStr = $state("{}");
 
-    let isEncounterModalOpen = false;
-    let editingEncounterId = null;
-    let encounterFormStr = "{}";
+    let isEncounterModalOpen = $state(false);
+    let editingEncounterId = $state<string | null>(null);
+    let encounterFormStr = $state("{}");
+
+    let confirmState = $state({ isOpen: false, title: '', message: '', onConfirm: () => {} });
 
     // ... enemy functions ...
-    function openEnemyModal(enemy = null) {
+    function createDefaultEnemy() {
+        return { 
+            name: '', difficulty: 1, defense: 10, health: 10, damage: 0, size: 1, speed: 10, 
+            description: '', senses: '', languages: '', immune: '',
+            stats: { str: 10, agi: 10, int: 10, wil: 10 },
+            traits: [], actions: [], reactions: [], endOfRound: []
+        };
+    }
+
+    function openEnemyModal(enemy: any = null) {
         editingEnemyId = enemy ? enemy.id : null;
-        enemyFormStr = JSON.stringify(enemy || {});
+        enemyFormStr = JSON.stringify(enemy || createDefaultEnemy());
         isEnemyModalOpen = true;
     }
 
-    function saveEnemy(data) {
+    let expandedEnemyIds = $state(new Set<string>());
+    function toggleExpandEnemy(id: string) {
+        if (expandedEnemyIds.has(id)) {
+            expandedEnemyIds.delete(id);
+        } else {
+            expandedEnemyIds.add(id);
+        }
+    }
+
+    function saveEnemy(data: any) {
         const id = editingEnemyId || uuidv7();
         enemiesMap.set(id, { ...data, id });
         isEnemyModalOpen = false;
     }
     
-    function deleteEnemy(id) {
-        if(confirm('Apagar inimigo?')) enemiesMap.delete(id);
+    function deleteEnemy(id: string) {
+        const enemy = $liveEnemies.find(e => e.id === id);
+        confirmState = {
+            isOpen: true,
+            title: 'Excluir Inimigo',
+            message: `Tem certeza que deseja excluir permanentemente o inimigo "${enemy?.name || 'este inimigo'}"?`,
+            onConfirm: () => {
+                enemiesMap.delete(id);
+                confirmState.isOpen = false;
+            }
+        };
     }
 
     // Encounter functions
-    function openEncounterModal(enc = null) {
+    function openEncounterModal(enc: any = null) {
         editingEncounterId = enc ? enc.id : null;
         encounterFormStr = JSON.stringify(enc || { name: '', enemies: [] });
         isEncounterModalOpen = true;
     }
 
-    function saveEncounter(data) {
+    function saveEncounter(data: any) {
         const id = editingEncounterId || uuidv7();
         encountersMap.set(id, { ...data, id });
         isEncounterModalOpen = false;
     }
 
-    function deleteEncounter(id) {
-        if(confirm('Apagar encontro?')) encountersMap.delete(id);
+    function deleteEncounter(id: string) {
+        const enc = $liveEncounters.find(e => e.id === id);
+        confirmState = {
+            isOpen: true,
+            title: 'Excluir Encontro',
+            message: `Tem certeza que deseja excluir permanentemente o encontro "${enc?.name || 'este encontro'}"?`,
+            onConfirm: () => {
+                encountersMap.delete(id);
+                confirmState.isOpen = false;
+            }
+        };
     }
 
-    function runEncounter(enc) {
-        // Add enemies to the current campaign's combat
-        // We need updates to campaign instance.
-        // We can do it by updating campaignsMap manually here
+    function runEncounter(enc: any) {
         const campId = $page.params.id;
         if (!campId || !campaignsMap.has(campId)) return;
         
         const latestCamp = campaignsMap.get(campId);
         const activeEnemies = latestCamp.activeEnemies || [];
         
-        let newEnemies = [];
-        enc.enemies.forEach(item => {
+        let newEnemies: any[] = [];
+        enc.enemies.forEach((item: any) => {
              const template = $liveEnemies.find(e => e.id === item.enemyId);
              if (template) {
                 for(let i=0; i<item.count; i++) {
@@ -78,7 +114,6 @@
         });
         
         campaignsMap.set(campId, { ...latestCamp, activeEnemies: [...activeEnemies, ...newEnemies] });
-        alert('Inimigos adicionados ao Combate!'); // Simple feedback
     }
 
     // Drag and Drop Logic
@@ -121,7 +156,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
              <!-- Placeholder Card: Novo Encontro -->
              <button 
-                on:click={() => openEncounterModal()} 
+                onclick={() => openEncounterModal()} 
                 class="min-h-[120px] border-2 border-dashed border-slate-800 rounded-2xl flex flex-col items-center justify-center text-slate-500 hover:border-indigo-500 hover:text-indigo-400 transition-all hover:bg-indigo-500/5 gap-2 group"
              >
                 <Plus size={28} class="group-hover:scale-110 transition-transform"/>
@@ -129,31 +164,31 @@
              </button>
 
              {#each $liveEncounters as enc (enc.id)}
-                 <!-- svelte-ignore a11y-no-static-element-interactions -->
+                 <!-- svelte-ignore a11y_no_static_element_interactions -->
                  <div 
-                    class="bg-slate-900 border border-slate-800 rounded-2xl p-5 transition-all hover:border-indigo-500/30 group relative flex flex-col justify-between shadow-lg hover:shadow-indigo-500/10"
-                    on:dragover={handleDragOver}
-                    on:drop={(e) => handleDrop(e, enc)}
+                    class="bg-slate-900 border border-slate-800 rounded-2xl p-4 transition-all hover:border-indigo-500/30 group relative flex flex-col justify-between shadow-lg hover:shadow-indigo-500/10"
+                    ondragover={handleDragOver}
+                    ondrop={(e) => handleDrop(e, enc)}
+                    role="region"
+                    aria-label="Encontro {enc.name}"
                  >
-                     <div class="flex justify-between items-start mb-4">
-                        <div class="flex-1">
-                            <div class="font-bold text-white text-lg mb-2 group-hover:text-indigo-400 transition-colors uppercase tracking-tight">{enc.name}</div>
-                            <div class="space-y-1.5">
-                                {#each enc.enemies || [] as item}
-                                    {@const enemy = $liveEnemies.find(e => e.id === item.enemyId)}
-                                    <div class="text-xs text-slate-400 flex items-center gap-2 bg-slate-950/50 p-1.5 rounded-lg border border-slate-800/50">
-                                        <span class="bg-indigo-600/20 text-indigo-400 px-2 py-0.5 rounded-md text-[10px] font-black">{item.count}x</span>
-                                        <span class="font-medium">{enemy ? enemy.name : 'Desconhecido'}</span>
-                                    </div>
-                                {/each}
-                                {#if !enc.enemies?.length}<div class="text-xs text-slate-600 italic px-2">Nenhum inimigo adicionado. Arraste inimigos aqui!</div>{/if}
-                            </div>
+                     <div class="flex-1">
+                        <div class="font-bold text-white text-base mb-2 group-hover:text-indigo-400 transition-colors uppercase tracking-tight truncate">{enc.name}</div>
+                        <div class="flex flex-wrap gap-1">
+                            {#each enc.enemies || [] as item}
+                                {@const enemy = $liveEnemies.find(e => e.id === item.enemyId)}
+                                <div class="text-[10px] text-slate-400 flex items-center gap-1.5 bg-slate-950 p-1 px-1.5 rounded-lg border border-slate-800/50">
+                                    <span class="text-indigo-400 font-black">{item.count}x</span>
+                                    <span class="font-medium truncate max-w-[80px]">{enemy ? enemy.name : '...'}</span>
+                                </div>
+                            {/each}
+                            {#if !enc.enemies?.length}<div class="text-[10px] text-slate-600 italic">Vazio</div>{/if}
                         </div>
                     </div>
-                    <div class="flex gap-2 mt-4 pt-4 border-t border-slate-800/50">
-                        <button on:click={() => runEncounter(enc)} class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-indigo-900/20"><Play size={16} fill="currentColor"/> Iniciar</button>
-                        <button on:click={() => openEncounterModal(enc)} class="p-2.5 text-slate-400 hover:text-white bg-slate-800/50 rounded-xl border border-slate-800 transition-all" title="Editar"><Edit size={16}/></button>
-                        <button on:click={() => deleteEncounter(enc.id)} class="p-2.5 text-slate-400 hover:text-red-400 bg-slate-800/50 rounded-xl border border-slate-800 hover:border-red-900/30 transition-all"><Trash2 size={16}/></button>
+                    <div class="flex gap-2 mt-3 pt-3 border-t border-slate-800/50">
+                        <button onclick={() => runEncounter(enc)} class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-indigo-900/20"><Play size={12} fill="currentColor"/> Iniciar</button>
+                        <button onclick={() => openEncounterModal(enc)} class="p-1.5 text-slate-400 hover:text-white bg-slate-800/50 rounded-lg border border-slate-800 transition-all" title="Editar"><Edit size={14}/></button>
+                        <button onclick={() => deleteEncounter(enc.id)} class="p-1.5 text-slate-400 hover:text-red-400 bg-slate-800/50 rounded-lg border border-slate-800 hover:border-red-900/30 transition-all"><Trash2 size={14}/></button>
                     </div>
                  </div>
              {/each}
@@ -169,7 +204,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Placeholder Card: Novo Inimigo -->
         <button 
-            on:click={() => openEnemyModal()} 
+            onclick={() => openEnemyModal()} 
             class="min-h-[180px] border-2 border-dashed border-slate-800 rounded-2xl flex flex-col items-center justify-center text-slate-500 hover:border-indigo-500 hover:text-indigo-400 transition-all hover:bg-indigo-500/5 gap-2 group"
         >
             <Plus size={32} class="group-hover:scale-110 transition-transform"/>
@@ -177,23 +212,39 @@
         </button>
 
         {#each $liveEnemies as enemy (enemy.id)}
-             <!-- svelte-ignore a11y-no-static-element-interactions -->
+             <!-- svelte-ignore a11y_no_static_element_interactions -->
              <div 
-                class="bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-indigo-500/30 transition-all relative group cursor-move hover:shadow-lg hover:shadow-indigo-500/10 active:scale-95"
+                class="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-indigo-500/30 transition-all relative group cursor-move hover:shadow-lg hover:shadow-indigo-500/10 active:scale-[0.98] flex flex-col"
                 draggable="true"
-                on:dragstart={(e) => handleDragStart(e, enemy)}
+                ondragstart={(e) => handleDragStart(e, enemy)}
+                role="listitem"
              >
-                  <div class="flex justify-between items-start mb-2">
-                      <h3 class="font-bold text-lg text-white flex items-center gap-2">{enemy.name}</h3>
-                      <span class="text-xs font-bold bg-slate-800 px-2 py-1 rounded text-slate-400">Dif {enemy.difficulty}</span>
+                  <div class="flex justify-between items-start mb-3">
+                      <h3 class="font-bold text-lg text-white group-hover:text-indigo-400 transition-colors">{enemy.name}</h3>
+                      <span class="text-[10px] font-black bg-indigo-500/10 text-indigo-400 border border-indigo-400/20 px-2 py-1 rounded-lg uppercase">Nível {enemy.difficulty}</span>
                   </div>
-                  <div class="grid grid-cols-2 gap-2 mb-4 text-center">
-                      <div class="bg-slate-950 p-1 rounded border border-slate-800"><div class="text-[10px] text-slate-500 uppercase font-bold">Defesa</div><div class="font-mono text-white">{enemy.defense}</div></div>
-                      <div class="bg-slate-950 p-1 rounded border border-slate-800"><div class="text-[10px] text-slate-500 uppercase font-bold">Vida</div><div class="font-mono text-white">{enemy.health}</div></div>
-                  </div>
-                  <div class="mt-4 flex gap-2">
-                      <button on:click={() => openEnemyModal(enemy)} class="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-1.5 rounded text-xs font-bold">Editar</button>
-                      <button on:click={() => deleteEnemy(enemy.id)} class="bg-slate-800 hover:bg-red-900/50 text-red-400 hover:text-red-200 px-3 rounded"><Trash2 size={14}/></button>
+
+                  {#if enemy.description}
+                    <div class="mb-4 flex-1">
+                        <p class="text-xs text-slate-400 leading-relaxed {expandedEnemyIds.has(enemy.id) ? '' : 'line-clamp-3'}">
+                            {enemy.description}
+                        </p>
+                        {#if enemy.description.length > 120}
+                            <button 
+                                onclick={() => toggleExpandEnemy(enemy.id)}
+                                class="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 mt-1 uppercase tracking-wider"
+                            >
+                                {expandedEnemyIds.has(enemy.id) ? 'Ver menos' : 'Ver mais...'}
+                            </button>
+                        {/if}
+                    </div>
+                  {:else}
+                    <div class="mb-4 flex-1 text-[10px] text-slate-600 italic">Sem descrição.</div>
+                  {/if}
+
+                  <div class="mt-auto flex gap-2 pt-4 border-t border-slate-800/50">
+                      <button onclick={() => openEnemyModal(enemy)} class="flex-1 bg-slate-800/50 hover:bg-slate-800 text-white py-2 rounded-xl text-xs font-bold border border-slate-800 transition-all">Editar</button>
+                      <button onclick={() => deleteEnemy(enemy.id)} class="bg-slate-800/50 hover:bg-red-900/20 text-slate-500 hover:text-red-400 px-3 rounded-xl border border-slate-800 hover:border-red-900/30 transition-all"><Trash2 size={14}/></button>
                   </div>
              </div>
         {/each}
@@ -205,4 +256,11 @@
     <EnemyModal isOpen={isEnemyModalOpen} initialData={enemyFormStr} onClose={() => isEnemyModalOpen = false} onSave={saveEnemy} />
     <EncounterModal isOpen={isEncounterModalOpen} initialData={encounterFormStr} onClose={() => isEncounterModalOpen = false} onSave={saveEncounter} />
 
+    <ConfirmationModal 
+        isOpen={confirmState.isOpen}
+        title={confirmState.title}
+        message={confirmState.message}
+        onConfirm={confirmState.onConfirm}
+        onCancel={() => confirmState.isOpen = false}
+    />
 </div>

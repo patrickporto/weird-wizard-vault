@@ -1,54 +1,53 @@
-<script>
+<script lang="ts">
     import { charactersMap } from '$lib/db';
-    import { Swords, CheckCircle, Skull, HeartCrack, X, Plus, Flame, ChevronUp, ChevronDown } from 'lucide-svelte';
+    import { Swords, CheckCircle, Skull, X, Plus, Flame, ChevronUp, ChevronDown } from 'lucide-svelte';
     import { slide } from 'svelte/transition';
 
-    export let entity;
-    export let updateEnemy = () => {};
-    export let removeFromCombat = () => {};
+    interface Props {
+        entity: any;
+        updateEnemy?: (instanceId: string, updates: any) => void;
+        removeFromCombat?: (instanceId: string) => void;
+    }
+
+    let { entity, updateEnemy = () => {}, removeFromCombat = () => {} }: Props = $props();
 
     // Derived values
-    $: isPlayer = entity.type === 'player';
-    $: damage = entity.damage || 0;
-    $: maxHealth = entity.health || entity.normalHealth || 10;
+    let isPlayer = $derived(entity.type === 'player');
+    let damage = $derived(entity.damage || 0);
+    let maxHealth = $derived(entity.health || entity.normalHealth || 10);
     // Current health is now independent mostly
-    $: currentHealth = entity.currentHealth ?? maxHealth;
+    let currentHealth = $derived(entity.currentHealth ?? maxHealth);
     
     // In Weird Wizard, you are incapacitated if Damage >= Health
-    $: isIncapacitated = damage >= currentHealth;
-    $: isInjured = (damage >= currentHealth / 2) && !isIncapacitated; 
+    let isIncapacitated = $derived(damage >= currentHealth);
+    let isInjured = $derived((damage >= currentHealth / 2) && !isIncapacitated); 
     
     // Bar should fill based on Damage relative to Current Health (the "container")
-    $: damagePercent = currentHealth > 0 ? Math.min(100, Math.max(0, (damage / currentHealth) * 100)) : 100;
+    let damagePercent = $derived(currentHealth > 0 ? Math.min(100, Math.max(0, (damage / currentHealth) * 100)) : 100);
 
-    let expanded = false;
+    let expanded = $state(false);
 
     // Helper for player updates
-    function updatePlayer(updates) {
+    function updatePlayer(updates: any) {
         if (entity.type !== 'player') return;
         const current = charactersMap.get(entity.id) || entity;
         charactersMap.set(entity.id, { ...current, ...updates });
     }
 
-    function handleDamageInput(e) {
+    function handleDamageInput(e: any) {
         const val = parseInt(e.target.value);
         if (isNaN(val)) return; 
         const d = Math.max(0, val);
-        // Damage is independent, but typically shouldn't exceed health in a permeating way?
-        // Rules say: "Damage beyond Health is ignored". 
-        // We will just set it. If it exceeds, they are Incapacitated.
         const updates = { damage: d };
         if(entity.type === 'player') updatePlayer(updates);
         else updateEnemy(entity.instanceId, updates);
     }
 
-    function handleHealthInput(e) {
+    function handleHealthInput(e: any) {
         const val = parseInt(e.target.value);
         if (isNaN(val)) return;
         const h = Math.max(0, val);
         
-        // Rule: If Health drops below Damage, Damage is reduced to equal Health.
-        // Otherwise, Damage is staying as is.
         let d = damage;
         if (h < damage) {
             d = h;
@@ -69,9 +68,9 @@
         if(entity.type === 'player') updatePlayer({ initiative: !entity.initiative });
     }
 
-    function toggleAffliction(aff) {
+    function toggleAffliction(aff: string) {
          const list = entity.afflictions || [];
-         const newList = list.includes(aff) ? list.filter(a => a !== aff) : [...list, aff];
+         const newList = list.includes(aff) ? list.filter((a: string) => a !== aff) : [...list, aff];
          const updates = { afflictions: newList };
          if(entity.type === 'player') updatePlayer(updates);
          else updateEnemy(entity.instanceId, updates);
@@ -86,7 +85,7 @@
     {/if}
     
     <div class="flex flex-col md:flex-row gap-4 items-center">
-        <button on:click={toggleActed}
+        <button onclick={toggleActed}
             class="w-12 h-12 rounded-lg flex items-center justify-center border-2 transition-all shadow-lg {isIncapacitated ? 'bg-red-900/20 border-red-600 text-red-500' : entity.acted ? 'bg-slate-800 border-slate-700 text-slate-500' : isPlayer ? 'bg-indigo-600 hover:bg-indigo-500 border-indigo-400 text-white' : 'bg-red-900/50 hover:bg-red-800 border-red-700 text-red-200'}"
             title={entity.acted ? "Já agiu" : "Agir"}
             aria-label={entity.acted ? "Já agiu" : "Agir"}
@@ -119,7 +118,7 @@
             <div class="flex flex-wrap gap-2 mt-2">
                 {#each (entity.afflictions || []) as aff}
                     <button 
-                        on:click={() => toggleAffliction(aff)} 
+                        onclick={() => toggleAffliction(aff)} 
                         class="text-[9px] bg-red-900/40 text-red-300 px-1.5 py-0.5 rounded border border-red-800 flex items-center gap-1 cursor-pointer hover:bg-red-900/60 transition-colors"
                         title="Remover {aff}"
                     >
@@ -131,7 +130,7 @@
                     <div class="absolute top-full left-0 mt-1 bg-slate-800 border border-slate-700 rounded shadow-xl p-2 w-40 z-20 hidden group-hover/aff:block max-h-40 overflow-y-auto custom-scrollbar" role="menu">
                         {#each AFFLICTIONS as a}
                             <button 
-                                on:click={() => toggleAffliction(a)} 
+                                onclick={() => toggleAffliction(a)} 
                                 class="w-full text-left text-xs text-slate-300 hover:text-white hover:bg-slate-700 p-1 cursor-pointer rounded"
                                 role="menuitem"
                             >
@@ -155,7 +154,7 @@
                     type="number" 
                     class="w-12 bg-slate-900 border border-slate-800 text-center text-white font-mono font-bold rounded focus:border-red-500 focus:outline-none" 
                     value={damage} 
-                    on:input={handleDamageInput}
+                    oninput={handleDamageInput}
                  />
             </label>
 
@@ -165,7 +164,7 @@
                     type="number" 
                     class="w-12 bg-slate-900 border border-slate-800 text-center text-white font-mono font-bold rounded focus:border-green-500 focus:outline-none" 
                     value={currentHealth} 
-                    on:input={handleHealthInput}
+                    oninput={handleHealthInput}
                  />
             </label>
 
@@ -177,16 +176,16 @@
         
         <div class="flex flex-col gap-1">
             {#if isPlayer}
-                <button on:click={toggleInitiative} class="p-1.5 rounded transition-colors {entity.initiative ? 'bg-yellow-900/30 text-yellow-400 border border-yellow-700' : 'bg-slate-800 text-slate-500 hover:text-white'}" title="Tomar Iniciativa"><Flame size={16}/></button>
+                <button onclick={toggleInitiative} class="p-1.5 rounded transition-colors {entity.initiative ? 'bg-yellow-900/30 text-yellow-400 border border-yellow-700' : 'bg-slate-800 text-slate-500 hover:text-white'}" title="Tomar Iniciativa"><Flame size={16}/></button>
             {:else}
-                <button on:click={() => expanded = !expanded} class="p-1.5 rounded bg-slate-900 text-slate-400 hover:text-white border border-slate-800">
+                <button onclick={() => expanded = !expanded} class="p-1.5 rounded bg-slate-900 text-slate-400 hover:text-white border border-slate-800">
                     {#if expanded}
                         <ChevronUp size={16}/>
                     {:else}
                         <ChevronDown size={16}/>
                     {/if}
                 </button>
-                <button on:click={() => removeFromCombat(entity.instanceId)} class="p-1.5 rounded bg-slate-900 text-slate-500 hover:text-red-400 border border-slate-800"><X size={16}/></button>
+                <button onclick={() => removeFromCombat(entity.instanceId)} class="p-1.5 rounded bg-slate-900 text-slate-500 hover:text-red-400 border border-slate-800"><X size={16}/></button>
             {/if}
         </div>
     </div>

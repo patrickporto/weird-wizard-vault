@@ -1,48 +1,68 @@
-<script>
+<script lang="ts">
     import { liveCharacters, liveEnemies, liveEncounters } from '$lib/stores/live';
     import { characterActions, isHistoryOpen } from '$lib/stores/characterStore';
-    import { campaignsMap, charactersMap } from '$lib/db';
+    import { campaignsMap } from '$lib/db';
     import { Users, Ghost, GripVertical, Plus, Minus, Swords, RotateCcw, X, Clock, AlertTriangle, Dices, ChevronLeft, ChevronDown, ChevronUp, History, Layers, Play } from 'lucide-svelte';
     import CombatCard from './CombatCard.svelte';
+    import HistorySidebar from '$lib/components/character/HistorySidebar.svelte';
+    import ConfirmationModal from './ConfirmationModal.svelte';
     import { flip } from 'svelte/animate';
-    
-    export let campaign;
+    import { calculateDiceRoll } from '$lib/logic/dice';
 
-    let isAddCharOpen = false;
+    let { campaign } = $props<{ campaign: any }>();
+
+    let isAddCharOpen = $state(false);
     const defaultCombat = { active: false, round: 1 };
     
     // Quick Add Tab
-    let activeQuickTab = 'enemies'; // 'enemies' | 'encounters'
+    let activeQuickTab = $state<'enemies' | 'encounters'>('enemies');
 
     // End of Round Modal
-    let isEoRModalOpen = false;
-    let endOfRoundEffects = [];
+    let isEoRModalOpen = $state(false);
+    let endOfRoundEffects = $state<any[]>([]);
     
+    // Confirm Modal
+    let confirmState = $state({ isOpen: false, title: '', message: '', onConfirm: () => {} });
+
     // Reactively extract data from prop
-    $: roster = campaign?.sessionRoster || [];
-    $: combat = campaign?.combat || defaultCombat;
-    $: activeEnemies = campaign?.activeEnemies || [];
+    let roster = $derived(campaign?.sessionRoster || []);
+    let combat = $derived(campaign?.combat || defaultCombat);
+    let activeEnemies = $derived(campaign?.activeEnemies || []);
     
     // Players present in the roster
-    $: players = roster.map(pid => $liveCharacters.find(c => c.id === pid)).filter(Boolean);
+    let players = $derived(roster.map(pid => $liveCharacters.find(c => c.id === pid)).filter(Boolean));
     
     // Available characters (not in roster)
-    $: availableCharacters = $liveCharacters.filter(c => !roster.includes(c.id));
+    let availableCharacters = $derived($liveCharacters.filter(c => !roster.includes(c.id)));
 
     // Helpers to update Campaign in DB - Using Map directly to avoid stale prop issues
-    function updateCampaign(updates) {
+    function updateCampaign(updates: any) {
         if (!campaign?.id) return;
         const current = campaignsMap.get(campaign.id) || campaign;
         const updated = { ...current, ...updates };
         campaignsMap.set(campaign.id, updated);
     }
 
-    function toggleSessionPresence(charId) {
-        const newRoster = roster.includes(charId) ? roster.filter(id => id !== charId) : [...roster, charId];
-        updateCampaign({ sessionRoster: newRoster });
+    function toggleSessionPresence(charId: string) {
+        if (roster.includes(charId)) {
+            const char = $liveCharacters.find(c => c.id === charId);
+            confirmState = {
+                isOpen: true,
+                title: 'Excluir Personagem',
+                message: `Tem certeza que deseja excluir ${char?.name || 'este personagem'} da sessão atual?`,
+                onConfirm: () => {
+                    const newRoster = roster.filter(id => id !== charId);
+                    updateCampaign({ sessionRoster: newRoster });
+                    confirmState.isOpen = false;
+                }
+            };
+        } else {
+            const newRoster = [...roster, charId];
+            updateCampaign({ sessionRoster: newRoster });
+        }
     }
 
-    function addToCombat(enemyTemplate) {
+    function addToCombat(enemyTemplate: any) {
         const current = campaignsMap.get(campaign.id) || campaign;
         const currentEnemies = current.activeEnemies || [];
         
@@ -59,12 +79,12 @@
         updateCampaign({ activeEnemies: [...currentEnemies, newEnemy] });
     }
 
-    function addToCombatEncounter(enc) {
+    function addToCombatEncounter(enc: any) {
         const current = campaignsMap.get(campaign.id) || campaign;
         const currentEnemies = current.activeEnemies || [];
         
-        let newEnemies = [];
-        enc.enemies.forEach(item => {
+        let newEnemies: any[] = [];
+        enc.enemies.forEach((item: any) => {
              const template = $liveEnemies.find(e => e.id === item.enemyId);
              if (template) {
                 for(let i=0; i<item.count; i++) {
@@ -115,7 +135,7 @@
         isEoRModalOpen = false;
     }
 
-    function endCombat(clearEnemies) {
+    function endCombat(clearEnemies: boolean) {
         if (clearEnemies) {
             updateCampaign({ combat: { active: false, round: 1 }, activeEnemies: [] });
         } else {
@@ -123,21 +143,19 @@
         }
     }
 
-    function removeFromCombat(instanceId) {
+    function removeFromCombat(instanceId: string) {
         const current = campaignsMap.get(campaign.id) || campaign;
         updateCampaign({ 
             activeEnemies: (current.activeEnemies || []).filter(e => e.instanceId !== instanceId) 
         });
     }
 
-    function updateEnemy(instanceId, updates) {
+    function updateEnemy(instanceId: string, updates: any) {
         const current = campaignsMap.get(campaign.id) || campaign;
         updateCampaign({ 
             activeEnemies: (current.activeEnemies || []).map(e => e.instanceId === instanceId ? { ...e, ...updates } : e) 
         });
     }
-
-    import { calculateDiceRoll } from '$lib/logic/dice';
 
     function prevRound() {
         const current = campaignsMap.get(campaign.id) || campaign;
@@ -148,9 +166,9 @@
     }
 
     // Quick Roll State
-    let quickRollState = { isOpen: false, sides: 20, count: 1, modifier: 0 };
+    let quickRollState = $state({ isOpen: false, sides: 20, count: 1, modifier: 0 });
     
-    function startQuickRoll(sides, count = 1) {
+    function startQuickRoll(sides: number, count = 1) {
         quickRollState = { isOpen: true, sides, count, modifier: 0 };
     }
 
@@ -160,7 +178,7 @@
     }
 
     // Dice
-    function rollDice(sides, count = 1, modifier = 0) {
+    function rollDice(sides: number, count = 1, modifier = 0) {
         const res = calculateDiceRoll(sides, count, modifier);
         
         let desc = "";
@@ -179,7 +197,7 @@
     }
 
     // Explicit derivation of sorted combatants
-    $: sortedCombatants = (() => {
+    let sortedCombatants = $derived<any[]>((() => {
         const playersWithInit = roster.map(pid => $liveCharacters.find(c => c.id === pid)).filter(c => c && c.initiative).map(c => ({...c, id: c.id, type: 'player'}));
         const enemies = activeEnemies.map(e => ({...e, type: 'enemy'}));
         const playersNoInit = roster.map(pid => $liveCharacters.find(c => c.id === pid)).filter(c => c && !c.initiative).map(c => ({...c, id: c.id, type: 'player'}));
@@ -193,7 +211,7 @@
             seen.add(key);
             return true;
         });
-    })();
+    })());
 </script>
 
 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full relative">
@@ -202,7 +220,7 @@
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
             <div class="flex justify-between items-center mb-3">
                  <h3 class="text-sm font-bold text-slate-400 uppercase flex items-center gap-2"><Users size={14}/> Personagens</h3>
-                 <button on:click={() => isAddCharOpen = !isAddCharOpen} class="text-xs bg-slate-800 hover:bg-slate-700 text-white px-2 py-1 rounded flex items-center gap-1 border border-slate-700">
+                 <button onclick={() => isAddCharOpen = !isAddCharOpen} class="text-xs bg-slate-800 hover:bg-slate-700 text-white px-2 py-1 rounded flex items-center gap-1 border border-slate-700">
                      {isAddCharOpen ? 'Fechar' : 'Gerenciar'}
                  </button>
             </div>
@@ -211,7 +229,7 @@
                 <div class="mb-3 p-2 bg-slate-950 rounded border border-slate-800 max-h-40 overflow-y-auto custom-scrollbar animate-in slide-in-from-top-2">
                      <h4 class="text-[10px] uppercase font-bold text-slate-500 mb-2">Adicionar à Sessão</h4>
                      {#each availableCharacters as char}
-                         <button on:click={() => toggleSessionPresence(char.id)} class="w-full text-left flex items-center justify-between p-1.5 hover:bg-indigo-900/20 rounded group">
+                         <button onclick={() => toggleSessionPresence(char.id)} class="w-full text-left flex items-center justify-between p-1.5 hover:bg-indigo-900/20 rounded group">
                              <span class="text-sm font-bold text-slate-300 group-hover:text-white">{char.name}</span>
                              <Plus size={14} class="text-indigo-500"/>
                          </button>
@@ -224,14 +242,14 @@
 
             <div class="space-y-2">
                 {#each players as char (char.id)}
-                    <!-- svelte-ignore a11y-click-events-have-key-events -->
+                    <!-- svelte-ignore a11y_click_events_have_key_events -->
                     <div class="p-2 rounded border flex items-center gap-3 transition-colors bg-indigo-900/30 border-indigo-500/50">
                         <div class="w-3 h-3 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.5)]"></div>
                         <div class="flex-1">
                              <div class="font-bold text-sm text-white">{char.name}</div>
                              <div class="text-[10px] text-slate-400">Lvl {char.level} • {char.ancestry}</div>
                         </div>
-                        <button on:click={() => toggleSessionPresence(char.id)} class="text-slate-500 hover:text-red-400 p-1" title="Remover da Sessão"><X size={14}/></button>
+                        <button onclick={() => toggleSessionPresence(char.id)} class="text-slate-500 hover:text-red-400 p-1" title="Remover da Sessão"><X size={14}/></button>
                     </div>
                 {/each}
                 {#if players.length === 0}
@@ -244,8 +262,8 @@
 
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col h-[400px]">
             <div class="flex items-center gap-2 mb-3 bg-slate-950 p-1 rounded-lg border border-slate-800">
-                 <button on:click={() => activeQuickTab = 'enemies'} class="flex-1 text-xs font-bold py-1.5 rounded flex items-center justify-center gap-2 transition-colors {activeQuickTab === 'enemies' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-white'}"><Ghost size={14}/> Inimigos</button>
-                 <button on:click={() => activeQuickTab = 'encounters'} class="flex-1 text-xs font-bold py-1.5 rounded flex items-center justify-center gap-2 transition-colors {activeQuickTab === 'encounters' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-white'}"><Layers size={14}/> Encontros</button>
+                 <button onclick={() => activeQuickTab = 'enemies'} class="flex-1 text-xs font-bold py-1.5 rounded flex items-center justify-center gap-2 transition-colors {activeQuickTab === 'enemies' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-white'}"><Ghost size={14}/> Inimigos</button>
+                 <button onclick={() => activeQuickTab = 'encounters'} class="flex-1 text-xs font-bold py-1.5 rounded flex items-center justify-center gap-2 transition-colors {activeQuickTab === 'encounters' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-white'}"><Layers size={14}/> Encontros</button>
             </div>
 
             <div class="flex-1 overflow-y-auto pr-1 custom-scrollbar space-y-2">
@@ -260,7 +278,7 @@
                                      <div class="text-[10px] text-slate-500">Dif {enemy.difficulty}</div>
                                  </div>
                             </div>
-                            <button on:click={() => addToCombat(enemy)} class="text-slate-500 hover:text-indigo-400 p-1 ml-2 bg-slate-900 rounded border border-slate-800"><Plus size={16}/></button>
+                            <button onclick={() => addToCombat(enemy)} class="text-slate-500 hover:text-indigo-400 p-1 ml-2 bg-slate-900 rounded border border-slate-800"><Plus size={16}/></button>
                         </div>
                     {/each}
                     {#if $liveEnemies.length === 0}
@@ -273,7 +291,7 @@
                                  <div class="text-sm font-bold text-white truncate">{enc.name}</div>
                                  <div class="text-[10px] text-slate-500">{enc.enemies?.reduce((a,c) => a + c.count, 0) || 0} Inimigos</div>
                             </div>
-                            <button on:click={() => addToCombatEncounter(enc)} class="text-slate-500 hover:text-indigo-400 p-1 ml-2 bg-slate-900 rounded border border-slate-800"><Play size={14}/></button>
+                            <button onclick={() => addToCombatEncounter(enc)} class="text-slate-500 hover:text-indigo-400 p-1 ml-2 bg-slate-900 rounded border border-slate-800"><Play size={14}/></button>
                         </div>
                     {/each}
                      {#if $liveEncounters.length === 0}
@@ -289,14 +307,14 @@
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex justify-between items-center shadow-lg sticky top-0 z-20">
              <div class="flex items-center gap-4">
                 {#if !combat.active}
-                    <button on:click={startCombat} class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-green-900/20"><Swords size={20}/> INICIAR COMBATE</button>
+                    <button onclick={startCombat} class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-green-900/20"><Swords size={20}/> INICIAR COMBATE</button>
                 {:else}
                     <div class="flex items-center gap-4">
-                        <button on:click={prevRound} class="p-2 hover:bg-slate-700 rounded text-slate-400" title="Voltar Rodada"><ChevronLeft size={20}/></button>
+                        <button onclick={prevRound} class="p-2 hover:bg-slate-700 rounded text-slate-400" title="Voltar Rodada"><ChevronLeft size={20}/></button>
                         <div class="text-center"><div class="text-[10px] font-bold text-slate-500 uppercase">Rodada</div><div class="text-3xl font-mono font-bold text-white leading-none">{combat.round}</div></div>
-                        <button on:click={nextRound} class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded font-bold flex items-center gap-2" title="Próxima Rodada"><RotateCcw size={16}/> Próxima</button>
+                        <button onclick={nextRound} class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded font-bold flex items-center gap-2" title="Próxima Rodada"><RotateCcw size={16}/> Próxima</button>
                         <div class="h-8 w-px bg-slate-700 mx-2"></div>
-                        <button on:click={() => endCombat(false)} class="text-red-400 hover:text-red-300 text-xs font-bold px-3 py-2 border border-red-900/30 rounded bg-red-900/10">Encerrar</button>
+                        <button onclick={() => endCombat(false)} class="text-red-400 hover:text-red-300 text-xs font-bold px-3 py-2 border border-red-900/30 rounded bg-red-900/10">Encerrar</button>
                     </div>
                 {/if}
              </div>
@@ -321,9 +339,10 @@
 </div>
 
 {#if isEoRModalOpen}
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" on:click|self={() => {}}>
-    <div class="bg-slate-800 rounded-xl w-full max-w-lg border border-slate-700 shadow-2xl p-6 relative">
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onclick={(e) => { if (e.target === e.currentTarget) isEoRModalOpen = false; }} role="button" aria-label="Fechar" tabindex="-1">
+    <div class="bg-slate-800 rounded-xl w-full max-w-lg border border-slate-700 shadow-2xl p-6 relative" role="dialog" aria-modal="true">
         <div class="flex items-center gap-3 mb-6">
             <div class="p-3 bg-yellow-900/20 rounded-full border border-yellow-500/30 text-yellow-500">
                 <Clock size={24} />
@@ -350,8 +369,8 @@
         </div>
         
         <div class="flex gap-3">
-             <button on:click={() => isEoRModalOpen = false} class="flex-1 py-2 rounded bg-slate-700 hover:bg-slate-600 text-white font-bold">Cancelar</button>
-             <button on:click={proceedRound} class="flex-1 py-2 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-bold">Avançar Rodada</button>
+             <button onclick={() => isEoRModalOpen = false} class="flex-1 py-2 rounded bg-slate-700 hover:bg-slate-600 text-white font-bold">Cancelar</button>
+             <button onclick={proceedRound} class="flex-1 py-2 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-bold">Avançar Rodada</button>
         </div>
     </div>
 </div>
@@ -360,28 +379,37 @@
 <!-- Bottom Bar (Quick Rolls) -->
 <div class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-md border border-slate-700 rounded-2xl p-2 flex items-center gap-2 shadow-2xl z-40 animate-in slide-in-from-bottom-4">
     <div class="px-3 border-r border-slate-700 flex items-center gap-2 text-slate-400 font-bold text-xs uppercase"><Dices size={16}/> Quick</div>
-    <button on:click={() => startQuickRoll(20)} class="bg-slate-800 hover:bg-indigo-600 text-white font-bold w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:-translate-y-1 shadow-lg">d20</button>
-    <button on:click={() => startQuickRoll(6)} class="bg-slate-800 hover:bg-indigo-600 text-white font-bold w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:-translate-y-1 shadow-lg">d6</button>
-    <button on:click={() => startQuickRoll(6, 2)} class="bg-slate-800 hover:bg-indigo-600 text-white font-bold w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:-translate-y-1 shadow-lg text-xs">2d6</button>
-    <button on:click={() => startQuickRoll(6, 3)} class="bg-slate-800 hover:bg-indigo-600 text-white font-bold w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:-translate-y-1 shadow-lg text-xs">3d6</button>
+    <button onclick={() => startQuickRoll(20)} class="bg-slate-800 hover:bg-indigo-600 text-white font-bold w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:-translate-y-1 shadow-lg">d20</button>
+    <button onclick={() => startQuickRoll(6)} class="bg-slate-800 hover:bg-indigo-600 text-white font-bold w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:-translate-y-1 shadow-lg">d6</button>
+    <button onclick={() => startQuickRoll(6, 2)} class="bg-slate-800 hover:bg-indigo-600 text-white font-bold w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:-translate-y-1 shadow-lg text-xs">2d6</button>
+    <button onclick={() => startQuickRoll(6, 3)} class="bg-slate-800 hover:bg-indigo-600 text-white font-bold w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:-translate-y-1 shadow-lg text-xs">3d6</button>
 </div>
 
-<!-- Quick Roll Modal -->
 {#if quickRollState.isOpen}
-    <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <!-- svelte-ignore a11y-no-static-element-interactions -->
-    <div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4" on:click|self={() => quickRollState.isOpen = false}>
-        <div class="bg-slate-800 rounded-xl border border-slate-700 shadow-2xl p-6 w-full max-w-sm">
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4" onclick={(e) => { if (e.target === e.currentTarget) quickRollState.isOpen = false; }} role="button" aria-label="Fechar" tabindex="-1">
+        <div class="bg-slate-800 rounded-xl border border-slate-700 shadow-2xl p-6 w-full max-w-sm" role="dialog" aria-modal="true">
              <h3 class="font-bold text-white text-center text-lg mb-4">Rolagem Rápida ({quickRollState.count}d{quickRollState.sides})</h3>
              <div class="flex items-center justify-center gap-6 mb-6">
-                 <button on:click={() => quickRollState.modifier--} class="w-12 h-12 rounded-full bg-slate-700 hover:bg-red-500 text-white flex items-center justify-center"><Minus size={24}/></button>
+                 <button onclick={() => quickRollState.modifier--} class="w-12 h-12 rounded-full bg-slate-700 hover:bg-red-500 text-white flex items-center justify-center"><Minus size={24}/></button>
                  <div class="text-4xl font-bold {quickRollState.modifier > 0 ? 'text-green-400' : quickRollState.modifier < 0 ? 'text-red-400' : 'text-slate-500'}">
                      {quickRollState.modifier > 0 ? '+' : ''}{quickRollState.modifier}
                  </div>
-                 <button on:click={() => quickRollState.modifier++} class="w-12 h-12 rounded-full bg-slate-700 hover:bg-green-500 text-white flex items-center justify-center"><Plus size={24}/></button>
+                 <button onclick={() => quickRollState.modifier++} class="w-12 h-12 rounded-full bg-slate-700 hover:bg-green-500 text-white flex items-center justify-center"><Plus size={24}/></button>
              </div>
              <div class="text-xs text-center text-slate-500 mb-6 uppercase font-bold">{quickRollState.sides === 20 ? 'Boons / Banes' : 'Modificador Fixo'}</div>
-             <button on:click={confirmQuickRoll} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl shadow-lg">ROLAR AGORA</button>
+             <button onclick={confirmQuickRoll} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl shadow-lg">ROLAR AGORA</button>
         </div>
     </div>
 {/if}
+
+<HistorySidebar isOpen={$isHistoryOpen} onClose={() => isHistoryOpen.set(false)} />
+
+<ConfirmationModal 
+    isOpen={confirmState.isOpen}
+    title={confirmState.title}
+    message={confirmState.message}
+    onConfirm={confirmState.onConfirm}
+    onCancel={() => confirmState.isOpen = false}
+/>
