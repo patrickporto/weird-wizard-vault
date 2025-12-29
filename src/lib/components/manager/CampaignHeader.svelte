@@ -37,17 +37,17 @@
           <div class="flex bg-slate-950/50 p-1 rounded-xl border border-white/5">
              <button 
                 on:click={() => onTabChange('session')} 
-                class="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-black transition-all {activeSubTab === 'session' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:text-slate-300'}"
+                class="flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-black transition-all {activeSubTab === 'session' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:text-slate-300'}"
              >
                 <Sword size={14} class={activeSubTab === 'session' ? 'opacity-100' : 'opacity-50'}/>
-                <span class="hidden xs:block">Sessão</span>
+                <span class="hidden min-[400px]:block">Sessão</span>
              </button>
              <button 
                 on:click={() => onTabChange('bestiary')} 
-                class="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-black transition-all {activeSubTab === 'bestiary' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:text-slate-300'}"
+                class="flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-black transition-all {activeSubTab === 'bestiary' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:text-slate-300'}"
              >
                 <Library size={14} class={activeSubTab === 'bestiary' ? 'opacity-100' : 'opacity-50'}/>
-                <span class="hidden xs:block">Bestiário</span>
+                <span class="hidden min-[400px]:block">Bestiário</span>
              </button>
           </div>
 
@@ -73,10 +73,5 @@
 </header>
 
 <style>
-    /* Suporte para telas muito pequenas */
-    @media (max-width: 350px) {
-        .xs\:block {
-            display: none !important;
-        }
-    }
+    /* Estilos adicionais se necessário */
 </style>
