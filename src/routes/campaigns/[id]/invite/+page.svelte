@@ -177,12 +177,14 @@
         <div class="flex gap-3">
             <button onclick={() => goto('/')} class="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold transition-all">Recusar</button>
             <button 
-                disabled={!selectedCharId || isVerifying || (!!passwordHash && !passwordInput)}
+                disabled={!selectedCharId || isVerifying || (!!passwordHash && !passwordInput) || campaignName === 'Buscando campanha...'}
                 onclick={handleJoin} 
                 class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold transition-all shadow-lg shadow-indigo-900/20 flex items-center justify-center gap-2"
             >
                 {#if isVerifying}
                     <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> Validando...
+                {:else if campaignName === 'Buscando campanha...'}
+                    <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> Carregando...
                 {:else}
                     Aceitar Convite
                 {/if}
