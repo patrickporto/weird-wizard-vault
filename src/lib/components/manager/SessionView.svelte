@@ -279,6 +279,28 @@ import { joinCampaignRoom, syncCombat, syncCampaign } from '$lib/logic/sync';
         // If updated in the last 60 seconds. Use currentTime to force reactivity.
         return (currentTime - char.lastUpdate) < 60000;
     }
+    function updatePlayerInCampaign(charId: string, updates: any) {
+        const current = campaignsMap.get(campaign.id) || campaign;
+        const members = current.members || [];
+        const mIdx = members.findIndex(m => m.id === charId);
+        
+        let newMembers = members;
+        if (mIdx !== -1) {
+            newMembers = [...members];
+            newMembers[mIdx] = { ...newMembers[mIdx], ...updates };
+        }
+
+        // Also update in activeEnemies if they are in combat
+        const enemies = current.activeEnemies || [];
+        const eIdx = enemies.findIndex(e => e.id === charId && e.type === 'player');
+        let newEnemies = enemies;
+        if (eIdx !== -1) {
+            newEnemies = [...enemies];
+            newEnemies[eIdx] = { ...newEnemies[eIdx], ...updates };
+        }
+
+        updateCampaign({ members: newMembers, activeEnemies: newEnemies });
+    }
 </script>
 
 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full relative">
@@ -444,7 +466,7 @@ import { joinCampaignRoom, syncCombat, syncCampaign } from '$lib/logic/sync';
         <div class="space-y-3 pb-20">
             {#each sortedCombatants as entity (entity.type === 'player' ? entity.id : entity.instanceId)}
                 <div animate:flip={{duration: 300}}>
-                   <CombatCard {entity} {updateEnemy} {removeFromCombat} />
+                   <CombatCard {entity} {updateEnemy} {removeFromCombat} updatePlayer={updatePlayerInCampaign} />
                 </div>
             {/each}
             {#if sortedCombatants.length === 0}

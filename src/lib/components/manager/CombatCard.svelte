@@ -6,10 +6,16 @@
     interface Props {
         entity: any;
         updateEnemy?: (instanceId: string, updates: any) => void;
+        updatePlayer?: (charId: string, updates: any) => void;
         removeFromCombat?: (instanceId: string) => void;
     }
 
-    let { entity, updateEnemy = () => {}, removeFromCombat = () => {} }: Props = $props();
+    let { 
+        entity, 
+        updateEnemy = (id: string, u: any) => {}, 
+        updatePlayer = (id: string, u: any) => {}, 
+        removeFromCombat = (id: string) => {} 
+    }: Props = $props();
 
     // Derived values
     let isPlayer = $derived(entity.type === 'player');
@@ -30,16 +36,22 @@
     import { syncCharacter } from '$lib/logic/sync';
 
     // Helper for player updates
-    function updatePlayer(updates: any) {
+    function handleUpdatePlayer(updates: any) {
         if (entity.type !== 'player') return;
-        const current = charactersMap.get(entity.id) || entity;
-        const updated = { ...current, ...updates };
-        charactersMap.set(entity.id, updated);
         
-        // Sync to the room if it's a player character
+        // 1. Update GM's view/local storage
+        const currentLocal = charactersMap.get(entity.id);
+        if (currentLocal) {
+            charactersMap.set(entity.id, { ...currentLocal, ...updates });
+        }
+        
+        // 2. Notify parent (SessionView) to update campaign member state
+        updatePlayer(entity.id, updates);
+        
+        // 3. Sync to the room so the player character sheet receives it
         syncCharacter({
             id: entity.id,
-            ...updated
+            ...updates
         });
     }
 
@@ -48,7 +60,7 @@
         if (isNaN(val)) return; 
         const d = Math.max(0, val);
         const updates = { damage: d };
-        if(entity.type === 'player') updatePlayer(updates);
+        if(entity.type === 'player') handleUpdatePlayer(updates);
         else updateEnemy(entity.instanceId, updates);
     }
 
@@ -63,25 +75,25 @@
         }
 
         const updates = { currentHealth: h, damage: d };
-        if(entity.type === 'player') updatePlayer(updates);
+        if(entity.type === 'player') handleUpdatePlayer(updates);
         else updateEnemy(entity.instanceId, updates);
     }
     
     function toggleActed() {
         const newVal = !entity.acted;
-        if(entity.type === 'player') updatePlayer({ acted: newVal });
+        if(entity.type === 'player') handleUpdatePlayer({ acted: newVal });
         else updateEnemy(entity.instanceId, { acted: newVal });
     }
 
     function toggleInitiative() {
-        if(entity.type === 'player') updatePlayer({ initiative: !entity.initiative });
+        if(entity.type === 'player') handleUpdatePlayer({ initiative: !entity.initiative });
     }
 
     function toggleAffliction(aff: string) {
          const list = entity.afflictions || [];
          const newList = list.includes(aff) ? list.filter((a: string) => a !== aff) : [...list, aff];
          const updates = { afflictions: newList };
-         if(entity.type === 'player') updatePlayer(updates);
+         if(entity.type === 'player') handleUpdatePlayer(updates);
          else updateEnemy(entity.instanceId, updates);
     }
 

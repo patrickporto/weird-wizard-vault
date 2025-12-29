@@ -103,11 +103,12 @@ export function joinCampaignRoom(campaignId: string, isGM: boolean = false, char
         } else {
             const state = get(syncState);
             if (state.currentCharacterId === charData.id) {
-                // Apply update to local character
                 character.update(c => ({
                     ...c,
                     name: charData.name || c.name,
-                    afflictions: charData.afflictions || c.afflictions
+                    afflictions: charData.afflictions || c.afflictions,
+                    initiative: charData.initiative !== undefined ? charData.initiative : (c.initiative ?? false),
+                    acted: charData.acted !== undefined ? charData.acted : (c.acted ?? false)
                 }));
                 if (charData.damage !== undefined) damage.set(charData.damage);
                 if (charData.currentHealth !== undefined) currentHealth.set(charData.currentHealth);
