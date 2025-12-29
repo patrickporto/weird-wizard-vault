@@ -168,7 +168,7 @@
 
           <CharacterHeader />
           
-          <main class="max-w-6xl mx-auto px-4 mt-6 lg:mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <main class="max-w-6xl mx-auto md:px-4 mt-6 lg:mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
              
              <!-- SIDEBAR ESQUERDA (desktop only) -->
              <aside class="hidden lg:block lg:col-span-3 space-y-4">
@@ -193,10 +193,10 @@
 
              <!-- MAIN CONTENT -->
              <section class="lg:col-span-9">
-                <div class="bg-slate-900 rounded-xl border border-slate-800 min-h-[60vh]">
+                <div class="bg-slate-900 md:rounded-xl md:border md:border-slate-800 min-h-[calc(100vh-200px)] md:min-h-[60vh] flex flex-col">
                    <TabNavigation />
 
-                   <div class="p-4 md:p-6">
+                   <div class="p-4 md:p-6 flex-1 flex flex-col">
                       {#if $activeTab === 'stats'}
                          <StatsTab />
                       {/if}
@@ -229,10 +229,10 @@
              </section>
           </main>
       
-          <div class="lg:hidden px-4 mt-6">
+           <div class="hidden">
              <CampaignStatus banner />
           </div>
-      {/if}
+       {/if}
     {:else}
         <div class="flex items-center justify-center min-h-screen">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
