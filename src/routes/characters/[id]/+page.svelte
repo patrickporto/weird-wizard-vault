@@ -68,7 +68,8 @@
                 defense: def,
                 initiative: charData.initiative,
                 acted: charData.acted,
-                afflictions: charData.afflictions || []
+                afflictions: charData.afflictions || [],
+                campaignApproval: charData.campaignApproval
             });
         }
     });
@@ -94,7 +95,8 @@
                 defense: get(totalDefense),
                 initiative: current.initiative,
                 acted: current.acted,
-                afflictions: current.afflictions || []
+                afflictions: current.afflictions || [],
+                campaignApproval: current.campaignApproval
             });
         }, 30000); // 30 seconds heartbeat
 

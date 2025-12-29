@@ -9,7 +9,7 @@
     import { flip } from 'svelte/animate';
     import { calculateDiceRoll } from '$lib/logic/dice';
 import { onMount } from 'svelte';
-import { joinCampaignRoom, syncCombat, syncCampaign } from '$lib/logic/sync';
+import { joinCampaignRoom, syncCombat, syncCampaign, syncCharacter } from '$lib/logic/sync';
 
     let { campaign } = $props<{ campaign: any }>();
 
@@ -65,7 +65,9 @@ import { joinCampaignRoom, syncCombat, syncCampaign } from '$lib/logic/sync';
     
     // Players present in the campaign - includes those in the session roster and anyone who joined via invite
     // IMPORTANT: Member data (synced via WebRTC) takes priority for real-time fields like health/damage
-    let players = $derived((() => {
+    // Players present in the campaign - includes those in the session roster and anyone who joined via invite
+    // IMPORTANT: Member data (synced via WebRTC) takes priority for real-time fields like health/damage
+    let allPlayers = $derived((() => {
         const allMemberIds = Array.from(new Set([...roster, ...campaignMembers.map(m => m.id)]));
         return allMemberIds.map(pid => {
             const local = $liveCharacters.find(c => c.id === pid);
@@ -75,15 +77,7 @@ import { joinCampaignRoom, syncCombat, syncCampaign } from '$lib/logic/sync';
             if (local && member) {
                 return { 
                     ...local, 
-                    // Synced fields from member take priority
-                    damage: member.damage ?? local.damage,
-                    currentHealth: member.currentHealth ?? local.currentHealth,
-                    normalHealth: member.normalHealth ?? local.normalHealth,
-                    health: member.health ?? local.health,
-                    defense: member.defense ?? local.defense,
-                    afflictions: member.afflictions ?? local.afflictions,
-                    initiative: member.initiative ?? local.initiative,
-                    acted: member.acted ?? local.acted,
+                    ...member,
                     lastUpdate: member.lastUpdate 
                 };
             }
@@ -91,6 +85,9 @@ import { joinCampaignRoom, syncCombat, syncCampaign } from '$lib/logic/sync';
             return member;
         }).filter(Boolean);
     })());
+
+    let players = $derived(allPlayers.filter(p => !p.campaignApproval || p.campaignApproval === 'approved'));
+    let pendingPlayers = $derived(allPlayers.filter(p => p.campaignApproval === 'pending'));
     
     // Available characters to manually add (local characters not already in roster/members)
     let availableCharacters = $derived($liveCharacters.filter(c => !roster.includes(c.id) && !campaignMembers.some(m => m.id === c.id)));
@@ -123,15 +120,34 @@ import { joinCampaignRoom, syncCombat, syncCampaign } from '$lib/logic/sync';
         }
     }
 
+    function approvePlayer(charId: string) {
+        updatePlayerInCampaign(charId, { campaignApproval: 'approved' });
+        // Sync specifically to this player
+        syncCharacter({ id: charId, campaignApproval: 'approved' });
+    }
+
+    function rejectPendingPlayer(charId: string) {
+        // Send a clear command to the player so they don't stay "pending" forever
+        syncCharacter({ id: charId, campaignApproval: 'rejected', campaignId: null });
+        
+        // Remove from our GM member list
+        const current = campaignsMap.get(campaign.id) || campaign;
+        const newMembers = (current.members || []).filter((m: any) => m.id !== charId);
+        updateCampaign({ members: newMembers });
+    }
+
     function removePlayerFromCampaign(charId: string) {
-        const char = $liveCharacters.find(c => c.id === charId) || players.find(p => p.id === charId);
+        const char = allPlayers.find(p => p.id === charId);
         confirmState = {
             isOpen: true,
-            title: 'Expulsar Jogador',
-            message: `Tem certeza que deseja remover ${char?.name || 'este personagem'} PERMANENTEMENTE da campanha? Esta ação não pode ser desfeita.`,
+            title: 'Remover da Campanha',
+            message: `Deseja remover ${char?.name || 'este personagem'} da campanha? Eles poderão entrar novamente através do link de convite.`,
             onConfirm: () => {
                 const current = campaignsMap.get(campaign.id) || campaign;
                 
+                // Signal removal to the player so it clears from their sheet
+                syncCharacter({ id: charId, campaignId: null });
+
                 // Remove from session roster
                 const newRoster = (current.sessionRoster || []).filter((id: string) => id !== charId);
                 
@@ -356,14 +372,54 @@ import { joinCampaignRoom, syncCombat, syncCampaign } from '$lib/logic/sync';
     <div class="space-y-6">
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col gap-4">
             <div class="flex justify-between items-center bg-slate-950/50 p-2 rounded-lg border border-slate-800">
-                 <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2"><Users size={14} class="text-indigo-500"/> Personagens</h3>
+                 <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                    <Users size={14} class="text-indigo-500"/> 
+                    Personagens 
+                    {#if players.length > 0}
+                        <span class="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded-full">{players.length}</span>
+                    {/if}
+                 </h3>
                  <button 
                     onclick={() => isAddCharOpen = !isAddCharOpen} 
                     class="text-[10px] bg-slate-800 hover:bg-slate-700 text-white px-2.5 py-1.5 rounded-md font-bold transition-all border border-slate-700 active:scale-95"
                 >
-                     {isAddCharOpen ? 'Fechar' : 'Gerenciar'}
+                     {isAddCharOpen ? 'Fechar' : 'Adicionar'}
                  </button>
             </div>
+
+            {#if pendingPlayers.length > 0}
+                <div class="space-y-2 animate-in fade-in slide-in-from-top-2">
+                    <div class="flex items-center gap-2 px-1">
+                        <div class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div>
+                        <span class="text-[10px] font-black text-amber-500 uppercase tracking-wider">Aguardando Aprovação ({pendingPlayers.length})</span>
+                    </div>
+                    {#each pendingPlayers as char (char.id)}
+                        <div class="p-3 rounded-xl border border-amber-500/30 bg-amber-500/5 flex items-center gap-3 transition-all hover:bg-amber-500/10 shadow-sm">
+                            <div class="flex-1">
+                                <div class="font-bold text-sm text-amber-200 leading-none">{char.name}</div>
+                                <div class="text-[9px] text-amber-500/60 font-medium mt-1 uppercase tracking-tighter">Novo pedido de entrada</div>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <button 
+                                    onclick={() => approvePlayer(char.id)} 
+                                    class="p-2 rounded-lg bg-green-600/20 text-green-400 hover:bg-green-600 hover:text-white transition-all shadow-lg active:scale-90" 
+                                    title="Aprovar"
+                                >
+                                    <Check size={14}/>
+                                </button>
+                                <button 
+                                    onclick={() => rejectPendingPlayer(char.id)} 
+                                    class="p-2 rounded-lg bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white transition-all shadow-lg active:scale-90" 
+                                    title="Recusar"
+                                >
+                                    <Trash2 size={14}/>
+                                </button>
+                            </div>
+                        </div>
+                    {/each}
+                    <div class="h-px bg-slate-800/50 mx-2 my-2"></div>
+                </div>
+            {/if}
             
             <div class="space-y-2 flex-1 overflow-y-auto max-h-[300px] custom-scrollbar pr-1">
             <!-- Removed inline list -->

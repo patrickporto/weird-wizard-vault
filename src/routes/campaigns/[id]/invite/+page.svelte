@@ -83,7 +83,8 @@
                     ...char,
                     campaignId,
                     campaignName,
-                    gmName
+                    gmName,
+                    campaignApproval: 'pending'
                 });
                 goto(`/characters/${selectedCharId}`);
             });

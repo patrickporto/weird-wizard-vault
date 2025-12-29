@@ -144,7 +144,15 @@ export function joinCampaignRoom(campaignId: string, isGM: boolean = false, char
                 let newMembers;
                 if (idx !== -1) {
                     newMembers = [...members];
-                    newMembers[idx] = { ...newMembers[idx], ...charData, lastUpdate: Date.now() };
+                    const existing = newMembers[idx];
+
+                    // Don't let a 'pending' status from the player override an 'approved' status in the GM's database
+                    const mergedData = { ...charData };
+                    if (existing.campaignApproval === 'approved' && charData.campaignApproval === 'pending') {
+                        delete mergedData.campaignApproval;
+                    }
+
+                    newMembers[idx] = { ...existing, ...mergedData, lastUpdate: Date.now() };
                 } else {
                     newMembers = [...members, { ...charData, lastUpdate: Date.now() }];
                 }
@@ -171,12 +179,25 @@ export function joinCampaignRoom(campaignId: string, isGM: boolean = false, char
             const myCharId = state.currentCharacterId || charStoreData?.id;
 
             if (myCharId && myCharId === charData.id) {
+                // If GM sent a rejection or removal (campaignId null)
+                if (charData.campaignApproval === 'rejected' || charData.campaignId === null) {
+                    character.update(c => ({
+                        ...c,
+                        campaignId: null,
+                        campaignName: null,
+                        gmName: null,
+                        campaignApproval: null
+                    }));
+                    return;
+                }
+
                 character.update(c => ({
                     ...c,
                     name: charData.name || c.name,
                     afflictions: charData.afflictions || c.afflictions,
                     initiative: charData.initiative !== undefined ? charData.initiative : (c.initiative ?? false),
-                    acted: charData.acted !== undefined ? charData.acted : (c.acted ?? false)
+                    acted: charData.acted !== undefined ? charData.acted : (c.acted ?? false),
+                    campaignApproval: charData.campaignApproval || c.campaignApproval
                 }));
                 if (charData.damage !== undefined) damage.set(charData.damage);
                 if (charData.currentHealth !== undefined) currentHealth.set(charData.currentHealth);

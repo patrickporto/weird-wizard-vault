@@ -12,23 +12,30 @@
 </script>
 
 {#if $character.campaignId}
+    {@const isPending = $character.campaignApproval === 'pending'}
     {#if banner}
         <!-- Mobile Premium Banner -->
-        <div class="bg-indigo-600/10 backdrop-blur-md border border-indigo-500/20 rounded-2xl p-4 flex items-center justify-between shadow-xl shadow-indigo-950/20">
+        <div class="bg-indigo-600/10 backdrop-blur-md border border-indigo-500/20 rounded-2xl p-4 flex items-center justify-between shadow-xl shadow-indigo-950/20 {isPending ? 'border-amber-500/30 bg-amber-500/5' : ''}">
             <div class="flex items-center gap-3">
                 <div class="relative">
-                    <div class="w-10 h-10 bg-indigo-600/20 rounded-xl flex items-center justify-center text-indigo-400 border border-indigo-500/30">
+                    <div class="w-10 h-10 {isPending ? 'bg-amber-600/20 text-amber-400 border-amber-500/30' : 'bg-indigo-600/20 text-indigo-400 border-indigo-500/30'} rounded-xl flex items-center justify-center">
                         <Users size={20}/>
                     </div>
-                    <div class="absolute -top-1 -right-1 w-3 h-3 {$isGmOnline ? 'bg-green-500 animate-pulse' : 'bg-slate-600'} rounded-full border-2 border-slate-950 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+                    <div class="absolute -top-1 -right-1 w-3 h-3 {isPending ? 'bg-amber-500 animate-pulse' : ($isGmOnline ? 'bg-green-500 animate-pulse' : 'bg-slate-600')} rounded-full border-2 border-slate-950 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
                 </div>
                 <div>
-                     <div class="text-[10px] text-indigo-400/70 font-black uppercase tracking-[0.2em] leading-none mb-1">Campanha Ativa</div>
-                     <div class="font-bold text-white text-base leading-tight">{$character.campaignName}</div>
-                     <div class="text-[10px] text-slate-400 mt-0.5 font-medium flex items-center gap-1">
-                        <span class="opacity-50 font-bold uppercase tracking-tighter">Mestre:</span> 
-                        <span class="text-indigo-300">{$character.gmName}</span>
+                     <div class="text-[10px] {isPending ? 'text-amber-500/70' : 'text-indigo-400/70'} font-black uppercase tracking-[0.2em] leading-none mb-1">
+                        Campanha Ativa
                      </div>
+                     <div class="font-bold text-white text-base leading-tight">{$character.campaignName}</div>
+                     {#if isPending}
+                        <div class="text-[9px] font-black text-amber-500 uppercase tracking-tighter mt-1 animate-pulse">Aguardando Aprovação</div>
+                     {:else}
+                        <div class="text-[10px] text-slate-400 mt-0.5 font-medium flex items-center gap-1">
+                            <span class="opacity-50 font-bold uppercase tracking-tighter">Mestre:</span> 
+                            <span class="text-indigo-300">{$character.gmName}</span>
+                        </div>
+                     {/if}
                 </div>
             </div>
             <button 
@@ -40,19 +47,21 @@
             </button>
         </div>
     {:else if compact}
-        <div class="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full shadow-sm glass">
-            <div class="w-1.5 h-1.5 rounded-full {$isGmOnline ? 'bg-green-500 animate-pulse' : 'bg-slate-600'} shadow-[0_0_8px_rgba(34,197,94,0.4)]"></div>
-            <span class="text-[9px] font-black text-indigo-400 uppercase tracking-widest truncate max-w-[150px]">{$character.campaignName}</span>
+        <div class="inline-flex items-center gap-2 px-3 py-1 {isPending ? 'bg-amber-500/10 border-amber-500/20' : 'bg-indigo-500/10 border-indigo-500/20'} rounded-full shadow-sm glass">
+            <div class="w-1.5 h-1.5 rounded-full {isPending ? 'bg-amber-500 animate-pulse' : ($isGmOnline ? 'bg-green-500 animate-pulse' : 'bg-slate-600')} shadow-[0_0_8px_rgba(34,197,94,0.4)]"></div>
+            <span class="text-[9px] font-black {isPending ? 'text-amber-500' : 'text-indigo-400'} uppercase tracking-widest truncate max-w-[150px]">{$character.campaignName}</span>
         </div>
     {:else}
         <!-- Sidebar Desktop Style -->
-        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-lg backdrop-blur-sm group hover:border-indigo-500/30 transition-all duration-300 {!$isGmOnline ? 'opacity-60 saturate-50' : ''}">
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-lg backdrop-blur-sm group hover:border-indigo-500/30 transition-all duration-300 {!$isGmOnline && !isPending ? 'opacity-60 saturate-50' : ''} {isPending ? 'border-amber-500/20' : ''}">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <div class="p-1.5 {$isGmOnline ? 'bg-indigo-500/10 text-indigo-400' : 'bg-slate-800 text-slate-500'} rounded-lg">
+                    <div class="p-1.5 {isPending ? 'bg-amber-500/10 text-amber-500' : ($isGmOnline ? 'bg-indigo-500/10 text-indigo-400' : 'bg-slate-800 text-slate-500')} rounded-lg">
                         <Users size={16}/>
                     </div>
-                    <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.15em]">Campanha Ativa</h3>
+                    <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.15em]">
+                        Campanha Ativa
+                    </h3>
                 </div>
                 <button 
                     onclick={characterActions.leaveCampaign} 
@@ -73,20 +82,26 @@
 
             <div class="flex items-center justify-between pt-3 border-t border-white/5">
                  <div class="flex items-center gap-2">
-                    <div class="w-1.5 h-1.5 rounded-full {$isGmOnline ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.4)] animate-pulse' : 'bg-slate-700'}"></div>
-                    <span class="text-[11px] font-bold uppercase tracking-wider {$isGmOnline ? 'text-slate-400' : 'text-slate-600'}">
-                        {$isGmOnline ? 'Online' : 'Offline'}
+                    <div class="w-1.5 h-1.5 rounded-full {isPending ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.4)] animate-pulse' : ($isGmOnline ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.4)] animate-pulse' : 'bg-slate-700')}"></div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider {isPending ? 'text-amber-500' : ($isGmOnline ? 'text-slate-400' : 'text-slate-600')}">
+                        {isPending ? 'Pendente de Aprovação' : ($isGmOnline ? 'Online' : 'Offline')}
                     </span>
                  </div>
                  <div class="flex items-center gap-1 text-[10px] text-slate-600 font-mono">
-                    {#if $isGmOnline}
+                    {#if isPending}
+                        <Clock size={10} class="opacity-40 animate-spin" style="animation-duration: 3s"/>
+                    {:else if $isGmOnline}
                         <Wifi size={10} class="opacity-40"/>
                     {:else}
                         <WifiOff size={10} class="opacity-40 text-red-500/50"/>
                     {/if}
-                    {$isGmOnline ? 'SYNCED' : 'WAITING'}
+                    {isPending ? 'PENDENTE' : ($isGmOnline ? 'SYNCED' : 'WAITING')}
                  </div>
             </div>
         </div>
     {/if}
 {/if}
+
+<script lang="ts" context="module">
+    import { Clock } from 'lucide-svelte';
+</script>
