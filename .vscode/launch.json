@@ -1,0 +1,22 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {  
+        "name": "Attach to Vite Dev Server",  
+        "type": "node",  
+        "request": "attach",  
+        "port": 9229, // Matches Node.js inspector port (default 9229)  
+        "restart": true, // Reattach if server restarts  
+        "skipFiles": ["<node_internals>/**"], // Skip Node.js core files  
+        "sourceMaps": true, // Enable source maps for TypeScript  
+        "resolveSourceMapLocations": [  
+            "${workspaceFolder}/**", // Map project files  
+            "!**/node_modules/**" // Ignore node_modules source maps  
+        ],  
+        "cwd": "${workspaceFolder}" // Project root directory  
+        }  
+    ]
+}
