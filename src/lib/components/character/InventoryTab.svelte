@@ -12,8 +12,10 @@
 </script>
 
 <div class="space-y-4">
-    <!-- Currency inline for all devices -->
-    <CurrencySection />
+    <!-- Currency inline for mobile only (shown in sidebar on desktop) -->
+    <div class="lg:hidden">
+        <CurrencySection />
+    </div>
     
     <div class="flex justify-between items-center">
         <h3 class="text-xs font-bold text-slate-500 uppercase">Inventário</h3>

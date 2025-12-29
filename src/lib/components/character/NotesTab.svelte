@@ -4,8 +4,10 @@
 </script>
 
 <div class="space-y-6">
-    <!-- Languages Section -->
-    <LanguagesSection />
+    <!-- Languages Section - Mobile Only (shown in sidebar on desktop) -->
+    <div class="lg:hidden">
+        <LanguagesSection />
+    </div>
     
     <div class="space-y-4">
         <div class="flex justify-between items-center mb-2">
