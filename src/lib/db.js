@@ -1,5 +1,7 @@
 import * as Y from 'yjs';
 import { IndexeddbPersistence } from 'y-indexeddb';
+import { appId } from '../app';
+
 
 export const doc = new Y.Doc();
 
@@ -8,7 +10,7 @@ export const doc = new Y.Doc();
 const isBrowser = typeof window !== 'undefined';
 
 export const provider = isBrowser
-    ? new IndexeddbPersistence('weird-wizard-vault', doc)
+    ? new IndexeddbPersistence(appId, doc)
     : null;
 
 export const charactersMap = doc.getMap('characters');

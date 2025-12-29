@@ -2,8 +2,9 @@ import { joinRoom, selfId } from 'trystero';
 import { writable, get, derived } from 'svelte/store';
 import { characterActions, character, isHistoryOpen, damage, currentHealth, normalHealth } from '$lib/stores/characterStore';
 import { campaignsMap } from '$lib/db';
+import { appId } from '../../app';
 
-const roomConfig = { appId: 'weird-wizard-vault' };
+const roomConfig = { appId };
 
 export const syncState = writable({
     roomId: null as string | null,
