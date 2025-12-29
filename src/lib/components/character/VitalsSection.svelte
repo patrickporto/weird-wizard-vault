@@ -26,7 +26,6 @@
             </div>
             <div class="flex items-baseline gap-1">
                 <span class="text-3xl font-black text-white leading-none">{$totalDefense}</span>
-                <span class="text-[10px] text-slate-600 font-bold uppercase">ALVO</span>
             </div>
         </button>
 
@@ -50,14 +49,9 @@
 
     <!-- Bonus Damage Controller -->
     <div class="bg-slate-900 rounded-2xl border border-slate-800 p-4 shadow-lg shadow-black/20">
-        <div class="flex items-center justify-between mb-3">
-            <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
-                <Sword size={14} class="text-indigo-500"/> Bônus de Dano
-            </span>
-            <div class="px-2 py-0.5 bg-indigo-500/10 rounded-full">
-                <span class="text-[10px] text-indigo-400 font-black uppercase tracking-tighter">Adicional</span>
-            </div>
-        </div>
+        <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
+            <Sword size={14} class="text-indigo-500"/> Bônus de Dano
+        </span>
         <div class="flex items-center justify-between bg-black/40 rounded-xl p-1.5 border border-white/5">
             <button 
                 onclick={decreaseBonusDamage} 

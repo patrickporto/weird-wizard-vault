@@ -188,28 +188,12 @@
         >
             <Scroll size={16}/> Campanhas
         </button>
-        <button 
-            onclick={() => activeTab = 'discovery'} 
-            class="px-5 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 {activeTab === 'discovery' ? 'bg-emerald-600 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)]' : 'text-slate-400 hover:text-white hover:bg-slate-800'}"
-        >
-            <Globe size={16}/> Públicas
-        </button>
       </div>
    </header>
 
    <div class="min-h-[500px]">
        {#if activeTab === 'characters'}
          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <button 
-                onclick={() => openCharModal()} 
-                class="h-full min-h-[160px] border-2 border-dashed border-slate-800 rounded-3xl flex flex-col items-center justify-center text-slate-500 hover:border-indigo-500 hover:text-indigo-500 transition-all hover:bg-indigo-500/5 gap-2 group shadow-sm bg-slate-900/20"
-            >
-                <div class="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-indigo-500/10 group-hover:scale-110 transition-all">
-                    <Plus size={32} />
-                </div>
-                <span class="font-bold">Novo Personagem</span>
-            </button>
-            
             {#each $liveCharacters as char (char.id)}
                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 hover:border-indigo-500/40 transition-all relative group flex flex-col justify-between shadow-lg hover:shadow-indigo-500/10 border-t-white/5">
                   <div class="flex justify-between items-start mb-4">
@@ -243,97 +227,121 @@
                   </button>
                </div>
             {/each}
-         </div>
-
-       {:else if activeTab === 'campaigns'}
-         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-             <button 
-                onclick={() => openCampModal()} 
+            
+            <button 
+                onclick={() => openCharModal()} 
                 class="h-full min-h-[160px] border-2 border-dashed border-slate-800 rounded-3xl flex flex-col items-center justify-center text-slate-500 hover:border-indigo-500 hover:text-indigo-500 transition-all hover:bg-indigo-500/5 gap-2 group shadow-sm bg-slate-900/20"
             >
                 <div class="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-indigo-500/10 group-hover:scale-110 transition-all">
                     <Plus size={32} />
                 </div>
-                <span class="font-bold">Nova Campanha</span>
+                <span class="font-bold">Novo Personagem</span>
             </button>
-             
-             {#each $liveCampaigns as camp (camp.id)}
-                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 hover:border-indigo-500/40 transition-all group relative flex flex-col justify-between shadow-lg hover:shadow-indigo-500/10 border-t-white/5">
-                   <div class="mb-4">
-                      <div class="flex justify-between items-start mb-1">
-                          <h3 class="font-black text-2xl text-white group-hover:text-indigo-400 transition-colors uppercase tracking-tight">{camp.name}</h3>
-                          {#if camp.isPublished}
-                              <span class="text-[9px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20 font-black uppercase tracking-widest flex items-center gap-1">
-                                  <Globe size={10}/> Publicada
-                              </span>
-                          {/if}
-                      </div>
-                       <p class="text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em] mb-3">{camp.gmName || 'Mestre'}</p>
-                       <p class="text-sm text-slate-400 line-clamp-2 leading-relaxed h-10">{camp.description || 'Uma jornada sem descrição ainda.'}</p>
-                   </div>
-                   
-                   <div class="flex gap-3 mt-4">
-                     <button 
-                        onclick={() => goto(resolve('/campaigns/[id]', { id: camp.id }))} 
-                        class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2 border border-indigo-400/20 shadow-lg shadow-indigo-900/20 transition-all active:scale-[0.98]"
-                    >
-                        <Play size={18} fill="currentColor"/> Gerir Sessão
-                    </button>
-                    <div class="flex gap-2">
-                        <button 
-                            onclick={() => openCampModal(camp)} 
-                            class="p-3 text-slate-400 hover:text-white bg-slate-800/50 rounded-2xl border border-slate-800 hover:border-slate-700 transition-all" 
-                            title="Editar"
-                        >
-                            <Edit size={20}/>
-                        </button>
-                        <button 
-                            onclick={() => deleteCampaign(camp.id)} 
-                            class="p-3 text-slate-400 hover:text-red-400 bg-slate-800/50 rounded-2xl border border-slate-800 hover:border-red-900/30 transition-all" 
-                            title="Excluir"
-                        >
-                            <Trash2 size={20}/>
-                        </button>
-                    </div>
-                   </div>
-                </div>
-             {/each}
          </div>
 
-       {:else if activeTab === 'discovery'}
-         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-             {#each $publicCampaigns as camp (camp.id)}
-                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 hover:border-emerald-500/40 transition-all group relative flex flex-col justify-between shadow-xl border-t-white/5">
-                   <div>
-                      <h3 class="font-black text-2xl text-white group-hover:text-emerald-400 mb-2 uppercase tracking-tight">{camp.name}</h3>
-                      <div class="flex items-center gap-2 mb-4">
-                           <div class="px-2 py-0.5 bg-slate-800 rounded text-[9px] text-slate-400 font-black uppercase tracking-widest">{camp.gmName || 'Mestre'}</div>
-                           <div class="flex items-center gap-1 px-2 py-0.5 bg-emerald-500/10 rounded text-[9px] text-emerald-400 font-black uppercase tracking-wider">
-                                <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                                Online
-                           </div>
-                      </div>
-                      <p class="text-sm text-slate-400 line-clamp-3 leading-relaxed mb-6 h-15">{camp.description || 'Uma jornada por terras desconhecidas aguarada heróis.'}</p>
-                   </div>
-                   <button 
-                        onclick={() => goto(resolve('/campaigns/[id]/invite', { id: camp.id }))} 
-                        class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-2xl font-black uppercase text-xs tracking-[0.1em] flex items-center justify-center gap-2 border border-emerald-400/20 transition-all active:scale-[0.98] group"
-                    >
-                        Participar da Aventura <Plus size={18} class="group-hover:rotate-90 transition-transform"/>
-                    </button>
-                </div>
-             {/each}
+       {:else if activeTab === 'campaigns'}
+         <div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+             <!-- Minhas Campanhas -->
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 {#each $liveCampaigns as camp (camp.id)}
+                    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 hover:border-indigo-500/40 transition-all group relative flex flex-col justify-between shadow-lg hover:shadow-indigo-500/10 border-t-white/5">
+                       <div class="mb-4">
+                          <div class="flex justify-between items-start mb-1">
+                              <h3 class="font-black text-2xl text-white group-hover:text-indigo-400 transition-colors uppercase tracking-tight">{camp.name}</h3>
+                              {#if camp.isPublished}
+                                  <span class="text-[9px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20 font-black uppercase tracking-widest flex items-center gap-1">
+                                      <Globe size={10}/> Publicada
+                                  </span>
+                              {/if}
+                          </div>
+                           <p class="text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em] mb-3">{camp.gmName || 'Mestre'}</p>
+                           <p class="text-sm text-slate-400 line-clamp-2 leading-relaxed h-10">{camp.description || 'Uma jornada sem descrição ainda.'}</p>
+                       </div>
+                       
+                       <div class="flex gap-3 mt-4">
+                         <button 
+                            onclick={() => goto(resolve('/campaigns/[id]', { id: camp.id }))} 
+                            class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2 border border-indigo-400/20 shadow-lg shadow-indigo-900/20 transition-all active:scale-[0.98]"
+                        >
+                            <Play size={18} fill="currentColor"/> Iniciar Sessão
+                        </button>
+                        <div class="flex gap-2">
+                            <button 
+                                onclick={() => openCampModal(camp)} 
+                                class="p-3 text-slate-400 hover:text-white bg-slate-800/50 rounded-2xl border border-slate-800 hover:border-slate-700 transition-all" 
+                                title="Editar"
+                            >
+                                <Edit size={20}/>
+                            </button>
+                            <button 
+                                onclick={() => deleteCampaign(camp.id)} 
+                                class="p-3 text-slate-400 hover:text-red-400 bg-slate-800/50 rounded-2xl border border-slate-800 hover:border-red-900/30 transition-all" 
+                                title="Excluir"
+                            >
+                                <Trash2 size={20}/>
+                            </button>
+                        </div>
+                       </div>
+                    </div>
+                 {/each}
+                 
+                 <button 
+                    onclick={() => openCampModal()} 
+                    class="h-full min-h-[160px] border-2 border-dashed border-slate-800 rounded-3xl flex flex-col items-center justify-center text-slate-500 hover:border-indigo-500 hover:text-indigo-500 transition-all hover:bg-indigo-500/5 gap-2 group shadow-sm bg-slate-900/20"
+                >
+                    <div class="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-indigo-500/10 group-hover:scale-110 transition-all">
+                        <Plus size={32} />
+                    </div>
+                    <span class="font-bold">Nova Campanha</span>
+                </button>
+             </div>
              
-             {#if $publicCampaigns.length === 0}
-                <div class="col-span-full py-24 flex flex-col items-center text-center opacity-40">
-                     <div class="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center text-slate-600 mb-4 border border-slate-700 border-dashed">
-                          <Globe size={40} />
-                     </div>
-                     <h3 class="text-2xl font-black uppercase tracking-widest text-slate-500">Nenhuma Campanha Online</h3>
-                     <p class="text-slate-600 max-w-sm mt-3 font-medium">Os Mestres precisam publicar suas sessões e estarem ativos para que apareçam aqui.</p>
-                </div>
-             {/if}
+             <!-- Campanhas Públicas -->
+             <div>
+                 <div class="flex items-center gap-3 mb-4">
+                     <div class="h-px flex-1 bg-slate-800"></div>
+                     <h3 class="text-xs font-black uppercase tracking-widest text-emerald-400 flex items-center gap-2">
+                         <Globe size={14}/> Campanhas Públicas
+                     </h3>
+                     <div class="h-px flex-1 bg-slate-800"></div>
+                 </div>
+                 
+                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                     {#each $publicCampaigns as camp (camp.id)}
+                        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 hover:border-emerald-500/40 transition-all group relative flex flex-col justify-between shadow-xl border-t-white/5">
+                           <div>
+                              <h3 class="font-black text-2xl text-white group-hover:text-emerald-400 mb-2 uppercase tracking-tight">{camp.name}</h3>
+                              <div class="flex items-center gap-2 mb-4">
+                                   <div class="px-2 py-0.5 bg-slate-800 rounded text-[9px] text-slate-400 font-black uppercase tracking-widest">{camp.gmName || 'Mestre'}</div>
+                                   <div class="flex items-center gap-1 px-2 py-0.5 bg-emerald-500/10 rounded text-[9px] text-emerald-400 font-black uppercase tracking-wider">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                                        Online
+                                   </div>
+                              </div>
+                              <p class="text-sm text-slate-400 line-clamp-3 leading-relaxed mb-6 h-15">{camp.description || 'Uma jornada por terras desconhecidas aguarada heróis.'}</p>
+                           </div>
+                           <button 
+                                onclick={() => goto(resolve('/campaigns/[id]/invite', { id: camp.id }))} 
+                                class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-2xl font-black uppercase text-xs tracking-[0.1em] flex items-center justify-center gap-2 border border-emerald-400/20 transition-all active:scale-[0.98] group"
+                            >
+                                Participar da Aventura <Plus size={18} class="group-hover:rotate-90 transition-transform"/>
+                            </button>
+                        </div>
+                     {/each}
+                     
+                     {#if $publicCampaigns.length === 0}
+                        <div class="col-span-full py-12 flex flex-col items-center text-center opacity-40">
+                             <div class="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center text-slate-600 mb-3 border border-slate-700 border-dashed">
+                                  <Wifi size={32} />
+                             </div>
+                             <h3 class="text-lg font-black uppercase tracking-widest text-slate-500">Nenhuma Campanha Online</h3>
+                             <p class="text-slate-600 max-w-sm mt-2 text-sm">Os Mestres precisam publicar suas sessões para aparecerem aqui.</p>
+                        </div>
+                     {/if}
+                 </div>
+             </div>
          </div>
+
        {/if}
    </div>
 

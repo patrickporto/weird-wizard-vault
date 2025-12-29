@@ -2,6 +2,7 @@
     import { character, modalState, characterActions } from '$lib/stores/characterStore';
     import { Plus, Edit } from 'lucide-svelte';
     import { ITEM_TYPES, GRIPS } from '../../../routes/sofww';
+    import CurrencySection from './CurrencySection.svelte';
 
     const { useConsumable, equipItem } = characterActions;
 
@@ -11,6 +12,9 @@
 </script>
 
 <div class="space-y-4">
+    <!-- Currency inline for all devices -->
+    <CurrencySection />
+    
     <div class="flex justify-between items-center">
         <h3 class="text-xs font-bold text-slate-500 uppercase">Inventário</h3>
         <button 

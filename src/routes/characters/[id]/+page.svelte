@@ -33,6 +33,7 @@
     import TalentsTab from '$lib/components/character/TalentsTab.svelte';
     import InventoryTab from '$lib/components/character/InventoryTab.svelte';
     import NotesTab from '$lib/components/character/NotesTab.svelte';
+    import StatsTab from '$lib/components/character/StatsTab.svelte';
     import { ChevronRight, Clover, Users, Ghost, ArrowLeft } from 'lucide-svelte';
 
     let loaded = $state(false);
@@ -141,7 +142,7 @@
     }
 </script>
 
-<div class="min-h-screen bg-slate-950 text-slate-100 font-sans pb-20 relative overflow-x-hidden">
+<div class="min-h-screen bg-slate-950 text-slate-100 font-sans pb-28 md:pb-20 relative overflow-x-hidden">
   
   {#if loaded}
       {#if notFound}
@@ -169,12 +170,15 @@
           
           <main class="max-w-6xl mx-auto px-4 mt-6 lg:mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
              
-             <!-- SIDEBAR ESQUERDA -->
-             <aside class="lg:col-span-3 space-y-4">
+             <!-- SIDEBAR ESQUERDA (desktop only) -->
+             <aside class="hidden lg:block lg:col-span-3 space-y-4">
                 <AttributesSection />
 
-                <button onclick={() => modalState.set({type: 'pre_roll', isOpen: true, data: {type:'luck', source: {name:'Sorte'}}})} class="w-full bg-slate-900 hover:bg-slate-800 p-3 rounded-xl border border-slate-800 flex items-center justify-between group transition-colors">
-                    <div class="flex items-center gap-2 font-bold text-slate-400 group-hover:text-green-400 uppercase text-xs"><Clover size={14}/> Teste de Sorte</div><ChevronRight size={14} class="text-slate-600"/>
+                <button onclick={() => modalState.set({type: 'pre_roll', isOpen: true, data: {type:'luck', source: {name:'Sorte'}}})} class="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 p-4 rounded-2xl border border-emerald-500/30 flex items-center justify-center gap-3 group transition-all shadow-lg shadow-emerald-900/30 hover:shadow-emerald-500/20 active:scale-[0.98] cursor-pointer">
+                    <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Clover size={24} class="text-white"/>
+                    </div>
+                    <span class="font-black text-white uppercase tracking-wider text-sm">Teste de Sorte</span>
                 </button>
 
                 <VitalsSection />
@@ -182,7 +186,7 @@
                 <LanguagesSection />
                 <AfflictionsSection />
 
-                <div class="hidden lg:block pt-2">
+                <div class="pt-2">
                     <CampaignStatus />
                 </div>
              </aside>
@@ -193,6 +197,10 @@
                    <TabNavigation />
 
                    <div class="p-4 md:p-6">
+                      {#if $activeTab === 'stats'}
+                         <StatsTab />
+                      {/if}
+
                       {#if $activeTab === 'acoes'}
                          <ActionsTab />
                       {/if}

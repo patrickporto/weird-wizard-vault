@@ -41,7 +41,7 @@
             </div>
 
             <div class="inline-flex px-2 py-0.5 bg-indigo-500/10 rounded-lg">
-                <div class="text-xs text-indigo-400 font-black tracking-tight">mod +{ $derivedStats[attr.key] - 10}</div>
+                <div class="text-xs text-indigo-400 font-black tracking-tight">+{ $derivedStats[attr.key] - 10}</div>
             </div>
           </div>
 
