@@ -20,16 +20,55 @@ export const isGmOnline = derived(syncState, $s => {
 });
 
 let room: any = null;
+let lobby: any = null;
 let broadcastCombat: any = null;
 let broadcastHistory: any = null;
 let broadcastCharacterUpdate: any = null;
 let broadcastCampaign: any = null;
 
+// Global Discovery
+const lobbyConfig = { appId: 'weird-wizard-vault-lobby' };
+export const publicCampaigns = writable<any[]>([]);
+
+export function joinLobby() {
+    if (lobby) return;
+    lobby = joinRoom(lobbyConfig, 'public-discovery');
+    const [sendDiscovery, getDiscovery] = lobby.makeAction('discovery');
+
+    getDiscovery((data: any) => {
+        publicCampaigns.update(list => {
+            const idx = list.findIndex(c => c.id === data.id);
+            if (idx !== -1) {
+                const newList = [...list];
+                newList[idx] = { ...data, lastSeen: Date.now() };
+                return newList;
+            }
+            return [...list, { ...data, lastSeen: Date.now() }];
+        });
+    });
+
+    // Cleanup stale campaigns from lobby view
+    setInterval(() => {
+        const now = Date.now();
+        publicCampaigns.update(list => list.filter(c => (now - c.lastSeen) < 120000));
+    }, 60000);
+
+    return sendDiscovery;
+}
+
+let sendDiscovery: any;
+function initLobby() {
+    if (typeof window !== 'undefined') {
+        sendDiscovery = joinLobby();
+    }
+}
+initLobby();
+
 export function joinCampaignRoom(campaignId: string, isGM: boolean = false, charId: string | null = null) {
     if (room) room.leave();
 
     room = joinRoom(roomConfig, `campaign-${campaignId}`);
-    
+
     syncState.set({
         isConnected: true,
         isGM,
@@ -63,8 +102,8 @@ export function joinCampaignRoom(campaignId: string, isGM: boolean = false, char
     });
 
     getCampaign((data: any) => {
+        syncState.update(s => ({ ...s, lastGmUpdate: Date.now() }));
         if (!isGM) {
-            syncState.update(s => ({ ...s, lastGmUpdate: Date.now() }));
             character.update(c => ({
                 ...c,
                 campaignName: data.name,
@@ -73,8 +112,23 @@ export function joinCampaignRoom(campaignId: string, isGM: boolean = false, char
         }
     });
 
+    // Heartbeat discovery for this campaign if GM
+    if (isGM) {
+        setInterval(() => {
+            const current = campaignsMap.get(campaignId);
+            if (current && current.isPublished) {
+                sendDiscovery({
+                    id: campaignId,
+                    name: current.name,
+                    gmName: current.gmName || 'Mestre',
+                    description: current.description
+                });
+            }
+        }, 30000);
+    }
+
     getHistory((data: any) => {
-        characterActions.addToHistory(data, false); 
+        characterActions.addToHistory(data, false);
     });
 
     getCharUpdate((charData: any) => {

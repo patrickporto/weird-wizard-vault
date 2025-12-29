@@ -2,7 +2,7 @@
     import { liveCharacters, liveEnemies, liveEncounters } from '$lib/stores/live';
     import { characterActions, isHistoryOpen } from '$lib/stores/characterStore';
     import { campaignsMap } from '$lib/db';
-    import { Users, UserPlus, Ghost, GripVertical, Plus, Minus, Swords, RotateCcw, X, Clock, AlertTriangle, Dices, ChevronLeft, ChevronDown, ChevronUp, History, Layers, Play, Copy, QrCode, Check } from 'lucide-svelte';
+    import { Users, UserPlus, Ghost, GripVertical, Plus, Minus, Swords, RotateCcw, X, Clock, AlertTriangle, Dices, ChevronLeft, ChevronDown, ChevronUp, History, Layers, Play, Copy, QrCode, Check, Globe, Wifi } from 'lucide-svelte';
     import CombatCard from './CombatCard.svelte';
     import HistorySidebar from '$lib/components/character/HistorySidebar.svelte';
     import ConfirmationModal from './ConfirmationModal.svelte';
@@ -48,7 +48,7 @@ import { joinCampaignRoom, syncCombat, syncCampaign } from '$lib/logic/sync';
         }
     });
 
-    const inviteUrl = $derived(typeof window !== 'undefined' ? `${window.location.origin}/campaign/${campaign?.id}/invite?name=${encodeURIComponent(campaign?.name || '')}` : '');
+    const inviteUrl = $derived(typeof window !== 'undefined' ? `${window.location.origin}/campaign/${campaign?.id}/invite` : '');
 
     function copyInviteLink() {
         if (!inviteUrl) return;
@@ -366,54 +366,72 @@ import { joinCampaignRoom, syncCombat, syncCampaign } from '$lib/logic/sync';
                 </div>
             </div>
 
-            <!-- Invitation Footer -->
-            <div class="pt-4 border-t border-slate-800 space-y-3">
-                 <div class="flex items-center justify-between">
-                     <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Link de Convite</span>
-                     <button 
-                        onclick={() => showQrCode = !showQrCode} 
-                        class="text-indigo-400 hover:text-indigo-300 transition-colors p-1"
-                        title="Ver QR Code"
+             <!-- Invitation Footer -->
+             <div class="pt-4 border-t border-slate-800 space-y-3">
+                  {#if !campaign?.isPublished}
+                    <button 
+                        onclick={() => updateCampaign({ isPublished: true })}
+                        class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-black uppercase text-[10px] tracking-[0.2em] shadow-lg shadow-indigo-900/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                     >
-                        <QrCode size={14} />
+                        <Globe size={14}/> Publicar Sessão
                     </button>
-                 </div>
-                 
-                 {#if showQrCode}
-                    <div class="flex justify-center p-3 bg-white rounded-xl mb-2 animate-in zoom-in-95 duration-200 shadow-xl mx-auto w-32 h-32">
-                        <img 
-                            src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(inviteUrl)}`} 
-                            alt="QR Code de Convite"
-                            class="w-24 h-24"
-                        />
-                    </div>
-                 {/if}
-
-                 <div class="relative group">
-                     <div class="flex gap-1">
-                         <!-- svelte-ignore a11y_click_events_have_key_events -->
-                         <!-- svelte-ignore a11y_no_static_element_interactions -->
-                         <div 
-                            onclick={copyInviteLink} 
-                            class="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-2 text-[10px] text-slate-400 font-mono truncate cursor-pointer hover:border-slate-700 transition-colors flex items-center"
-                        >
-                            {inviteUrl}
-                         </div>
-                         <button 
-                            onclick={copyInviteLink} 
-                            class="bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded-lg transition-all active:scale-95 shadow-lg shadow-indigo-900/20 relative"
-                            aria-label="Copiar link"
-                        >
-                             {#if showCopyTooltip}
-                                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-green-500 text-white text-[10px] font-bold rounded shadow-lg animate-in fade-in slide-in-from-bottom-1 whitespace-nowrap">
-                                    <Check size={10} class="inline mr-1" /> Copiado!
-                                </div>
-                             {/if}
-                             <Copy size={14} />
+                    <p class="text-[9px] text-slate-600 text-center font-bold uppercase tracking-tighter">Torne sua sessão visível e obtenha o link de convite</p>
+                  {:else}
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                             <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest flex items-center gap-1"><Wifi size={10} class="animate-pulse"/> Sessão Pública</span>
+                        </div>
+                        <button 
+                             onclick={() => showQrCode = !showQrCode} 
+                             class="text-slate-500 hover:text-white transition-colors p-1"
+                             title="Ver QR Code"
+                         >
+                             <QrCode size={14} />
                          </button>
-                     </div>
-                 </div>
-            </div>
+                    </div>
+                  
+                    {#if showQrCode}
+                        <div class="flex justify-center p-3 bg-white rounded-xl mb-2 animate-in zoom-in-95 duration-200 shadow-xl mx-auto w-32 h-32">
+                            <img 
+                                src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(inviteUrl)}`} 
+                                alt="QR Code de Convite"
+                                class="w-24 h-24"
+                            />
+                        </div>
+                    {/if}
+
+                    <div class="relative group">
+                        <div class="flex gap-1">
+                            <!-- svelte-ignore a11y_click_events_have_key_events -->
+                            <!-- svelte-ignore a11y_no_static_element_interactions -->
+                            <div 
+                                onclick={copyInviteLink} 
+                                class="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-2 text-[10px] text-slate-400 font-mono truncate cursor-pointer hover:border-slate-700 transition-colors flex items-center"
+                            >
+                                {inviteUrl}
+                            </div>
+                            <button 
+                                onclick={copyInviteLink} 
+                                class="bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded-lg transition-all active:scale-95 shadow-lg shadow-indigo-900/20 relative"
+                                aria-label="Copiar link"
+                            >
+                                {#if showCopyTooltip}
+                                    <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-green-500 text-white text-[10px] font-bold rounded shadow-lg animate-in fade-in slide-in-from-bottom-1 whitespace-nowrap">
+                                        <Check size={10} class="inline mr-1" /> Copiado!
+                                    </div>
+                                {/if}
+                                <Copy size={14} />
+                            </button>
+                        </div>
+                    </div>
+                    <button 
+                        onclick={() => updateCampaign({ isPublished: false })}
+                        class="w-full text-[9px] text-slate-600 hover:text-red-400 font-bold uppercase tracking-widest transition-colors mt-1"
+                    >
+                        Retirar de área pública
+                    </button>
+                  {/if}
+             </div>
         </div>
 
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col h-[400px]">

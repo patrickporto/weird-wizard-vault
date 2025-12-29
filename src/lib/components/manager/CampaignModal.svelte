@@ -13,7 +13,7 @@
         onSave 
     }: Props = $props();
 
-    let form = $state({ name: '', description: '', gmName: '', isPrivate: false });
+    let form = $state({ name: '', description: '', gmName: '' });
     
     $effect(() => {
         if (isOpen && initialData) {
@@ -22,12 +22,10 @@
                 form.name = parsed.name || '';
                 form.description = parsed.description || '';
                 form.gmName = parsed.gmName || '';
-                form.isPrivate = parsed.isPrivate || false;
             } catch(e) {
                 form.name = '';
                 form.description = '';
                 form.gmName = '';
-                form.isPrivate = false;
             }
         }
     });
@@ -65,10 +63,7 @@
                      <label for="campaign-desc" class="text-xs text-slate-500 uppercase font-black block mb-1 tracking-widest">Descrição</label>
                      <textarea id="campaign-desc" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none focus:border-indigo-500 transition-colors resize-none" rows="3" placeholder="Uma breve descrição da sua jornada..." bind:value={form.description}></textarea>
                 </div>
-                <div class="flex items-center gap-3 pt-2">
-                     <input type="checkbox" id="isPrivate" bind:checked={form.isPrivate} class="w-5 h-5 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-indigo-500 transition-all"/>
-                     <label for="isPrivate" class="text-sm text-slate-400 font-bold cursor-pointer select-none">Campanha Privada <span class="text-[10px] text-slate-600 block font-normal">(apenas você verá no seu dashboard)</span></label>
-                </div>
+
             </div>
             <div class="flex gap-3 mt-8">
                 <button onclick={onClose} class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-xl font-bold transition-all active:scale-95">Cancelar</button>

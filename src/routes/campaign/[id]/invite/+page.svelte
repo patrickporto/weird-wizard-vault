@@ -1,17 +1,26 @@
 <script lang="ts">
     import { page } from '$app/stores';
-    import { liveCharacters, liveCampaigns } from '$lib/stores/live';
-    import { Ghost, Users, Check, X } from 'lucide-svelte';
+    import { liveCharacters } from '$lib/stores/live';
+    import { character } from '$lib/stores/characterStore';
+    import { Users, Check, Wifi } from 'lucide-svelte';
     import { goto } from '$app/navigation';
+    import { joinCampaignRoom, isGmOnline } from '$lib/logic/sync';
+    import { onMount } from 'svelte';
     import ConfirmationModal from '$lib/components/manager/ConfirmationModal.svelte';
 
     const campaignId = $page.params.id;
-    // Try to get campaign name from live store or URL param as fallback
-    let campaign = $derived($liveCampaigns.find(c => c.id === campaignId));
-    let campaignName = $derived(campaign?.name || $page.url.searchParams.get('name') || 'Nova Campanha');
+    // Get campaign info from the character store which is updated by the getCampaign sync action
+    let campaignName = $derived($character.campaignName || 'Buscando campanha...');
+    let gmName = $derived($character.gmName || '...');
 
     let selectedCharId = $state<string | null>(null);
     let showConfirm = $state(false);
+
+    onMount(() => {
+        if (campaignId) {
+            joinCampaignRoom(campaignId, false);
+        }
+    });
 
     function handleJoin() {
         if (!selectedCharId || !campaignId) return;
@@ -28,7 +37,7 @@
                     ...char,
                     campaignId,
                     campaignName,
-                    gmName: campaign?.gmName || 'Mestre'
+                    gmName
                 });
                 goto(`/character/${selectedCharId}`);
             });
@@ -43,7 +52,18 @@
                 <Users size={32} />
             </div>
             <h1 class="text-2xl font-bold text-white mb-2">Convite para Campanha</h1>
-            <p class="text-slate-400">Você foi convidado para participar de <span class="text-indigo-400 font-bold">{campaignName}</span>.</p>
+            <p class="text-slate-400">
+                Você foi convidado para participar de 
+                <span class="text-indigo-400 font-bold">{campaignName}</span>
+                {#if gmName !== '...'}
+                    <span class="block text-xs mt-1 uppercase tracking-widest text-slate-500 font-black">Mestre: {gmName}</span>
+                {/if}
+            </p>
+            {#if !$isGmOnline}
+                <div class="mt-4 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full text-[10px] text-amber-500 font-bold uppercase tracking-wider animate-pulse flex items-center gap-2">
+                    <Wifi size={12}/> Aguardando o Mestre ficar online...
+                </div>
+            {/if}
         </div>
 
         <div class="space-y-4 mb-8">
