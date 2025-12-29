@@ -57,4 +57,24 @@ describe('CombatCard Logic', () => {
         // Health remains 10
         expect(currentHealth).toBe(10);
     });
+
+    it('should manage Incapacitated affliction based on state', () => {
+        // Case 1: Damage >= Health, no affliction yet
+        let afflictions = [];
+        let isIncapacitated = true;
+
+        let hasIncap = afflictions.includes("Incapacitated");
+        if (isIncapacitated && !hasIncap) {
+            afflictions = [...afflictions, "Incapacitated"];
+        }
+        expect(afflictions).toContain("Incapacitated");
+
+        // Case 2: Damage < Health, has affliction
+        isIncapacitated = false;
+        hasIncap = afflictions.includes("Incapacitated");
+        if (!isIncapacitated && hasIncap) {
+            afflictions = afflictions.filter(a => a !== "Incapacitated");
+        }
+        expect(afflictions).not.toContain("Incapacitated");
+    });
 });

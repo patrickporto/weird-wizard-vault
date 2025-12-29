@@ -38,6 +38,24 @@
 
     let showAfflictionModal = $state(false);
 
+    // Auto-apply/remove Incapacitated affliction
+    $effect(() => {
+        const currentAfflictions = entity.afflictions || [];
+        const hasIncap = currentAfflictions.includes("Incapacitated");
+        
+        if (isIncapacitated && !hasIncap) {
+            const newList = [...currentAfflictions, "Incapacitated"];
+            const updates = { afflictions: newList };
+            if(entity.type === 'player') handleUpdatePlayer(updates);
+            else updateEnemy(entity.instanceId, updates);
+        } else if (!isIncapacitated && hasIncap) {
+            const newList = currentAfflictions.filter(a => a !== "Incapacitated");
+            const updates = { afflictions: newList };
+            if(entity.type === 'player') handleUpdatePlayer(updates);
+            else updateEnemy(entity.instanceId, updates);
+        }
+    });
+
     import { syncCharacter } from '$lib/logic/sync';
 
     // Helper for player updates
@@ -176,13 +194,42 @@
                 </div>
 
                 <!-- Health Bar -->
-                <div class="relative w-full h-3.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800/50 shadow-inner group-hover:border-slate-700 transition-colors mb-2">
-                    <div class="absolute inset-0 {damage === 0 ? 'bg-emerald-950/30' : 'bg-slate-900/50'}"></div>
+                <!-- Health Bar (Matched to CharacterHeader) -->
+                <div class="relative w-full h-3.5 sm:h-4 bg-slate-950 rounded-full border border-white/5 overflow-hidden shadow-inner group-hover:border-white/20 transition-all mb-2">
+                    <!-- Background health indicator -->
+                    <div class="absolute inset-0 w-full {damage === 0 ? 'bg-emerald-900/20' : 'bg-slate-900/50'}"></div>
+                    
+                    <!-- Damage fill bar with gradient -->
                     {#if damagePercent > 0}
                         <div 
-                            class="absolute top-0 left-0 h-full transition-all duration-500 ease-out {isIncapacitated ? 'bg-red-600' : isInjured ? 'bg-orange-500' : 'bg-amber-500'}" 
+                            class="absolute top-0 left-0 h-full transition-all duration-500 ease-out z-10 
+                            {isIncapacitated ? 'bg-gradient-to-r from-red-600 via-red-500 to-rose-500 animate-pulse' : 
+                             damagePercent >= 80 ? 'bg-gradient-to-r from-red-600 to-rose-500' : 
+                             isInjured ? 'bg-gradient-to-r from-amber-600 to-orange-500' : 
+                             'bg-gradient-to-r from-orange-500 to-amber-400'}" 
                             style="width: {damagePercent}%"
-                        ></div>
+                        >
+                            <!-- Shine effect -->
+                            <div class="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent"></div>
+                        </div>
+                    {/if}
+
+                    <!-- Healthy glow when no damage -->
+                    {#if damage === 0}
+                        <div class="absolute inset-0 bg-gradient-to-r from-emerald-500/20 via-emerald-400/30 to-emerald-500/20 z-10">
+                            <div class="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent"></div>
+                        </div>
+                    {/if}
+
+                    <!-- Status Label Overlay -->
+                    {#if isIncapacitated}
+                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                            <span class="text-[9px] font-black uppercase text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] tracking-widest leading-none mt-0.5">INCAPACITADO</span>
+                        </div>
+                    {:else if isInjured}
+                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                            <span class="text-[9px] font-black uppercase text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] tracking-widest leading-none mt-0.5">FERIDO</span>
+                        </div>
                     {/if}
                 </div>
 
@@ -190,20 +237,33 @@
                 <div class="flex flex-col sm:flex-row gap-3">
                     
                     <!-- Stats Compact -->
-                    <div class="flex items-center gap-2 bg-slate-950/40 p-1 rounded-lg border border-slate-800/40 self-start">
-                        <div class="px-2 flex flex-col items-center leading-none border-r border-slate-800/50 pr-2">
-                             <span class="text-[8px] font-black text-slate-500 uppercase">Def</span>
-                             <span class="text-sm font-bold text-white font-mono">{entity.defense || 10}</span>
+                    <!-- Stats Compact -->
+                    <div class="flex items-start gap-1.5">
+                        <!-- Defense -->
+                        <div class="flex flex-col items-center justify-between bg-slate-900 border border-slate-700 rounded-lg p-1.5 w-[4.5rem] h-[3.75rem] shadow-sm">
+                             <span class="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">Def</span>
+                             <span class="text-xl font-bold text-white font-mono leading-none">{entity.defense || 10}</span>
                         </div>
-                        <div class="px-1 flex flex-col items-center leading-none">
-                             <span class="text-[8px] font-black text-red-500 uppercase mb-0.5">Dano</span>
-                             <input type="number" class="w-10 bg-transparent text-center text-white font-mono font-bold text-sm focus:outline-none p-0" value={damage} oninput={handleDamageInput} />
+
+                        <!-- Damage -->
+                        <div class="flex flex-col items-center justify-between bg-red-950/30 border border-red-900/50 rounded-lg p-1.5 w-[4.5rem] h-[3.75rem] shadow-sm relative group/dmg">
+                             <span class="text-[9px] font-black text-red-400 uppercase tracking-wider mb-0.5">Dano</span>
+                             <input type="number" class="w-full bg-transparent text-center text-white font-mono font-bold text-xl focus:outline-none p-0 leading-none placeholder-red-800" value={damage} oninput={handleDamageInput} />
+                             <!-- Hover indicator -->
+                             <span class="absolute -top-1 -right-1 flex h-2 w-2 opacity-0 group-hover/dmg:opacity-100 transition-opacity">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                             </span>
                         </div>
-                        <div class="px-1 flex flex-col items-center leading-none border-l border-slate-800/50 pl-2">
-                             <span class="text-[8px] font-black text-emerald-500 uppercase mb-0.5">Vida</span>
-                             <div class="flex items-baseline gap-0.5">
-                                <input type="number" class="w-8 bg-transparent text-right text-white font-mono font-bold text-sm focus:outline-none p-0" value={currentHealth} oninput={handleHealthInput} />
-                                <span class="text-[9px] text-slate-600 font-mono">/{maxHealth}</span>
+
+                        <!-- Health -->
+                        <div class="flex flex-col items-center justify-between border rounded-lg p-1.5 w-[5.5rem] h-[3.75rem] shadow-sm relative transition-colors {isIncapacitated ? 'bg-red-950/50 border-red-500' : isInjured ? 'bg-orange-950/30 border-orange-500' : 'bg-emerald-950/30 border-emerald-900/50'}">
+                             <span class="text-[9px] font-black uppercase tracking-wider mb-0.5 {isIncapacitated ? 'text-red-400' : isInjured ? 'text-orange-400' : 'text-emerald-400'}">
+                                 Vida
+                             </span>
+                             <div class="flex items-baseline gap-0.5 justify-center w-full">
+                                <input type="number" class="w-full bg-transparent text-right text-white font-mono font-bold text-xl focus:outline-none p-0 leading-none" value={currentHealth} oninput={handleHealthInput} />
+                                <span class="text-[10px] text-slate-500 font-mono self-end mb-0.5 opacity-70">/{maxHealth}</span>
                              </div>
                         </div>
                     </div>
@@ -237,18 +297,18 @@
     -->
 
     {#if expanded}
-        <div transition:slide class="border-t border-slate-800/50 bg-slate-950/30 p-4">
+        <div class="border-t border-slate-800/50 bg-slate-950/30 p-4">
             
             <!-- Attributes Section (New) -->
             <div class="mb-4">
-                <h5 class="text-slate-500 font-bold uppercase text-[10px] mb-2 flex items-center gap-2">
-                    Atributos <div class="h-px flex-1 bg-slate-800"></div>
-                </h5>
+                <div class="text-slate-500 font-bold uppercase text-[10px] mb-2 flex items-center gap-2">
+                    <span>Atributos</span>
+                    <div class="h-px flex-1 bg-slate-800"></div>
+                </div>
                 <div class="grid grid-cols-4 gap-2">
                     {#each ['str', 'agi', 'int', 'wil'] as stat}
                         <div class="bg-slate-900/50 p-2 rounded border border-slate-800/50 text-center">
                             <span class="text-[9px] text-slate-500 uppercase font-black block mb-0.5">{stat}</span>
-                            <!-- Removed @const to fix lint -->
                             <div class="text-white font-bold font-mono text-lg leading-none">
                                 {(entity.stats?.[stat] ?? entity.attributes?.[stat] ?? 10)}
                             </div>
@@ -267,31 +327,37 @@
                     <span class="text-white font-bold">{entity.size || 1}</span>
                 </div>
                 <div class="p-2 rounded bg-slate-900/50 border border-slate-800/50 flex flex-col items-center">
-                    <span class="text-[9px] text-slate-500 uppercase font-black">Speed</span>
-                    <span class="text-white font-bold">{entity.speed || 10}</span>
+                   <span class="text-[9px] text-slate-500 uppercase font-black">Deslocamento</span>
+                   <span class="text-white font-bold">{entity.speed || 10}</span>
                 </div>
-                <div class="p-2 rounded bg-slate-900/50 border border-slate-800/50 flex flex-col items-center col-span-2">
-                    <span class="text-[9px] text-slate-500 uppercase font-black">Sentidos</span>
-                    <span class="text-white text-xs text-center">{entity.senses || '-'}</span>
-                </div>
+                 <div class="p-2 rounded bg-slate-900/50 border border-slate-800/50 flex flex-col items-center">
+                    <span class="text-[9px] text-slate-500 uppercase font-black">Percepção</span>
+                    <span class="text-white font-bold">{entity.perception || 10}</span>
+                 </div>
+                 <div class="p-2 rounded bg-slate-900/50 border border-slate-800/50 flex flex-col items-center">
+                     <span class="text-[9px] text-slate-500 uppercase font-black">Defesa</span>
+                     <span class="text-white font-bold">{entity.defense || 10}</span>
+                 </div>
             </div>
-            
+
+            <!-- Sections: Traits, Actions, Reactions -->
             <div class="space-y-4">
                  {#each [
-                    { key: 'traits', label: 'Traços', color: 'text-indigo-400' },
-                    { key: 'actions', label: 'Ações', color: 'text-red-400' },
-                    { key: 'reactions', label: 'Reações', color: 'text-orange-400' },
-                    { key: 'endOfRound', label: 'Fim da Rodada', color: 'text-yellow-400' }
+                     { key: 'traits', label: 'Traços', color: 'text-amber-500' },
+                     { key: 'actions', label: 'Ações', color: 'text-red-400' },
+                     { key: 'reactions', label: 'Reações', color: 'text-indigo-400' },
+                     { key: 'end_of_round', label: 'Fim da Rodada', color: 'text-emerald-400' }
                  ] as section}
                     {#if entity[section.key] && entity[section.key].length > 0}
                          <div>
-                             <h4 class="{section.color} text-[10px] font-black uppercase mb-2 flex items-center gap-2">
-                                 {section.label} <div class="h-px flex-1 bg-current opacity-20"></div>
-                             </h4>
+                             <div class="{section.color} text-[10px] font-black uppercase mb-2 flex items-center gap-2">
+                                 {section.label} <span class="h-px flex-1 bg-current opacity-20"></span>
+                             </div>
                              <div class="grid gap-2">
                                  {#each entity[section.key] as item}
                                      <div class="text-sm bg-slate-900/30 p-2 rounded border border-slate-800/30">
-                                         <span class="font-bold text-white">{item.name}:</span> <span class="text-slate-400">{item.desc}</span>
+                                         <span class="font-bold text-slate-300">{item.name}</span>
+                                         <span class="text-slate-400 text-xs block mt-1 leading-relaxed">{item.description || item.effect}</span>
                                      </div>
                                  {/each}
                              </div>
