@@ -127,8 +127,17 @@
                  >
                      <div class="flex justify-between items-center mb-2">
                         <div>
-                            <div class="font-bold text-white">{enc.name}</div>
-                            <div class="text-xs text-slate-500">{enc.enemies?.reduce((acc, curr) => acc + curr.count, 0) || 0} Inimigos</div>
+                            <div class="font-bold text-white text-lg mb-1">{enc.name}</div>
+                            <div class="space-y-1">
+                                {#each enc.enemies || [] as item}
+                                    {@const enemy = $liveEnemies.find(e => e.id === item.enemyId)}
+                                    <div class="text-xs text-slate-400 flex items-center gap-2">
+                                        <span class="bg-slate-800 px-1.5 rounded text-white font-mono">{item.count}x</span>
+                                        <span>{enemy ? enemy.name : 'Desconhecido'}</span>
+                                    </div>
+                                {/each}
+                                {#if !enc.enemies?.length}<div class="text-xs text-slate-600 italic">Vazio</div>{/if}
+                            </div>
                         </div>
                         <div class="flex gap-2">
                              <button on:click={() => runEncounter(enc)} class="bg-indigo-900/50 hover:bg-indigo-600 text-indigo-200 hover:text-white p-2 rounded transition-colors" title="Rodar Encontro"><Play size={16}/></button>

@@ -78,7 +78,7 @@ export const activeEffects = derived(character, $char => $char.effects.filter(e 
 
 // Helper for generic stat calculation (non-store, purely functional logic used inside derived)
 function calculateDerivedStat(key, baseValue, effects) {
-    let value = baseValue;
+    let value = baseValue || 0;
     const allMods = effects.flatMap(e => Array.isArray(e.modifiers) ? e.modifiers : []);
 
     const sets = allMods.filter(m => m.target === key && m.type === MOD_TYPES.SET);
@@ -156,7 +156,7 @@ export const totalDefense = derived([character, activeEffects], ([$char, $effect
 export const damageBonus = derived([character, activeEffects], ([$char, $effects]) => {
     const allMods = $effects.flatMap(e => Array.isArray(e.modifiers) ? e.modifiers : []);
     const bonus = allMods.filter(m => m.target === 'damage' && m.type === MOD_TYPES.ADD).reduce((acc, m) => acc + m.value, 0);
-    return $char.bonusDamage + bonus; // Note: original code separated character.bonusDamage and derived bonus. Here combining them for display/calc
+    return ($char.bonusDamage || 0) + bonus;
 });
 
 
@@ -186,17 +186,18 @@ export const characterActions = {
 
     advanceRound: (direction) => {
         character.update(c => {
+            const currentR = c.currentRound || 1;
             if (direction === 'next') {
-                const newEffects = c.effects.map(eff => {
+                const newEffects = (c.effects || []).map(eff => {
                     if (eff.isActive && eff.duration === 'ROUNDS' && eff.roundsLeft > 0) {
                         const remaining = eff.roundsLeft - 1;
                         return remaining <= 0 ? { ...eff, roundsLeft: 0, isActive: false } : { ...eff, roundsLeft: remaining };
                     }
                     return eff;
                 });
-                return { ...c, currentRound: c.currentRound + 1, effects: newEffects };
+                return { ...c, currentRound: currentR + 1, effects: newEffects };
             } else {
-                return { ...c, currentRound: Math.max(1, c.currentRound - 1) };
+                return { ...c, currentRound: Math.max(1, currentR - 1) };
             }
         });
     },

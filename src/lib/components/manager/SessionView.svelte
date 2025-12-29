@@ -2,7 +2,7 @@
     import { liveCharacters, liveEnemies, liveEncounters } from '$lib/stores/live';
     import { characterActions, isHistoryOpen } from '$lib/stores/characterStore';
     import { campaignsMap, charactersMap } from '$lib/db';
-    import { Users, Ghost, GripVertical, Plus, Swords, RotateCcw, X, Clock, AlertTriangle, Dices, ChevronLeft, ChevronDown, ChevronUp, History, Layers, Play } from 'lucide-svelte';
+    import { Users, Ghost, GripVertical, Plus, Minus, Swords, RotateCcw, X, Clock, AlertTriangle, Dices, ChevronLeft, ChevronDown, ChevronUp, History, Layers, Play } from 'lucide-svelte';
     import CombatCard from './CombatCard.svelte';
     import { flip } from 'svelte/animate';
     
@@ -137,23 +137,43 @@
         });
     }
 
-    // Dice
-    function rollDice(sides, count = 1) {
-        const results = [];
-        let total = 0;
-        for(let i=0; i<count; i++) {
-            const r = Math.floor(Math.random() * sides) + 1;
-            results.push(r);
-            total += r;
+    import { calculateDiceRoll } from '$lib/logic/dice';
+
+    function prevRound() {
+        const current = campaignsMap.get(campaign.id) || campaign;
+        const currentRound = current.combat?.round || 1;
+        if (currentRound > 1) {
+            updateCampaign({ combat: { ...current.combat, round: currentRound - 1 } });
         }
+    }
+
+    // Quick Roll State
+    let quickRollState = { isOpen: false, sides: 20, count: 1, modifier: 0 };
+    
+    function startQuickRoll(sides, count = 1) {
+        quickRollState = { isOpen: true, sides, count, modifier: 0 };
+    }
+
+    function confirmQuickRoll() {
+        rollDice(quickRollState.sides, quickRollState.count, quickRollState.modifier);
+        quickRollState.isOpen = false;
+    }
+
+    // Dice
+    function rollDice(sides, count = 1, modifier = 0) {
+        const res = calculateDiceRoll(sides, count, modifier);
+        
+        let desc = "";
+        if (count > 1) desc += `Dados: [${res.results.join(', ')}] `;
+        if (res.bonusRolls?.length > 0) desc += `Bonus Rolls: [${res.bonusRolls.join(', ')}] -> ${Math.abs(res.modifierTotal)}`;
         
         characterActions.addToHistory({
             source: 'GM',
-            name: `${count}d${sides}`,
-            description: count > 1 ? `Resultados: [${results.join(', ')}]` : null,
-            total,
-            formula: `${count}d${sides}`,
-            crit: sides === 20 && results.includes(20)
+            name: `${count}d${sides} ${modifier ? (modifier > 0 ? `+${modifier}` : modifier) : ''}`,
+            description: desc.trim() || null,
+            total: res.total,
+            formula: res.formula,
+            crit: res.crit
         });
         isHistoryOpen.set(true); 
     }
@@ -166,7 +186,6 @@
         
         const all = [...playersWithInit, ...enemies, ...playersNoInit];
         
-        // Final safety: ensure absolute uniqueness by the key we use in the each block
         const seen = new Set();
         return all.filter(entity => {
             const key = entity.type === 'player' ? entity.id : entity.instanceId;
@@ -175,7 +194,6 @@
             return true;
         });
     })();
-
 </script>
 
 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full relative">
@@ -274,8 +292,9 @@
                     <button on:click={startCombat} class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-green-900/20"><Swords size={20}/> INICIAR COMBATE</button>
                 {:else}
                     <div class="flex items-center gap-4">
+                        <button on:click={prevRound} class="p-2 hover:bg-slate-700 rounded text-slate-400" title="Voltar Rodada"><ChevronLeft size={20}/></button>
                         <div class="text-center"><div class="text-[10px] font-bold text-slate-500 uppercase">Rodada</div><div class="text-3xl font-mono font-bold text-white leading-none">{combat.round}</div></div>
-                        <button on:click={nextRound} class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded font-bold flex items-center gap-2"><RotateCcw size={16}/> Próxima</button>
+                        <button on:click={nextRound} class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded font-bold flex items-center gap-2" title="Próxima Rodada"><RotateCcw size={16}/> Próxima</button>
                         <div class="h-8 w-px bg-slate-700 mx-2"></div>
                         <button on:click={() => endCombat(false)} class="text-red-400 hover:text-red-300 text-xs font-bold px-3 py-2 border border-red-900/30 rounded bg-red-900/10">Encerrar</button>
                     </div>
@@ -297,16 +316,7 @@
 
     <!-- Right -->
     <div class="hidden lg:flex flex-col gap-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 sticky top-4">
-            <h3 class="font-bold text-slate-400 text-sm mb-3 flex items-center gap-2"><Dices size={14}/> Rolagens Rápidas</h3>
-            <div class="grid grid-cols-2 gap-2">
-                <button on:click={() => rollDice(20)} class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 rounded flex items-center justify-center gap-1 transition-colors"><Dices size={16}/> d20</button>
-                <button on:click={() => rollDice(6)} class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 rounded flex items-center justify-center gap-1 transition-colors"><Dices size={16}/> d6</button>
-                <button on:click={() => rollDice(6, 2)} class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 rounded flex items-center justify-center gap-1 text-xs transition-colors">2d6</button>
-                <button on:click={() => rollDice(6, 3)} class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 rounded flex items-center justify-center gap-1 text-xs transition-colors">3d6</button>
-            </div>
-            <p class="text-[10px] text-slate-500 mt-2 text-center">Resultados no histórico lateral.</p>
-        </div>
+        <!-- Sidebar Empty or Other Widgets -->
     </div>
 </div>
 
@@ -345,4 +355,33 @@
         </div>
     </div>
 </div>
+{/if}
+
+<!-- Bottom Bar (Quick Rolls) -->
+<div class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-md border border-slate-700 rounded-2xl p-2 flex items-center gap-2 shadow-2xl z-40 animate-in slide-in-from-bottom-4">
+    <div class="px-3 border-r border-slate-700 flex items-center gap-2 text-slate-400 font-bold text-xs uppercase"><Dices size={16}/> Quick</div>
+    <button on:click={() => startQuickRoll(20)} class="bg-slate-800 hover:bg-indigo-600 text-white font-bold w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:-translate-y-1 shadow-lg">d20</button>
+    <button on:click={() => startQuickRoll(6)} class="bg-slate-800 hover:bg-indigo-600 text-white font-bold w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:-translate-y-1 shadow-lg">d6</button>
+    <button on:click={() => startQuickRoll(6, 2)} class="bg-slate-800 hover:bg-indigo-600 text-white font-bold w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:-translate-y-1 shadow-lg text-xs">2d6</button>
+    <button on:click={() => startQuickRoll(6, 3)} class="bg-slate-800 hover:bg-indigo-600 text-white font-bold w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:-translate-y-1 shadow-lg text-xs">3d6</button>
+</div>
+
+<!-- Quick Roll Modal -->
+{#if quickRollState.isOpen}
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
+    <div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4" on:click|self={() => quickRollState.isOpen = false}>
+        <div class="bg-slate-800 rounded-xl border border-slate-700 shadow-2xl p-6 w-full max-w-sm">
+             <h3 class="font-bold text-white text-center text-lg mb-4">Rolagem Rápida ({quickRollState.count}d{quickRollState.sides})</h3>
+             <div class="flex items-center justify-center gap-6 mb-6">
+                 <button on:click={() => quickRollState.modifier--} class="w-12 h-12 rounded-full bg-slate-700 hover:bg-red-500 text-white flex items-center justify-center"><Minus size={24}/></button>
+                 <div class="text-4xl font-bold {quickRollState.modifier > 0 ? 'text-green-400' : quickRollState.modifier < 0 ? 'text-red-400' : 'text-slate-500'}">
+                     {quickRollState.modifier > 0 ? '+' : ''}{quickRollState.modifier}
+                 </div>
+                 <button on:click={() => quickRollState.modifier++} class="w-12 h-12 rounded-full bg-slate-700 hover:bg-green-500 text-white flex items-center justify-center"><Plus size={24}/></button>
+             </div>
+             <div class="text-xs text-center text-slate-500 mb-6 uppercase font-bold">{quickRollState.sides === 20 ? 'Boons / Banes' : 'Modificador Fixo'}</div>
+             <button on:click={confirmQuickRoll} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl shadow-lg">ROLAR AGORA</button>
+        </div>
+    </div>
 {/if}

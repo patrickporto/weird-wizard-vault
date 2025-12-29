@@ -4,7 +4,7 @@
     export let onClose;
     export let onSave;
 
-    let form = { name: '', description: '', gm: '' };
+    let form = { name: '', description: '', gm: '', isPrivate: false };
     
     $: if (isOpen && initialData) {
         try {
@@ -12,10 +12,11 @@
             form = {
                 name: parsed.name || '',
                 description: parsed.description || '',
-                gm: parsed.gm || ''
+                gm: parsed.gm || '',
+                isPrivate: parsed.isPrivate || false
             };
         } catch(e) {
-            form = { name: '', description: '', gm: '' };
+            form = { name: '', description: '', gm: '', isPrivate: false };
         }
     }
 </script>
@@ -37,6 +38,10 @@
             <div>
                  <label class="text-xs text-slate-500 uppercase font-bold block mb-1">Descrição</label>
                  <textarea class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-hidden focus:border-indigo-500 resize-none" rows="3" placeholder="Descrição breve..." bind:value={form.description}></textarea>
+            </div>
+            <div class="flex items-center gap-2 pt-2">
+                 <input type="checkbox" id="isPrivate" bind:checked={form.isPrivate} class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-indigo-500"/>
+                 <label for="isPrivate" class="text-sm text-slate-400 font-medium cursor-pointer">Campanha Privada (apenas o Mestre vê)</label>
             </div>
         </div>
         <div class="flex gap-3 mt-6">

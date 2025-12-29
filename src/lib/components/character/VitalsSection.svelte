@@ -24,9 +24,9 @@
     <div class="flex justify-between items-center">
        <span class="text-xs font-bold text-slate-400 uppercase flex items-center gap-1"><Sword size={14}/> Bonus Dmg</span>
        <div class="flex items-center gap-2">
-          <button on:click={() => character.update(c => ({...c, bonusDamage: Math.max(0, c.bonusDamage - 1)}))} class="text-slate-500 hover:text-white"><Minus size={12}/></button>
-          <span class="text-lg font-bold text-white font-mono">{$character.bonusDamage}d6</span>
-          <button on:click={() => character.update(c => ({...c, bonusDamage: c.bonusDamage + 1}))} class="text-slate-500 hover:text-white"><Plus size={12}/></button>
+          <button on:click={() => character.update(c => ({...c, bonusDamage: Math.max(0, (c.bonusDamage || 0) - 1)}))} class="text-slate-500 hover:text-white"><Minus size={12}/></button>
+          <span class="text-lg font-bold text-white font-mono">{$character.bonusDamage || 0}d6</span>
+          <button on:click={() => character.update(c => ({...c, bonusDamage: (c.bonusDamage || 0) + 1}))} class="text-slate-500 hover:text-white"><Plus size={12}/></button>
        </div>
     </div>
  </div>

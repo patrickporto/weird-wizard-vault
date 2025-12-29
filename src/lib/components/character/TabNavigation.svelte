@@ -5,10 +5,10 @@
     const tabs = [
         { id: 'acoes', label: 'AÇÕES', icon: Sword },
         { id: 'magias', label: 'MAGIAS', icon: Book },
-        { id: 'efeitos', label: 'EFEITOS', icon: Activity },
         { id: 'talentos', label: 'TALENTOS', icon: Zap },
         { id: 'equipamento', label: 'ITENS', icon: Backpack },
-        { id: 'notas', label: 'NOTAS', icon: FileText }
+        { id: 'notas', label: 'NOTAS', icon: FileText },
+        { id: 'efeitos', label: 'EFEITOS', icon: Activity } // Moved to end as requested
     ];
 </script>
 

@@ -16,7 +16,7 @@
             <button on:click={() => advanceRound('prev')} class="p-2 hover:bg-slate-700 rounded text-slate-400"><Rewind size={20}/></button>
             <div class="text-center">
                 <div class="text-[10px] text-slate-500 font-bold uppercase">Rodada Atual</div>
-                <div class="text-2xl font-mono font-bold text-white">{$character.currentRound}</div>
+                <div class="text-2xl font-mono font-bold text-white">{$character.currentRound || 1}</div>
             </div>
             <button on:click={() => advanceRound('next')} class="p-2 hover:bg-slate-700 rounded text-white"><FastForward size={20}/></button>
         </div>

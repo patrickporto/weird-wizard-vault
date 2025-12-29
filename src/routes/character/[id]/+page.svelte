@@ -60,7 +60,7 @@
         // Load or Initialize
         if (charactersMap.has(id)) {
             const data = charactersMap.get(id);
-            character.set(data);
+            character.set({ ...defaultCharacter, ...data });
             // Sync specific stores
             if (data.normalHealth !== undefined) normalHealth.set(data.normalHealth);
             if (data.currentHealth !== undefined) currentHealth.set(data.currentHealth);
@@ -98,8 +98,8 @@
   <ModalManager />
 
   <!-- HEADER -->
-  <div class="max-w-6xl mx-auto px-4 mt-4">
-      <button on:click={() => goto('/')} class="inline-flex items-center text-slate-400 hover:text-white transition-colors font-bold text-sm"><ChevronLeft size={16}/> Dashboard</button>
+  <div class="max-w-6xl mx-auto px-4 mt-6">
+      <button on:click={() => goto('/')} class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white px-4 py-2 rounded-lg border border-slate-800 transition-colors font-bold text-sm shadow-xs"><ChevronLeft size={16}/> Voltar para Dashboard</button>
   </div>
   <CharacterHeader />
   <!-- History toggle was simulated in header, real toggle logic is via local state or store. 
@@ -114,7 +114,7 @@
      <aside class="lg:col-span-3 space-y-4">
         <AttributesSection />
 
-        <button on:click={() => modalState.update(m => ({...m, type: 'pre_roll', data: {type:'luck', source: {name:'Sorte'}}}))} class="w-full bg-slate-900 hover:bg-slate-800 p-3 rounded-xl border border-slate-800 flex items-center justify-between group transition-colors">
+        <button on:click={() => modalState.set({type: 'pre_roll', isOpen: true, data: {type:'luck', source: {name:'Sorte'}}})} class="w-full bg-slate-900 hover:bg-slate-800 p-3 rounded-xl border border-slate-800 flex items-center justify-between group transition-colors">
             <div class="flex items-center gap-2 font-bold text-slate-400 group-hover:text-green-400 uppercase text-xs"><Clover size={14}/> Teste de Sorte</div><ChevronRight size={14} class="text-slate-600"/>
         </button>
 

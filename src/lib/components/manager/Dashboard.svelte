@@ -4,8 +4,9 @@
     import { charactersMap, campaignsMap } from '$lib/db';
     import { goto } from '$app/navigation';
     import { Skull, Users, Scroll, Plus, Edit, Play, Trash2 } from 'lucide-svelte';
-    import CharacterModal from './CharacterModal.svelte';
+    import ConfirmationModal from './ConfirmationModal.svelte';
     import CampaignModal from './CampaignModal.svelte';
+    import CharacterModal from './CharacterModal.svelte';
 
     let activeTab = 'characters';
     
@@ -13,7 +14,8 @@
     let isCharModalOpen = false;
     let editingCharId = null;
     let charFormStr = "{}"; // Store as string to avoid ref issues or reset easily
-    const defaultCharForm = { name: '', ancestry: '', novicePath: '', level: 1, defense: 10, health: 10 };
+    // Updated Defaults
+    const defaultCharForm = { name: '', ancestry: 'Humano', novicePath: '', level: 0, defense: 8, health: 5 };
 
     function openCharModal(char = null) {
         editingCharId = char ? char.id : null;
@@ -43,11 +45,7 @@
                 { name: "Intelecto", value: 10, key: "int" },
                 { name: "Vontade", value: 10, key: "wil" }
             ],
-            // Default props if new, otherwise preserve
-            // Note: We need to handle health carefully to not overwrite current HP if just editing name?
-            // If editing, we update health Max. If current > max, clamp? Or just leave it?
-            // For simplicity: if editingId exists, only update max health if it changed?
-            // Actually, the form only prompts for "Vida".
+            speed: base.speed || 5, // Default Speed 5
             health: formData.health,
             // If creating new, current = max.
             currentHealth: editingCharId ? (base.currentHealth || formData.health) : formData.health
@@ -61,16 +59,12 @@
              newChar.afflictions = [];
              newChar.effects = [];
              newChar.currency = { gp: 0, sp: 0, cp: 0 };
-             newChar.languages = [];
+             newChar.languages = ['Comum']; // Default Language
         }
 
         charactersMap.set(id, newChar);
         isCharModalOpen = false;
         
-        // Redirect to character page if it's new, otherwise stay (optional, but user flow usually implies managing it now)
-        // React code stayed in dashboard. I'll stay in dashboard but give the option to click.
-        // Actually prompt says: "integre com a página de character que já está feita". 
-        // So clicking "New" -> Fill Form -> Save -> Go to Page makes sense.
         if (!editingCharId) {
              goto(`/character/${id}`);
         }
@@ -80,7 +74,7 @@
     let isCampModalOpen = false;
     let editingCampId = null;
     let campFormStr = "{}";
-    const defaultCampForm = { name: '', description: '', gm: '' };
+    const defaultCampForm = { name: '', description: '', gm: '', isPrivate: false };
 
     function openCampModal(camp = null) {
         editingCampId = camp ? camp.id : null;
@@ -98,18 +92,39 @@
             name: formData.name,
             description: formData.description,
             gm: formData.gm,
+            isPrivate: formData.isPrivate, // New privacy field
             players: current.players || []
         };
         campaignsMap.set(id, newCamp);
         isCampModalOpen = false;
     }
     
+    // Confirm Dialog State
+    let isConfirmOpen = false;
+    let confirmConfig = { title: '', message: '', onConfirm: () => {} };
+
     function deleteCampaign(id) {
-        if(confirm('Tem certeza?')) campaignsMap.delete(id);
+        confirmConfig = {
+            title: 'Excluir Campanha',
+            message: 'Tem certeza que deseja apagar esta campanha permanentemente?',
+            onConfirm: () => {
+                campaignsMap.delete(id);
+                isConfirmOpen = false;
+            }
+        };
+        isConfirmOpen = true;
     }
     
     function deleteCharacter(id) {
-         if(confirm('Tem certeza?')) charactersMap.delete(id);
+        confirmConfig = {
+            title: 'Excluir Personagem',
+            message: 'Tem certeza que deseja apagar este personagem permanentemente?',
+            onConfirm: () => {
+                charactersMap.delete(id);
+                isConfirmOpen = false;
+            }
+        };
+        isConfirmOpen = true;
     }
 
 </script>
@@ -144,11 +159,10 @@
                     tabindex="0"
                  >
                     <h3 class="font-bold text-xl text-white mb-1 group-hover:text-indigo-400 transition-colors">{char.name}</h3>
-                    <p class="text-sm text-indigo-400 font-bold uppercase tracking-wider">{char.ancestry || 'Ancestralidade'} • Nível {char.level || 0}</p>
+                    <p class="text-sm text-indigo-400 font-bold uppercase tracking-wider">{char.ancestry || 'Ancestralidade'} • Nível {char.level === 0 ? '0' : (char.level || 0)}</p>
                     <p class="text-xs text-slate-500 font-medium mt-2 max-w-[240px] truncate">{char.paths?.novice || "-"}</p>
                  </div>
                  <div class="flex gap-1">
-                     <button on:click={() => openCharModal(char)} class="text-slate-600 hover:text-white p-2 rounded hover:bg-slate-800 transition-colors"><Edit size={16}/></button>
                      <button on:click={() => deleteCharacter(char.id)} class="text-slate-600 hover:text-red-400 p-2 rounded hover:bg-slate-800 transition-colors"><Trash2 size={16}/></button>
                  </div>
               </div>
@@ -163,7 +177,14 @@
          {#each $liveCampaigns as camp (camp.id)}
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 hover:border-indigo-500/50 transition-all group relative flex flex-col justify-between shadow-lg hover:shadow-indigo-500/10">
                <div>
-                  <h3 class="font-bold text-2xl text-white mb-2 group-hover:text-indigo-400 transition-colors">{camp.name}</h3>
+                  <h3 class="font-bold text-2xl text-white mb-2 group-hover:text-indigo-400 transition-colors flex justify-between">
+                      {camp.name}
+                      {#if camp.isPrivate}
+                          <span class="text-[10px] bg-red-900/40 text-red-400 px-2 py-1 rounded border border-red-900/50 uppercase tracking-wider">Privada</span>
+                      {:else}
+                          <span class="text-[10px] bg-green-900/40 text-green-400 px-2 py-1 rounded border border-green-900/50 uppercase tracking-wider">Pública</span>
+                      {/if}
+                  </h3>
                   <p class="text-sm text-slate-400 mb-4 line-clamp-2 leading-relaxed">{camp.description || 'Sem descrição.'}</p>
                </div>
                <div class="flex gap-3 mt-4">
@@ -178,5 +199,6 @@
 
    <CharacterModal isOpen={isCharModalOpen} initialData={charFormStr} onClose={() => isCharModalOpen = false} onSave={saveCharacter} />
    <CampaignModal isOpen={isCampModalOpen} initialData={campFormStr} onClose={() => isCampModalOpen = false} onSave={saveCampaign} />
+   <ConfirmationModal isOpen={isConfirmOpen} title={confirmConfig.title} message={confirmConfig.message} onConfirm={confirmConfig.onConfirm} onCancel={() => isConfirmOpen = false} />
 
 </div>

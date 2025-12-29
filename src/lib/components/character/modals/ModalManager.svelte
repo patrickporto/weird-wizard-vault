@@ -22,6 +22,11 @@
             novicePath: $character.paths.novice, expertPath: $character.paths.expert, masterPath: $character.paths.master,
             normalHealth: $normalHealth, currentHealth: $currentHealth
         };
+
+        if (type === 'stat') {
+            if (data === 'defense') formData = { key: 'naturalDefense', name: 'Defesa Natural', value: $character.naturalDefense };
+            else if (data === 'speed') formData = { key: 'speed', name: 'Velocidade', value: $character.speed };
+        }
         
         if (type === 'pre_roll') {
             formSelectedEffects = $activeEffects.map(e => e.id);
@@ -47,6 +52,7 @@
 
     // Save Handlers
     function saveItem() {
+        if (!formData.name?.trim()) return alert("Nome é obrigatório");
         const newItem = { ...formData, id: formData.id || Date.now() };
         if ($modalState.data) characterActions.updateItem(newItem);
         else characterActions.addItem(newItem);
@@ -54,6 +60,7 @@
     }
     
     function saveSpell() {
+        if (!formData.name?.trim()) return alert("Nome é obrigatório");
         const newSpell = { ...formData, id: formData.id || Date.now() };
         if ($modalState.data) characterActions.updateSpell(newSpell);
         else characterActions.addSpell(newSpell);
@@ -61,6 +68,7 @@
     }
 
     function saveTalent() {
+        if (!formData.name?.trim()) return alert("Nome é obrigatório");
         const newTalent = { ...formData, id: formData.id || Date.now() };
         if (formData.isPassive) { newTalent.maxUses = 0; newTalent.uses = 0; }
         else if (!$modalState.data && formData.maxUses > 0) newTalent.uses = formData.maxUses;
@@ -72,6 +80,10 @@
 
     function saveEffect() {
         const effectData = formEffectData;
+        
+        // Validation: Name required unless inherited (parentData exists and we are editing it as sub-effect)
+        if (!$modalState.data?.parentType && !effectData.name?.trim()) return alert("Nome do efeito é obrigatório");
+
         const effectWithInitial = { 
             ...effectData, 
             initialRounds: effectData.duration === 'ROUNDS' ? effectData.roundsLeft : 0 
@@ -92,6 +104,11 @@
         }
         closeModal();
     }
+
+    // ... (rest of saves omitted for brevity if unchanged, but I need to be careful with replace_file_content chunking)
+    // Actually I should split this if lines are far apart. 
+    // Wait, the block I'm replacing covers saveItem to saveEffect.
+    // I need to be careful with context lines.
 
     function saveAttribute() {
          character.update(c => ({
@@ -119,6 +136,14 @@
         // Normal health updates?
         normalHealth.set(parseInt(formData.normalHealth));
         currentHealth.set(parseInt(formData.currentHealth));
+        closeModal();
+    }
+
+    function saveStat() {
+        character.update(c => ({
+            ...c,
+            [formData.key]: parseInt(formData.value) || 0
+        }));
         closeModal();
     }
 
@@ -151,6 +176,7 @@
             {:else if $modalState.type === 'character_info'}Informações do Personagem
             {:else if $modalState.type === 'health'}Vigor & Dano
             {:else if $modalState.type === 'attribute'}Atributo
+            {:else if $modalState.type === 'stat'}{formData.name}
             {:else}Informação
             {/if}
           </h3>
@@ -161,7 +187,10 @@
             
             {#if $modalState.type === 'item'}
                 <div class="space-y-3">
-                    <input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white font-bold" placeholder="Nome" bind:value={formData.name} />
+                    <div>
+                        <input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white font-bold mb-1" placeholder="Nome" bind:value={formData.name} />
+                        {#if !formData.name}<p class="text-[10px] text-red-500">* Nome obrigatório</p>{/if}
+                    </div>
                     <div class="grid grid-cols-2 gap-2">
                         <select class="bg-slate-900 border border-slate-700 rounded p-2 text-white text-xs" bind:value={formData.type}>
                             {#each Object.values(ITEM_TYPES) as t}<option value={t}>{t}</option>{/each}
@@ -191,14 +220,20 @@
 
             {:else if $modalState.type === 'spell'}
                 <div class="space-y-3">
-                    <input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white font-bold" placeholder="Nome" bind:value={formData.name} />
+                    <div>
+                        <input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white font-bold mb-1" placeholder="Nome" bind:value={formData.name} />
+                        {#if !formData.name}<p class="text-[10px] text-red-500">* Nome obrigatório</p>{/if}
+                    </div>
                     <div class="grid grid-cols-2 gap-2">
                         <select class="bg-slate-900 border border-slate-700 rounded p-2 text-white text-xs" bind:value={formData.tier}>
                              {#each ['Novice', 'Expert', 'Master'] as t}<option value={t}>{t}</option>{/each}
                         </select>
-                        <select class="bg-slate-900 border border-slate-700 rounded p-2 text-white text-xs" bind:value={formData.tradition}>
-                             {#each MAGIC_TRADITIONS as t}<option value={t}>{t}</option>{/each}
-                        </select>
+                        <div class="relative">
+                            <input list="traditions" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-xs" placeholder="Tradição" bind:value={formData.tradition} />
+                            <datalist id="traditions">
+                                {#each MAGIC_TRADITIONS as t}<option value={t}>{t}</option>{/each}
+                            </datalist>
+                        </div>
                     </div>
                     <div class="flex items-center gap-2 bg-slate-900 p-2 rounded border border-slate-700">
                         <label for="maxCastings" class="text-xs text-slate-400 uppercase">Castings</label>
@@ -219,7 +254,10 @@
 
             {:else if $modalState.type === 'talent'}
                 <div class="space-y-3">
-                    <input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white font-bold" placeholder="Nome" bind:value={formData.name} />
+                    <div>
+                        <input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white font-bold mb-1" placeholder="Nome" bind:value={formData.name} />
+                        {#if !formData.name}<p class="text-[10px] text-red-500">* Nome obrigatório</p>{/if}
+                    </div>
                     <div class="flex items-center gap-2 bg-slate-900 p-2 rounded border border-slate-700">
                          <input type="checkbox" id="isPassive" bind:checked={formData.isPassive} class="w-4 h-4 rounded bg-slate-800 border-slate-600 text-indigo-600 focus:ring-indigo-500" />
                          <label for="isPassive" class="text-xs text-slate-400 uppercase font-bold flex-1 cursor-pointer">Passivo / Ilimitado</label>
@@ -246,7 +284,11 @@
             {:else if $modalState.type === 'effect'}
                 <div class="space-y-4">
                     {#if !$modalState.data?.parentType}
-                        <div><label for="effectName" class="text-xs font-bold text-slate-400 uppercase">Nome</label><input id="effectName" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formEffectData.name} /></div>
+                        <div>
+                            <label for="effectName" class="text-xs font-bold text-slate-400 uppercase">Nome</label>
+                            <input id="effectName" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formEffectData.name} />
+                            {#if !formEffectData.name}<p class="text-[10px] text-red-500">* Nome obrigatório</p>{/if}
+                        </div>
                     {:else}
                          <div class="text-center text-xs text-slate-500 italic mb-2">Nome e Descrição herdados do item pai.</div>
                     {/if}
@@ -263,7 +305,7 @@
                     <div class="bg-slate-950 p-3 rounded border border-slate-800">
                         <div class="flex justify-between items-center mb-2">
                             <span class="text-xs font-bold text-indigo-400 uppercase">Modificadores</span>
-                            <button on:click={() => formEffectData = { ...formEffectData, modifiers: [...formEffectData.modifiers, { target: 'str', type: MOD_TYPES.ADD, value: 1 }] }} class="text-[10px] bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded border border-slate-600 flex items-center gap-1"><Plus size={10}/> Add</button>
+                            <button on:click={() => formEffectData = { ...formEffectData, modifiers: [...(formEffectData.modifiers || []), { target: 'str', type: MOD_TYPES.ADD, value: 1 }] }} class="text-[10px] bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded border border-slate-600 flex items-center gap-1"><Plus size={10}/> Add</button>
                         </div>
                         <div class="space-y-2">
                             {#each formEffectData.modifiers as mod, idx}
@@ -291,6 +333,13 @@
                     <h3 class="text-white font-bold text-lg">{formData.name}</h3>
                     <div><label class="text-xs text-slate-400 uppercase font-bold">Valor Base</label><input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formData.value} /></div>
                     <button on:click={saveAttribute} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">Salvar</button>
+                </div>
+
+            {:else if $modalState.type === 'stat'}
+                <div class="space-y-4">
+                    <h3 class="text-white font-bold text-lg uppercase">{formData.name}</h3>
+                    <div><label class="text-xs text-slate-400 uppercase font-bold">Valor Base</label><input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formData.value} /></div>
+                    <button on:click={saveStat} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">Salvar</button>
                 </div>
 
             {:else if $modalState.type === 'health'}
