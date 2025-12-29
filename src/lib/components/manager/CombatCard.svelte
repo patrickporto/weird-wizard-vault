@@ -209,7 +209,16 @@
                      <div><h5 class="text-red-400 font-bold uppercase text-[10px] mb-1">Ações</h5>
                      {#each entity.actions as t}<div class="mb-1"><span class="font-bold text-white">{t.name}:</span> <span class="text-slate-400">{t.desc}</span></div>{/each}</div>
                  {/if}
-                 <!-- Reactions / End of Round... -->
+                 
+                 {#if entity.reactions}
+                     <div><h5 class="text-orange-400 font-bold uppercase text-[10px] mb-1">Reações</h5>
+                     {#each entity.reactions as t}<div class="mb-1"><span class="font-bold text-white">{t.name}:</span> <span class="text-slate-400">{t.desc}</span></div>{/each}</div>
+                 {/if}
+
+                 {#if entity.endOfRound}
+                     <div><h5 class="text-yellow-500 font-bold uppercase text-[10px] mb-1">Fim da Rodada</h5>
+                     {#each entity.endOfRound as t}<div class="mb-1"><span class="font-bold text-white">{t.name}:</span> <span class="text-slate-400">{t.desc}</span></div>{/each}</div>
+                 {/if}
             </div>
         </div>
     {/if}
