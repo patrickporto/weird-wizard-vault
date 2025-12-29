@@ -1,6 +1,6 @@
 import { joinRoom, selfId } from 'trystero';
 import { writable, get, derived } from 'svelte/store';
-import { characterActions, character, isHistoryOpen, damage, currentHealth } from '$lib/stores/characterStore';
+import { characterActions, character, isHistoryOpen, damage, currentHealth, normalHealth } from '$lib/stores/characterStore';
 import { campaignsMap } from '$lib/db';
 
 const roomConfig = { appId: 'weird-wizard-vault' };
@@ -163,8 +163,12 @@ export function joinCampaignRoom(campaignId: string, isGM: boolean = false, char
                 });
             }
         } else {
+            // Player receives update from GM - check if this update is for our character
             const state = get(syncState);
-            if (state.currentCharacterId === charData.id) {
+            const charStoreData = get(character);
+            const myCharId = state.currentCharacterId || charStoreData?.id;
+
+            if (myCharId && myCharId === charData.id) {
                 character.update(c => ({
                     ...c,
                     name: charData.name || c.name,
@@ -174,6 +178,7 @@ export function joinCampaignRoom(campaignId: string, isGM: boolean = false, char
                 }));
                 if (charData.damage !== undefined) damage.set(charData.damage);
                 if (charData.currentHealth !== undefined) currentHealth.set(charData.currentHealth);
+                if (charData.normalHealth !== undefined) normalHealth.set(charData.normalHealth);
             }
         }
     });

@@ -61,6 +61,7 @@
                 ancestry: charData.ancestry,
                 damage: dmg,
                 currentHealth: ch,
+                normalHealth: nh,
                 health: maxH,
                 defense: def,
                 initiative: charData.initiative,
@@ -86,6 +87,7 @@
                 ancestry: current.ancestry,
                 damage: get(damage),
                 currentHealth: get(currentHealth),
+                normalHealth: get(normalHealth),
                 health: get(effectiveMaxHealth),
                 defense: get(totalDefense),
                 initiative: current.initiative,
@@ -131,10 +133,10 @@
             charactersMap.set(id, newChar);
         }
         
-        // Auto-join campaign room
+        // Auto-join campaign room with character ID for bidirectional sync
         const charData = get(character);
         if (charData.campaignId) {
-            joinCampaignRoom(charData.campaignId, false);
+            joinCampaignRoom(charData.campaignId, false, currentId);
         }
         
         loaded = true;
