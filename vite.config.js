@@ -11,6 +11,8 @@ export default {
     devtoolsJson(),
     SvelteKitPWA({
       registerType: 'autoUpdate',
+      base: process.env.NODE_ENV === 'production' ? '/schwalb-vault/' : '/',
+      scope: process.env.NODE_ENV === 'production' ? '/schwalb-vault/' : '/',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
       devOptions: {
         enabled: true,
@@ -24,6 +26,8 @@ export default {
         background_color: '#0f172a',
         display: 'standalone',
         orientation: 'portrait',
+        scope: process.env.NODE_ENV === 'production' ? '/schwalb-vault/' : '/',
+        start_url: process.env.NODE_ENV === 'production' ? '/schwalb-vault/' : '/',
         icons: [
           {
             src: 'pwa-192x192.png',
