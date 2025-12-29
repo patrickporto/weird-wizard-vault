@@ -1,16 +1,22 @@
 import { joinRoom, selfId } from 'trystero';
-import { writable, get } from 'svelte/store';
+import { writable, get, derived } from 'svelte/store';
 import { characterActions, character, isHistoryOpen, damage, currentHealth } from '$lib/stores/characterStore';
 import { campaignsMap } from '$lib/db';
 
 const roomConfig = { appId: 'weird-wizard-vault' };
 
 export const syncState = writable({
-    isConnected: false,
+    roomId: null as string | null,
     peers: [] as string[],
-    isGM: false,
     currentCharacterId: null as string | null,
-    room: null as any
+    lastGmUpdate: 0,
+    isGM: false,
+    isConnected: false
+});
+
+export const isGmOnline = derived(syncState, $s => {
+    if (!$s.lastGmUpdate) return false;
+    return (Date.now() - $s.lastGmUpdate) < 60000; // 60s timeout
 });
 
 let room: any = null;
@@ -29,7 +35,8 @@ export function joinCampaignRoom(campaignId: string, isGM: boolean = false, char
         isGM,
         currentCharacterId: charId,
         peers: [],
-        room
+        roomId: campaignId,
+        lastGmUpdate: 0
     });
 
     // Actions
@@ -57,6 +64,7 @@ export function joinCampaignRoom(campaignId: string, isGM: boolean = false, char
 
     getCampaign((data: any) => {
         if (!isGM) {
+            syncState.update(s => ({ ...s, lastGmUpdate: Date.now() }));
             character.update(c => ({
                 ...c,
                 campaignName: data.name,

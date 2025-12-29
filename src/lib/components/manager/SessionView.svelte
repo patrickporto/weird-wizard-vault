@@ -32,6 +32,19 @@ import { joinCampaignRoom, syncCombat, syncCampaign } from '$lib/logic/sync';
     onMount(() => {
         if (campaign?.id) {
             joinCampaignRoom(campaign.id, true);
+
+            // Heartbeat for players to know GM is online
+            const interval = setInterval(() => {
+                const current = campaignsMap.get(campaign.id) || campaign;
+                syncCampaign(campaign.id, { 
+                    name: current.name, 
+                    gmName: current.gmName || 'Mestre' 
+                });
+            }, 30000); // 30 seconds
+            
+            return () => {
+                clearInterval(interval);
+            };
         }
     });
 

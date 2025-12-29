@@ -150,17 +150,13 @@
 
   <CharacterHeader />
   
-  <div class="lg:hidden px-4 mt-4">
-     <CampaignStatus banner />
-  </div>
-
   <!-- History toggle was simulated in header, real toggle logic is via local state or store. 
        We can pass isHistoryOpen binding or equivalent. 
        Ideally Header should emit event or use store. 
        For now, let's leave it simple: Header buttons might not work without connecting events.
   -->
 
-  <main class="max-w-6xl mx-auto px-4 mt-4 lg:mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <main class="max-w-6xl mx-auto px-4 mt-6 lg:mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
      
      <!-- SIDEBAR ESQUERDA -->
      <aside class="lg:col-span-3 space-y-4">
@@ -213,9 +209,14 @@
         </div>
      </section>
   </main>
+
+   <div class="lg:hidden px-4 mt-6">
+      <CampaignStatus banner />
+   </div>
   {:else}
     <div class="flex items-center justify-center min-h-screen">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
     </div>
   {/if}
 </div>
+```
