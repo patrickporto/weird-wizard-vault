@@ -3,7 +3,8 @@
     import { characterActions, isHistoryOpen } from '$lib/stores/characterStore';
     import { campaignsMap } from '$lib/db';
     import { resolve } from '$app/paths';
-    import { Users, UserPlus, Ghost, GripVertical, Plus, Minus, Swords, RotateCcw, X, Clock, AlertTriangle, Dices, ChevronLeft, ChevronDown, ChevronUp, History, Layers, Play, Copy, QrCode, Check, Globe, Wifi, Trash2 } from 'lucide-svelte';
+    import { Users, UserPlus, Ghost, GripVertical, Plus, Minus, Swords, RotateCcw, X, Clock, AlertTriangle, Dices, ChevronLeft, ChevronDown, ChevronUp, History, Layers, Play, Copy, QrCode, Check, Globe, Wifi, Trash2, Search, Library, PlusCircle, LayoutDashboard } from 'lucide-svelte';
+    import DiceRollModal from '$lib/components/common/DiceRollModal.svelte';
     import CombatCard from './CombatCard.svelte';
     import HistorySidebar from '$lib/components/character/HistorySidebar.svelte';
     import ConfirmationModal from './ConfirmationModal.svelte';
@@ -287,8 +288,8 @@ import { joinCampaignRoom, syncCombat, syncCampaign, syncCharacter } from '$lib/
         quickRollState = { isOpen: true, sides, count, modifier: 0 };
     }
 
-    function confirmQuickRoll() {
-        rollDice(quickRollState.sides, quickRollState.count, quickRollState.modifier);
+    function confirmQuickRoll(mod: number) {
+        rollDice(quickRollState.sides, quickRollState.count, mod);
         quickRollState.isOpen = false;
     }
 
@@ -655,24 +656,14 @@ import { joinCampaignRoom, syncCombat, syncCampaign, syncCharacter } from '$lib/
     <button onclick={() => startQuickRoll(6, 3)} class="bg-slate-800 hover:bg-indigo-600 text-white font-bold w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:-translate-y-1 shadow-lg text-xs">3d6</button>
 </div>
 
-{#if quickRollState.isOpen}
-    <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4" onclick={(e) => { if (e.target === e.currentTarget) quickRollState.isOpen = false; }} role="button" aria-label="Fechar" tabindex="-1">
-        <div class="bg-slate-800 rounded-xl border border-slate-700 shadow-2xl p-6 w-full max-w-sm" role="dialog" aria-modal="true">
-             <h3 class="font-bold text-white text-center text-lg mb-4">Rolagem Rápida ({quickRollState.count}d{quickRollState.sides})</h3>
-             <div class="flex items-center justify-center gap-6 mb-6">
-                 <button onclick={() => quickRollState.modifier--} class="w-12 h-12 rounded-full bg-slate-700 hover:bg-red-500 text-white flex items-center justify-center"><Minus size={24}/></button>
-                 <div class="text-4xl font-bold {quickRollState.modifier > 0 ? 'text-green-400' : quickRollState.modifier < 0 ? 'text-red-400' : 'text-slate-500'}">
-                     {quickRollState.modifier > 0 ? '+' : ''}{quickRollState.modifier}
-                 </div>
-                 <button onclick={() => quickRollState.modifier++} class="w-12 h-12 rounded-full bg-slate-700 hover:bg-green-500 text-white flex items-center justify-center"><Plus size={24}/></button>
-             </div>
-             <div class="text-xs text-center text-slate-500 mb-6 uppercase font-bold">{quickRollState.sides === 20 ? 'Boons / Banes' : 'Modificador Fixo'}</div>
-             <button onclick={confirmQuickRoll} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl shadow-lg">ROLAR AGORA</button>
-        </div>
-    </div>
-{/if}
+<DiceRollModal 
+    isOpen={quickRollState.isOpen}
+    title="Rolagem Rápida ({quickRollState.count}d{quickRollState.sides})"
+    label={quickRollState.sides === 20 ? 'Boons / Banes' : 'Modificador Fixo'}
+    onClose={() => quickRollState.isOpen = false}
+    onRoll={confirmQuickRoll}
+    initialModifier={0}
+/>
 
 {#if isAddCharOpen}
     <!-- svelte-ignore a11y_click_events_have_key_events -->

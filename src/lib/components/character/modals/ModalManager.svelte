@@ -1,12 +1,12 @@
 <script lang="ts">
     import { modalState, characterActions, character, activeEffects, damage, normalHealth, currentHealth } from '$lib/stores/characterStore';
-    import { X, Trash2, Plus, Minus, Zap, Wand2, Check } from 'lucide-svelte';
+    import { X, Trash2, Plus, Minus, Zap, Wand2, Check, Dices } from 'lucide-svelte';
+    import DiceRollModal from '$lib/components/common/DiceRollModal.svelte';
     import { ITEM_TYPES, GRIPS, MAGIC_TRADITIONS, DURATION_TYPES, MOD_TYPES, MOD_TARGETS, AFFLICTIONS_DATA } from '../../../../routes/sofww';
 
     // Local state for forms
     let formData = $state<any>({});
     let formEffectData = $state<any>({});
-    let formModifier = $state(0);
     let formSelectedEffects = $state<string[]>([]);
 
     // Reactive reset on open - Svelte 5 Effect
@@ -31,7 +31,6 @@
             
             if (type === 'pre_roll') {
                 formSelectedEffects = $activeEffects.map(e => e.id);
-                formModifier = 0;
             }
 
             if (type === 'effect') {
@@ -153,12 +152,12 @@
     }
 </script>
 
-<Modal isOpen={$modalState.isOpen} onClose={closeModal} maxWidth="max-w-lg" title={
+<Modal isOpen={$modalState.isOpen && $modalState.type !== 'pre_roll'} onClose={closeModal} maxWidth="max-w-lg" title={
     $modalState.type === 'item' ? 'Editor de Item' :
     $modalState.type === 'spell' ? 'Editar Magia' :
     $modalState.type === 'talent' ? 'Editar Talento' :
     $modalState.type === 'effect' ? 'Gerenciar Efeito' :
-    $modalState.type === 'pre_roll' ? 'Confirmar Rolagem' :
+    $modalState.type === 'pre_roll' ? '' : // Handled by DiceRollModal
     $modalState.type === 'confirm_spell' ? 'Confirmar Conjuração' :
     $modalState.type === 'confirm_talent' ? 'Confirmar Ativação' :
     $modalState.type === 'cast_spell' ? 'Grimório' :
@@ -437,20 +436,7 @@
                     <div class="flex gap-4 justify-center"><button onclick={closeModal} class="px-6 py-2 rounded bg-slate-700 hover:bg-slate-600 text-white font-bold">Cancelar</button><button onclick={characterActions.confirmRest} class="px-6 py-2 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-bold">Descansar</button></div>
                 </div>
 
-            {:else if $modalState.type === 'pre_roll'}
-                 <div class="space-y-4">
-                    <h3 class="text-center font-bold text-white uppercase mb-2">Rolagem</h3>
-                    
-                    <div class="bg-slate-900 p-4 rounded-lg border border-slate-700 text-center">
-                        <div class="flex justify-center items-center gap-6 mb-2">
-                             <button onclick={() => formModifier--} class="w-12 h-12 rounded-full bg-slate-800 hover:bg-red-900 flex items-center justify-center text-slate-300 hover:text-white border border-slate-700" aria-label="Diminuir Modificador"><Minus size={24}/></button>
-                             <span class="text-4xl font-bold {formModifier > 0 ? 'text-green-400' : formModifier < 0 ? 'text-red-400' : 'text-slate-500'}">{formModifier > 0 ? '+' : ''}{formModifier}</span>
-                             <button onclick={() => formModifier++} class="w-12 h-12 rounded-full bg-slate-800 hover:bg-green-900 flex items-center justify-center text-slate-300 hover:text-white border border-slate-700" aria-label="Aumentar Modificador"><Plus size={24}/></button>
-                        </div>
-                        <div class="text-xs text-slate-500">{$modalState.data.type === 'weapon_damage' ? 'Dados Extras' : 'Boons/Banes'}</div>
-                    </div>
-                    <button onclick={() => characterActions.finalizeRoll($modalState.data, formModifier, $activeEffects.filter(e => formSelectedEffects.includes(e.id)).map(e => e.name))} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2">ROLAR</button>
-                </div>
+            <!-- Handled by DiceRollModal separately -->
             
             {:else if $modalState.type === 'weapon_menu'}
                 <div class="space-y-6 text-center">
@@ -590,3 +576,20 @@
             {/if}
         </div>
 </Modal>
+
+<DiceRollModal 
+    isOpen={$modalState.isOpen && $modalState.type === 'pre_roll'}
+    title="Confirmar Rolagem"
+    label={$modalState.data?.type === 'weapon_damage' ? 'Dados Extras' : 'Boons / Banes'}
+    rollLabel="ROLAR"
+    onClose={closeModal}
+    onRoll={(mod) => {
+        characterActions.finalizeRoll(
+            $modalState.data, 
+            mod, 
+            $activeEffects.filter(e => formSelectedEffects.includes(e.id)).map(e => e.name)
+        );
+        closeModal();
+    }}
+/>
+
