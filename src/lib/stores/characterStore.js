@@ -33,6 +33,8 @@ export const defaultCharacter = {
     campaignName: null,
     gmName: null,
     combatActive: false,
+    initiative: false,
+    acted: false,
     spells: [
         { id: 1, name: "Seta de Energia", tier: "Novice", type: "Ataque", tradition: "Destruction", description: "Causa 1d6 de dano a um alvo em alcance curto.", castings: 3, maxCastings: 3, effect: null },
         {

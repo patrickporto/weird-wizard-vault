@@ -247,22 +247,38 @@ import { joinCampaignRoom, syncCombat, syncCampaign } from '$lib/logic/sync';
         isHistoryOpen.set(true); 
     }
 
+    let currentTime = $state(Date.now());
+    onMount(() => {
+        const int = setInterval(() => { currentTime = Date.now() }, 10000);
+        return () => clearInterval(int);
+    });
+
     // Explicit derivation of sorted combatants
     let sortedCombatants = $derived<any[]>((() => {
-        const playersWithInit = roster.map(pid => $liveCharacters.find(c => c.id === pid)).filter(c => c && c.initiative).map(c => ({...c, id: c.id, type: 'player'}));
+        // Players to show: those in roster OR those online
+        const activePlayers = players.filter(p => roster.includes(p.id) || isOnline(p));
+
+        const playersWithInit = activePlayers.filter(c => c && c.initiative).map(c => ({...c, type: 'player'}));
         const enemies = activeEnemies.map(e => ({...e, type: 'enemy'}));
-        const playersNoInit = roster.map(pid => $liveCharacters.find(c => c.id === pid)).filter(c => c && !c.initiative).map(c => ({...c, id: c.id, type: 'player'}));
+        const playersNoInit = activePlayers.filter(c => c && !c.initiative).map(c => ({...c, type: 'player'}));
         
         const all = [...playersWithInit, ...enemies, ...playersNoInit];
         
         const seen = new Set();
         return all.filter(entity => {
+            if (!entity) return false;
             const key = entity.type === 'player' ? entity.id : entity.instanceId;
-            if (!key || seen.has(key)) return false;
+            if (seen.has(key)) return false;
             seen.add(key);
             return true;
         });
     })());
+
+    function isOnline(char: any) {
+        if (!char.lastUpdate) return false;
+        // If updated in the last 60 seconds. Use currentTime to force reactivity.
+        return (currentTime - char.lastUpdate) < 60000;
+    }
 </script>
 
 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full relative">
@@ -299,10 +315,11 @@ import { joinCampaignRoom, syncCombat, syncCampaign } from '$lib/logic/sync';
 
                 <div class="space-y-2">
                     {#each players as char (char.id)}
-                        <div class="p-2.5 rounded-xl border flex items-center gap-3 transition-all bg-indigo-900/10 border-indigo-500/20 hover:border-indigo-500/40 group shadow-sm">
-                            <div class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(74,222,128,0.4)]"></div>
+                        {@const online = isOnline(char)}
+                        <div class="p-2.5 rounded-xl border flex items-center gap-3 transition-all {online ? 'bg-indigo-900/10 border-indigo-500/20' : 'bg-slate-900/50 border-slate-800 opacity-60'} hover:border-indigo-500/40 group shadow-sm">
+                            <div class="w-2 h-2 rounded-full {online ? 'bg-green-500 shadow-[0_0_8px_rgba(74,222,128,0.4)]' : 'bg-slate-700'}"></div>
                             <div class="flex-1">
-                                 <div class="font-bold text-sm text-white group-hover:text-indigo-300 transition-colors">{char.name}</div>
+                                 <div class="font-bold text-sm {online ? 'text-white' : 'text-slate-500'} group-hover:text-indigo-300 transition-colors">{char.name}</div>
                                  <div class="text-[10px] text-slate-500 font-medium">Lvl {char.level} • {char.ancestry}</div>
                             </div>
                             <button onclick={() => toggleSessionPresence(char.id)} class="text-slate-600 hover:text-red-400 p-1.5 hover:bg-red-400/10 rounded-lg transition-all" title="Remover da Sessão"><X size={14}/></button>

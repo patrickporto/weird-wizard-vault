@@ -62,9 +62,38 @@
                 currentHealth: ch,
                 health: maxH,
                 defense: def,
+                initiative: charData.initiative,
+                acted: charData.acted,
                 afflictions: charData.afflictions || []
             });
         }
+    });
+
+    // Heartbeat for online status
+    $effect(() => {
+        if (!loaded || !currentId) return;
+        const charData = get(character);
+        if (!charData.campaignId) return;
+
+        const interval = setInterval(() => {
+            const current = get(character);
+            syncCharacter({
+                id: currentId,
+                type: 'player',
+                name: current.name,
+                level: current.level,
+                ancestry: current.ancestry,
+                damage: get(damage),
+                currentHealth: get(currentHealth),
+                health: get(effectiveMaxHealth),
+                defense: get(totalDefense),
+                initiative: current.initiative,
+                acted: current.acted,
+                afflictions: current.afflictions || []
+            });
+        }, 30000); // 30 seconds heartbeat
+
+        return () => clearInterval(interval);
     });
 
     // Handle ID changes
