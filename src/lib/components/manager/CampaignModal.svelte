@@ -1,53 +1,79 @@
-<script>
-    export let isOpen = false;
-    export let initialData = "{}";
-    export let onClose;
-    export let onSave;
+<script lang="ts">
+    interface Props {
+        isOpen: boolean;
+        initialData?: string;
+        onClose: () => void;
+        onSave: (form: any) => void;
+    }
 
-    let form = { name: '', description: '', gm: '', isPrivate: false };
+    let { 
+        isOpen = false, 
+        initialData = "{}", 
+        onClose, 
+        onSave 
+    }: Props = $props();
+
+    let form = $state({ name: '', description: '', gm: '', isPrivate: false });
     
-    $: if (isOpen && initialData) {
-        try {
-            const parsed = JSON.parse(initialData);
-            form = {
-                name: parsed.name || '',
-                description: parsed.description || '',
-                gm: parsed.gm || '',
-                isPrivate: parsed.isPrivate || false
-            };
-        } catch(e) {
-            form = { name: '', description: '', gm: '', isPrivate: false };
+    $effect(() => {
+        if (isOpen && initialData) {
+            try {
+                const parsed = JSON.parse(initialData);
+                form.name = parsed.name || '';
+                form.description = parsed.description || '';
+                form.gm = parsed.gm || '';
+                form.isPrivate = parsed.isPrivate || false;
+            } catch(e) {
+                form.name = '';
+                form.description = '';
+                form.gm = '';
+                form.isPrivate = false;
+            }
         }
+    });
+
+    function handleBackdropClick(e: MouseEvent) {
+        if (e.target === e.currentTarget) onClose();
     }
 </script>
 
 {#if isOpen}
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" on:click|self={onClose}>
-    <div class="bg-slate-800 rounded-xl w-full max-w-md p-6 border border-slate-700 shadow-2xl">
-        <h3 class="text-xl font-bold text-white mb-4">Campanha</h3>
-        <div class="space-y-3">
-            <div>
-                 <label class="text-xs text-slate-500 uppercase font-bold block mb-1">Nome</label>
-                 <input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-hidden focus:border-indigo-500" placeholder="Nome da Campanha" bind:value={form.name} />
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div 
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" 
+        onclick={handleBackdropClick}
+        role="presentation"
+    >
+        <div 
+            class="bg-slate-800 rounded-xl w-full max-w-md p-6 border border-slate-700 shadow-2xl"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="campaign-modal-title"
+        >
+            <h3 id="campaign-modal-title" class="text-xl font-bold text-white mb-4 tracking-tight">Configurações da Campanha</h3>
+            <div class="space-y-4">
+                <div>
+                     <label for="campaign-name" class="text-xs text-slate-500 uppercase font-black block mb-1 tracking-widest">Nome da Campanha</label>
+                     <input id="campaign-name" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none focus:border-indigo-500 transition-colors" placeholder="Ex: A Sombra do Feiticeiro" bind:value={form.name} />
+                </div>
+                <div>
+                     <label for="campaign-gm" class="text-xs text-slate-500 uppercase font-black block mb-1 tracking-widest">Mestre (GM)</label>
+                     <input id="campaign-gm" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none focus:border-indigo-500 transition-colors" placeholder="Seu nome ou apelido" bind:value={form.gm} />
+                </div>
+                <div>
+                     <label for="campaign-desc" class="text-xs text-slate-500 uppercase font-black block mb-1 tracking-widest">Descrição</label>
+                     <textarea id="campaign-desc" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none focus:border-indigo-500 transition-colors resize-none" rows="3" placeholder="Uma breve descrição da sua jornada..." bind:value={form.description}></textarea>
+                </div>
+                <div class="flex items-center gap-3 pt-2">
+                     <input type="checkbox" id="isPrivate" bind:checked={form.isPrivate} class="w-5 h-5 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-indigo-500 transition-all"/>
+                     <label for="isPrivate" class="text-sm text-slate-400 font-bold cursor-pointer select-none">Campanha Privada <span class="text-[10px] text-slate-600 block font-normal">(apenas você verá no seu dashboard)</span></label>
+                </div>
             </div>
-            <div>
-                 <label class="text-xs text-slate-500 uppercase font-bold block mb-1">Mestre (GM)</label>
-                 <input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-hidden focus:border-indigo-500" placeholder="Nome do Mestre" bind:value={form.gm} />
-            </div>
-            <div>
-                 <label class="text-xs text-slate-500 uppercase font-bold block mb-1">Descrição</label>
-                 <textarea class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-hidden focus:border-indigo-500 resize-none" rows="3" placeholder="Descrição breve..." bind:value={form.description}></textarea>
-            </div>
-            <div class="flex items-center gap-2 pt-2">
-                 <input type="checkbox" id="isPrivate" bind:checked={form.isPrivate} class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-indigo-500"/>
-                 <label for="isPrivate" class="text-sm text-slate-400 font-medium cursor-pointer">Campanha Privada (apenas o Mestre vê)</label>
+            <div class="flex gap-3 mt-8">
+                <button onclick={onClose} class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-xl font-bold transition-all active:scale-95">Cancelar</button>
+                <button onclick={() => onSave({...form})} class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold shadow-lg shadow-indigo-900/20 transition-all active:scale-95">Salvar</button>
             </div>
         </div>
-        <div class="flex gap-3 mt-6">
-            <button on:click={onClose} class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-2 rounded font-bold">Cancelar</button>
-            <button on:click={() => onSave(form)} class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded font-bold">Salvar</button>
-        </div>
-    </div>
- </div>
+     </div>
 {/if}

@@ -1,9 +1,9 @@
-<script>
+<script lang="ts">
   import { character, modalState, damage, effectiveMaxHealth, tempHealth, isInjured, isIncapacitated, damagePercentage, rollHistory, isHistoryOpen } from '$lib/stores/characterStore';
   import { Settings, Moon, Dices, ChevronLeft, LayoutDashboard } from 'lucide-svelte';
   import { goto } from '$app/navigation';
 
-  function openModal(type) {
+  function openModal(type: string) {
     modalState.update(m => ({ ...m, type: type, isOpen: true }));
   }
 </script>
@@ -15,7 +15,7 @@
           <!-- Lado Esquerdo: Voltar e Perfil Rapido -->
           <div class="flex items-center gap-1 sm:gap-3">
              <button 
-                on:click={() => goto('/')} 
+                onclick={() => goto('/')} 
                 class="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition-all flex items-center gap-1 group"
                 aria-label="Voltar para Dashboard"
                 title="Voltar para Dashboard"
@@ -26,7 +26,7 @@
 
              <button 
                 class="flex items-center gap-2 group text-left" 
-                on:click={() => openModal('character_info')}
+                onclick={() => openModal('character_info')}
                 aria-label="Informações do Personagem"
              >
                 <div class="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-600 rounded-lg sm:rounded-full border border-white/10 flex items-center justify-center text-sm sm:text-lg font-black shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
@@ -44,7 +44,7 @@
           <!-- Centro: Vida (Mais compacto no mobile) -->
           <button 
             class="flex-1 max-w-md cursor-pointer group px-2 sm:px-0 text-left" 
-            on:click={() => openModal('health')}
+            onclick={() => openModal('health')}
             aria-label="Estado de Saúde"
           >
              <div class="flex justify-between text-[10px] sm:text-xs mb-1 px-1">
@@ -65,7 +65,7 @@
           <!-- Lado Direito: Ações -->
           <div class="flex items-center gap-1 sm:gap-2">
              <button 
-                on:click={() => openModal('rest_confirm')} 
+                onclick={() => openModal('rest_confirm')} 
                 class="p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 rounded-full transition-all" 
                 title="Descanso"
              >
@@ -73,7 +73,7 @@
              </button>
              
              <button 
-                on:click={() => isHistoryOpen.update(v => !v)} 
+                onclick={() => isHistoryOpen.update(v => !v)} 
                 class="p-2 bg-indigo-600/10 text-indigo-400 border border-indigo-400/20 rounded-lg hover:bg-indigo-600 hover:text-white transition-all relative" 
                 title="Histórico"
              >
@@ -87,8 +87,9 @@
              </button>
 
              <button 
-                on:click={() => openModal('character_info')} 
+                onclick={() => openModal('character_info')} 
                 class="hidden sm:flex p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition-all"
+                title="Configurações"
              >
                 <Settings size={18}/>
              </button>
@@ -105,4 +106,3 @@
         }
     }
 </style>
-

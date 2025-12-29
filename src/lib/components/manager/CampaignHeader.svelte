@@ -1,12 +1,20 @@
-<script>
+<script lang="ts">
   import { ChevronLeft, LayoutDashboard, History, Sword, Library } from 'lucide-svelte';
   import { goto } from '$app/navigation';
   import { isHistoryOpen } from '$lib/stores/characterStore';
   import { rollHistory } from '$lib/stores/characterStore';
 
-  export let campaignName = "";
-  export let activeSubTab = "session";
-  export let onTabChange = (tab) => {};
+  interface Props {
+    campaignName?: string;
+    activeSubTab?: string;
+    onTabChange?: (tab: string) => void;
+  }
+
+  let { 
+    campaignName = "", 
+    activeSubTab = "session", 
+    onTabChange = () => {} 
+  }: Props = $props();
 </script>
 
 <header class="bg-slate-900/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-40 shadow-2xl">
@@ -16,7 +24,7 @@
           <!-- Lado Esquerdo: Voltar e Título -->
           <div class="flex items-center gap-1 sm:gap-3 shrink-0">
              <button 
-                on:click={() => goto('/')} 
+                onclick={() => goto('/')} 
                 class="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition-all flex items-center gap-1 group"
                 aria-label="Voltar para Dashboard"
                 title="Voltar para Dashboard"
@@ -36,15 +44,17 @@
           <!-- Centro: Navegação de Sub-tabs -->
           <div class="flex bg-slate-950/50 p-1 rounded-xl border border-white/5">
              <button 
-                on:click={() => onTabChange('session')} 
+                onclick={() => onTabChange('session')} 
                 class="flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-black transition-all {activeSubTab === 'session' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:text-slate-300'}"
+                aria-pressed={activeSubTab === 'session'}
              >
                 <Sword size={14} class={activeSubTab === 'session' ? 'opacity-100' : 'opacity-50'}/>
                 <span class="hidden min-[400px]:block">Sessão</span>
              </button>
              <button 
-                on:click={() => onTabChange('bestiary')} 
+                onclick={() => onTabChange('bestiary')} 
                 class="flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-black transition-all {activeSubTab === 'bestiary' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:text-slate-300'}"
+                aria-pressed={activeSubTab === 'bestiary'}
              >
                 <Library size={14} class={activeSubTab === 'bestiary' ? 'opacity-100' : 'opacity-50'}/>
                 <span class="hidden min-[400px]:block">Bestiário</span>
@@ -54,10 +64,11 @@
           <!-- Lado Direito: Ações -->
           <div class="flex items-center gap-1 sm:gap-2">
              <button 
-                on:click={() => isHistoryOpen.update(v => !v)} 
+                onclick={() => isHistoryOpen.update(v => !v)} 
                 class="p-2 bg-indigo-600/10 text-indigo-400 border border-indigo-400/20 rounded-lg hover:bg-indigo-600 hover:text-white transition-all relative" 
                 aria-label="Toggle Histórico"
                 title="Histórico"
+                aria-pressed={$isHistoryOpen}
              >
                  <History size={18}/>
                  {#if $rollHistory && $rollHistory.length > 0}
@@ -71,7 +82,3 @@
        </div>
     </div>
 </header>
-
-<style>
-    /* Estilos adicionais se necessário */
-</style>

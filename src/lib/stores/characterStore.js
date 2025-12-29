@@ -29,6 +29,10 @@ export const defaultCharacter = {
     afflictions: [],
     effects: [],
     notes: "",
+    campaignId: null,
+    campaignName: null,
+    gmName: null,
+    combatActive: false,
     spells: [
         { id: 1, name: "Seta de Energia", tier: "Novice", type: "Ataque", tradition: "Destruction", description: "Causa 1d6 de dano a um alvo em alcance curto.", castings: 3, maxCastings: 3, effect: null },
         {
@@ -202,12 +206,18 @@ export const characterActions = {
         });
     },
 
-    addToHistory: (rollData) => {
-        rollHistory.update(h => [
-            { id: Date.now(), timestamp: new Date(), charName: get(character).name, ...rollData },
-            ...h
-        ]);
+    addToHistory: (rollData, shouldSync = true) => {
+        const char = get(character);
+        const entry = { id: Date.now(), timestamp: new Date(), charName: char.name, ...rollData };
+        rollHistory.update(h => [entry, ...h]);
         isHistoryOpen.set(true);
+
+        // Sync via Trystero if in a campaign
+        if (shouldSync && char.campaignId) {
+            import('$lib/logic/sync').then(({ syncRoll }) => {
+                syncRoll(entry);
+            });
+        }
     },
 
     clearHistory: () => rollHistory.set([]),
@@ -455,6 +465,30 @@ export const characterActions = {
         if (success) {
             character.update(c => ({ ...c, effects: c.effects.map(e => e.id === effId ? { ...e, isActive: false } : e) }));
         }
+    },
+
+    joinCampaign: (campaign) => {
+        character.update(c => ({
+            ...c,
+            campaignId: campaign.id,
+            campaignName: campaign.name,
+            gmName: campaign.gmName || 'Mestre'
+        }));
+
+        // Connect to Trystero
+        import('$lib/logic/sync').then(({ joinCampaignRoom }) => {
+            joinCampaignRoom(campaign.id, false);
+        });
+    },
+
+    leaveCampaign: () => {
+        character.update(c => ({
+            ...c,
+            campaignId: null,
+            campaignName: null,
+            gmName: null,
+            combatActive: false
+        }));
     }
 };
 

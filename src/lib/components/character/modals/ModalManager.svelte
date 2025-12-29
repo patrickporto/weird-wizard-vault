@@ -1,56 +1,57 @@
-<script>
+<script lang="ts">
     import { modalState, characterActions, character, activeEffects, damage, normalHealth, currentHealth } from '$lib/stores/characterStore';
     import { X, Trash2, Plus, Minus, Zap, Wand2, Check } from 'lucide-svelte';
     import { ITEM_TYPES, GRIPS, MAGIC_TRADITIONS, DURATION_TYPES, MOD_TYPES, MOD_TARGETS, AFFLICTIONS_DATA } from '../../../../routes/sofww';
 
     // Local state for forms
-    let formData = {};
-    let formEffectData = {};
-    let formModifier = 0;
-    let formSelectedEffects = [];
+    let formData = $state<any>({});
+    let formEffectData = $state<any>({});
+    let formModifier = $state(0);
+    let formSelectedEffects = $state<string[]>([]);
 
-    // Reactive reset on open
-    $: if ($modalState.isOpen) {
-        const { type, data } = $modalState;
-        if (type === 'item') formData = data ? { ...data } : { name: '', type: ITEM_TYPES.OTHER, quantity: 1, price: 0, description: '', availability: 'Common', quality: 'Standard' };
-        if (type === 'spell') formData = data ? { ...data } : { name: '', tier: 'Novice', tradition: 'Destruction', type: 'Attack', castings: 1, maxCastings: 1, description: '', effect: null };
-        if (type === 'talent') formData = data ? { ...data } : { name: '', description: '', uses: 0, maxUses: 0, isPassive: false, effect: null };
-        if (type === 'attribute') formData = { ...data };
-        if (type === 'health') formData = { d: $damage, nh: $normalHealth, ch: $currentHealth };
-        if (type === 'character_info') formData = { 
-            name: $character.name, level: $character.level, ancestry: $character.ancestry,
-            novicePath: $character.paths.novice, expertPath: $character.paths.expert, masterPath: $character.paths.master,
-            normalHealth: $normalHealth, currentHealth: $currentHealth
-        };
+    // Reactive reset on open - Svelte 5 Effect
+    $effect(() => {
+        if ($modalState.isOpen) {
+            const { type, data } = $modalState;
+            if (type === 'item') formData = data ? { ...data } : { name: '', type: ITEM_TYPES.OTHER, quantity: 1, price: 0, description: '', availability: 'Common', quality: 'Standard' };
+            if (type === 'spell') formData = data ? { ...data } : { name: '', tier: 'Novice', tradition: 'Destruction', type: 'Attack', castings: 1, maxCastings: 1, description: '', effect: null };
+            if (type === 'talent') formData = data ? { ...data } : { name: '', description: '', uses: 0, maxUses: 0, isPassive: false, effect: null };
+            if (type === 'attribute') formData = { ...data };
+            if (type === 'health') formData = { d: $damage, nh: $normalHealth, ch: $currentHealth };
+            if (type === 'character_info') formData = { 
+                name: $character.name, level: $character.level, ancestry: $character.ancestry,
+                novicePath: $character.paths.novice, expertPath: $character.paths.expert, masterPath: $character.paths.master,
+                normalHealth: $normalHealth, currentHealth: $currentHealth
+            };
 
-        if (type === 'stat') {
-            if (data === 'defense') formData = { key: 'naturalDefense', name: 'Defesa Natural', value: $character.naturalDefense };
-            else if (data === 'speed') formData = { key: 'speed', name: 'Velocidade', value: $character.speed };
-        }
-        
-        if (type === 'pre_roll') {
-            formSelectedEffects = $activeEffects.map(e => e.id);
-            formModifier = 0;
-        }
+            if (type === 'stat') {
+                if (data === 'defense') formData = { key: 'naturalDefense', name: 'Defesa Natural', value: $character.naturalDefense };
+                else if (data === 'speed') formData = { key: 'speed', name: 'Velocidade', value: $character.speed };
+            }
+            
+            if (type === 'pre_roll') {
+                formSelectedEffects = $activeEffects.map(e => e.id);
+                formModifier = 0;
+            }
 
-        if (type === 'effect') {
-            if (data && data.parentType) {
-                 // Nested effect editing (Spell/Talent)
-                formEffectData = data.parentData.effect || { name: '', description: '', isActive: true, duration: 'ROUNDS', roundsLeft: 1, initialRounds: 1, modifiers: [] };
-            } else if (data) {
-                formEffectData = { ...data };
-                if (!Array.isArray(formEffectData.modifiers)) formEffectData.modifiers = [];
-            } else {
-                formEffectData = { name: '', description: '', isActive: true, duration: 'ROUNDS', roundsLeft: 1, initialRounds: 1, modifiers: [] };
+            if (type === 'effect') {
+                if (data && data.parentType) {
+                    // Nested effect editing (Spell/Talent)
+                    formEffectData = data.parentData.effect || { name: '', description: '', isActive: true, duration: 'ROUNDS', roundsLeft: 1, initialRounds: 1, modifiers: [] };
+                } else if (data) {
+                    formEffectData = { ...data };
+                    if (!Array.isArray(formEffectData.modifiers)) formEffectData.modifiers = [];
+                } else {
+                    formEffectData = { name: '', description: '', isActive: true, duration: 'ROUNDS', roundsLeft: 1, initialRounds: 1, modifiers: [] };
+                }
             }
         }
-    }
+    });
 
     function closeModal() {
         modalState.update(m => ({ ...m, type: null, isOpen: false, data: null }));
     }
 
-    // Save Handlers
     function saveItem() {
         if (!formData.name?.trim()) return alert("Nome é obrigatório");
         const newItem = { ...formData, id: formData.id || Date.now() };
@@ -80,8 +81,6 @@
 
     function saveEffect() {
         const effectData = formEffectData;
-        
-        // Validation: Name required unless inherited (parentData exists and we are editing it as sub-effect)
         if (!$modalState.data?.parentType && !effectData.name?.trim()) return alert("Nome do efeito é obrigatório");
 
         const effectWithInitial = { 
@@ -90,9 +89,7 @@
         };
 
         if ($modalState.data?.parentType) {
-            // Updating parent item effect
             const updatedParent = { ...$modalState.data.parentData, effect: effectWithInitial };
-             // Reopen parent modal
             modalState.update(m => ({ ...m, type: $modalState.data.parentType, data: updatedParent }));
             return;
         }
@@ -104,11 +101,6 @@
         }
         closeModal();
     }
-
-    // ... (rest of saves omitted for brevity if unchanged, but I need to be careful with replace_file_content chunking)
-    // Actually I should split this if lines are far apart. 
-    // Wait, the block I'm replacing covers saveItem to saveEffect.
-    // I need to be careful with context lines.
 
     function saveAttribute() {
          character.update(c => ({
@@ -133,7 +125,6 @@
             ancestry: formData.ancestry,
             paths: { novice: formData.novicePath, expert: formData.expertPath, master: formData.masterPath }
         }));
-        // Normal health updates?
         normalHealth.set(parseInt(formData.normalHealth));
         currentHealth.set(parseInt(formData.currentHealth));
         closeModal();
@@ -147,13 +138,25 @@
         closeModal();
     }
 
+    function handleBackdropClick(e: MouseEvent) {
+        if (e.target === e.currentTarget) closeModal();
+    }
+
+    function addModifier() {
+        formEffectData.modifiers = [...(formEffectData.modifiers || []), { target: 'str', type: MOD_TYPES.ADD, value: 1 }];
+    }
+
+    function removeModifier(idx: number) {
+        formEffectData.modifiers = formEffectData.modifiers.filter((_: any, i: number) => i !== idx);
+    }
 </script>
 
 {#if $modalState.isOpen}
-    <!-- svelte-ignore a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div 
         class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200" 
-        on:click|self={closeModal}
+        onclick={handleBackdropClick}
         role="presentation"
     >
       <div 
@@ -181,11 +184,9 @@
             {:else}Informação
             {/if}
           </h3>
-          <button on:click={closeModal} class="text-slate-400 hover:text-white transition-colors" aria-label="Fechar"><X size={20} /></button>
+          <button onclick={closeModal} class="text-slate-400 hover:text-white transition-colors" aria-label="Fechar"><X size={20} /></button>
         </div>
         <div class="p-6 overflow-y-auto custom-scrollbar">
-            <!-- CONTEÚDO DO MODAL BASEADO NO TIPO -->
-            
             {#if $modalState.type === 'item'}
                 <div class="space-y-3">
                     <div>
@@ -214,8 +215,8 @@
                     {/if}
                     <textarea class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm" rows={3} placeholder="Descrição" bind:value={formData.description}></textarea>
                     <div class="flex gap-2">
-                        {#if $modalState.data}<button on:click={() => characterActions.deleteItem($modalState.data.id) || closeModal()} class="bg-red-900/50 hover:bg-red-900 text-red-200 p-2 rounded"><Trash2 size={18}/></button>{/if}
-                        <button on:click={saveItem} class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">Salvar</button>
+                        {#if $modalState.data}<button onclick={() => { characterActions.deleteItem($modalState.data.id); closeModal(); }} class="bg-red-900/50 hover:bg-red-900 text-red-200 p-2 rounded" title="Excluir"><Trash2 size={18}/></button>{/if}
+                        <button onclick={saveItem} class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">Salvar</button>
                     </div>
                 </div>
 
@@ -238,18 +239,18 @@
                     </div>
                     <div class="flex items-center gap-2 bg-slate-900 p-2 rounded border border-slate-700">
                         <label for="maxCastings" class="text-xs text-slate-400 uppercase">Castings</label>
-                        <input id="maxCastings" type="number" class="w-16 bg-slate-800 border border-slate-600 rounded p-1 text-white text-center" bind:value={formData.maxCastings} on:input={() => formData.castings = formData.maxCastings} />
+                        <input id="maxCastings" type="number" class="w-16 bg-slate-800 border border-slate-600 rounded p-1 text-white text-center" bind:value={formData.maxCastings} oninput={() => formData.castings = formData.maxCastings} />
                     </div>
                     <div class="bg-slate-900 p-2 rounded border border-slate-700 flex justify-between items-center">
                          <span class="text-xs text-slate-400 font-bold uppercase">Efeito Associado</span>
-                         <button on:click={() => modalState.update(m => ({ ...m, type: 'effect', data: { parentType: 'spell', parentData: formData } }))} class="text-[10px] px-2 py-1 rounded border {formData.effect ? 'bg-indigo-900 border-indigo-500 text-indigo-200' : 'bg-slate-800 border-slate-600 text-slate-500'}">
+                         <button onclick={() => modalState.update(m => ({ ...m, type: 'effect', data: { parentType: 'spell', parentData: formData } }))} class="text-[10px] px-2 py-1 rounded border {formData.effect ? 'bg-indigo-900 border-indigo-500 text-indigo-200' : 'bg-slate-800 border-slate-600 text-slate-500'}">
                              {formData.effect ? 'Configurado' : 'Nenhum'}
                          </button>
                     </div>
                     <textarea class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm" rows={4} placeholder="Descrição" bind:value={formData.description}></textarea>
                     <div class="flex gap-2">
-                        {#if $modalState.data}<button on:click={() => characterActions.deleteSpell($modalState.data.id) || closeModal()} class="bg-red-900/50 hover:bg-red-900 text-red-200 p-2 rounded"><Trash2 size={18}/></button>{/if}
-                        <button on:click={saveSpell} class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">Salvar</button>
+                        {#if $modalState.data}<button onclick={() => { characterActions.deleteSpell($modalState.data.id); closeModal(); }} class="bg-red-900/50 hover:bg-red-900 text-red-200 p-2 rounded" title="Excluir"><Trash2 size={18}/></button>{/if}
+                        <button onclick={saveSpell} class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">Salvar</button>
                     </div>
                 </div>
 
@@ -271,14 +272,14 @@
                     </div>
                     <div class="bg-slate-900 p-2 rounded border border-slate-700 flex justify-between items-center">
                          <span class="text-xs text-slate-400 font-bold uppercase">Efeito Associado</span>
-                         <button on:click={() => modalState.update(m => ({ ...m, type: 'effect', data: { parentType: 'talent', parentData: formData } }))} class="text-[10px] px-2 py-1 rounded border {formData.effect ? 'bg-indigo-900 border-indigo-500 text-indigo-200' : 'bg-slate-800 border-slate-600 text-slate-500'}">
+                         <button onclick={() => modalState.update(m => ({ ...m, type: 'effect', data: { parentType: 'talent', parentData: formData } }))} class="text-[10px] px-2 py-1 rounded border {formData.effect ? 'bg-indigo-900 border-indigo-500 text-indigo-200' : 'bg-slate-800 border-slate-600 text-slate-500'}">
                              {formData.effect ? 'Configurado' : 'Nenhum'}
                          </button>
                     </div>
                     <textarea class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm" rows={4} placeholder="Descrição" bind:value={formData.description}></textarea>
                     <div class="flex gap-2">
-                        {#if $modalState.data}<button on:click={() => characterActions.deleteTalent($modalState.data.id) || closeModal()} class="bg-red-900/50 hover:bg-red-900 text-red-200 p-2 rounded"><Trash2 size={18}/></button>{/if}
-                        <button on:click={saveTalent} class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">Salvar</button>
+                        {#if $modalState.data}<button onclick={() => { characterActions.deleteTalent($modalState.data.id); closeModal(); }} class="bg-red-900/50 hover:bg-red-900 text-red-200 p-2 rounded" title="Excluir"><Trash2 size={18}/></button>{/if}
+                        <button onclick={saveTalent} class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">Salvar</button>
                     </div>
                 </div>
 
@@ -306,7 +307,7 @@
                     <div class="bg-slate-950 p-3 rounded border border-slate-800">
                         <div class="flex justify-between items-center mb-2">
                             <span class="text-xs font-bold text-indigo-400 uppercase">Modificadores</span>
-                            <button on:click={() => formEffectData = { ...formEffectData, modifiers: [...(formEffectData.modifiers || []), { target: 'str', type: MOD_TYPES.ADD, value: 1 }] }} class="text-[10px] bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded border border-slate-600 flex items-center gap-1"><Plus size={10}/> Add</button>
+                            <button onclick={addModifier} class="text-[10px] bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded border border-slate-600 flex items-center gap-1"><Plus size={10}/> Add</button>
                         </div>
                         <div class="space-y-2">
                             {#each formEffectData.modifiers as mod, idx}
@@ -318,7 +319,7 @@
                                         <option value={MOD_TYPES.ADD}>Add (+/-)</option><option value={MOD_TYPES.SET}>Set (=)</option><option value={MOD_TYPES.MULT}>Mult (x)</option>
                                     </select>
                                     <input type="number" step={mod.type === MOD_TYPES.MULT ? "0.1" : "1"} class="bg-slate-900 border border-slate-700 rounded text-[10px] text-white p-1 w-1/4 text-center" bind:value={mod.value} />
-                                    <button on:click={() => formEffectData = { ...formEffectData, modifiers: formEffectData.modifiers.filter((_, i) => i !== idx) }} class="text-slate-600 hover:text-red-400 p-1"><Trash2 size={12}/></button>
+                                    <button onclick={() => removeModifier(idx)} class="text-slate-600 hover:text-red-400 p-1" aria-label="Remover Modificador"><Trash2 size={12}/></button>
                                 </div>
                             {/each}
                         </div>
@@ -326,21 +327,21 @@
                     {#if !$modalState.data?.parentType}
                          <div><label class="text-xs font-bold text-slate-400 uppercase">Descrição</label><textarea class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formEffectData.description}></textarea></div>
                     {/if}
-                    <button on:click={saveEffect} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">Salvar Efeito</button>
+                    <button onclick={saveEffect} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">Salvar Efeito</button>
                 </div>
 
             {:else if $modalState.type === 'attribute'}
                 <div class="space-y-4">
                     <h3 class="text-white font-bold text-lg">{formData.name}</h3>
                     <div><label class="text-xs text-slate-400 uppercase font-bold">Valor Base</label><input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formData.value} /></div>
-                    <button on:click={saveAttribute} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">Salvar</button>
+                    <button onclick={saveAttribute} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">Salvar</button>
                 </div>
 
             {:else if $modalState.type === 'stat'}
                 <div class="space-y-4">
                     <h3 class="text-white font-bold text-lg uppercase">{formData.name}</h3>
                     <div><label class="text-xs text-slate-400 uppercase font-bold">Valor Base</label><input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formData.value} /></div>
-                    <button on:click={saveStat} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">Salvar</button>
+                    <button onclick={saveStat} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">Salvar</button>
                 </div>
 
             {:else if $modalState.type === 'health'}
@@ -350,7 +351,7 @@
                         <div><label class="text-xs text-slate-400 uppercase font-bold">Vida Atual</label><input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formData.ch} /></div>
                     </div>
                     <div><label class="text-xs text-red-400 uppercase font-bold">Dano</label><input type="number" class="w-full bg-slate-900 border border-red-900/50 rounded p-2 text-white" bind:value={formData.d} /></div>
-                    <button on:click={saveHealth} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">Atualizar</button>
+                    <button onclick={saveHealth} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">Atualizar</button>
                 </div>
 
             {:else if $modalState.type === 'character_info'}
@@ -365,7 +366,7 @@
                             <div><label class="text-[10px] font-bold text-slate-400 uppercase">Expert</label><input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm" bind:value={formData.expertPath} /></div>
                             <div><label class="text-[10px] font-bold text-slate-400 uppercase">Master</label><input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm" bind:value={formData.masterPath} /></div>
                         </div>
-                        <button on:click={saveCharacterInfo} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded mt-2">Salvar</button>
+                        <button onclick={saveCharacterInfo} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded mt-2">Salvar</button>
                 </div>
 
             {:else if $modalState.type === 'confirm_spell' || $modalState.type === 'confirm_talent'}
@@ -385,7 +386,7 @@
                     <div class="flex flex-col gap-2 pt-2">
                         {#if $modalState.data.effect}
                             <button 
-                                on:click={() => { 
+                                onclick={() => { 
                                     characterActions.applyEffectToCharacter($modalState.data.effect, $modalState.data); 
                                     if($modalState.type === 'confirm_spell') characterActions.commitSpellCast($modalState.data); 
                                     else characterActions.commitTalentUse($modalState.data); 
@@ -395,7 +396,7 @@
                                 <Check size={18} /> APLICAR EFEITO E USAR
                             </button>
                             <button 
-                                on:click={() => { 
+                                onclick={() => { 
                                     if($modalState.type === 'confirm_spell') characterActions.commitSpellCast($modalState.data); 
                                     else characterActions.commitTalentUse($modalState.data); 
                                 }} 
@@ -405,7 +406,7 @@
                             </button>
                         {:else}
                             <button 
-                                on:click={() => { 
+                                onclick={() => { 
                                     if($modalState.type === 'confirm_spell') characterActions.commitSpellCast($modalState.data); 
                                     else characterActions.commitTalentUse($modalState.data); 
                                 }} 
@@ -416,7 +417,7 @@
                         {/if}
                         
                         <button 
-                            on:click={closeModal} 
+                            onclick={closeModal} 
                             class="w-full text-slate-500 hover:text-slate-300 text-xs font-bold uppercase tracking-widest py-2 transition-colors mt-2"
                         >
                             CANCELAR
@@ -428,24 +429,22 @@
                 <div class="text-center space-y-6">
                     <div class="flex justify-center"><Trash2 size={48} class="text-indigo-400" /></div>
                     <div><p class="text-lg text-white font-bold">Realizar Descanso?</p></div>
-                    <div class="flex gap-4 justify-center"><button on:click={closeModal} class="px-6 py-2 rounded bg-slate-700 hover:bg-slate-600 text-white font-bold">Cancelar</button><button on:click={characterActions.confirmRest} class="px-6 py-2 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-bold">Descansar</button></div>
+                    <div class="flex gap-4 justify-center"><button onclick={closeModal} class="px-6 py-2 rounded bg-slate-700 hover:bg-slate-600 text-white font-bold">Cancelar</button><button onclick={characterActions.confirmRest} class="px-6 py-2 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-bold">Descansar</button></div>
                 </div>
 
             {:else if $modalState.type === 'pre_roll'}
-                <!-- Pre Roll Modal Content -->
                  <div class="space-y-4">
                     <h3 class="text-center font-bold text-white uppercase mb-2">Rolagem</h3>
                     
                     <div class="bg-slate-900 p-4 rounded-lg border border-slate-700 text-center">
                         <div class="flex justify-center items-center gap-6 mb-2">
-                             <button on:click={() => formModifier--} class="w-12 h-12 rounded-full bg-slate-800 hover:bg-red-900 flex items-center justify-center text-slate-300 hover:text-white border border-slate-700"><Minus size={24}/></button>
+                             <button onclick={() => formModifier--} class="w-12 h-12 rounded-full bg-slate-800 hover:bg-red-900 flex items-center justify-center text-slate-300 hover:text-white border border-slate-700" aria-label="Diminuir Modificador"><Minus size={24}/></button>
                              <span class="text-4xl font-bold {formModifier > 0 ? 'text-green-400' : formModifier < 0 ? 'text-red-400' : 'text-slate-500'}">{formModifier > 0 ? '+' : ''}{formModifier}</span>
-                             <button on:click={() => formModifier++} class="w-12 h-12 rounded-full bg-slate-800 hover:bg-green-900 flex items-center justify-center text-slate-300 hover:text-white border border-slate-700"><Plus size={24}/></button>
+                             <button onclick={() => formModifier++} class="w-12 h-12 rounded-full bg-slate-800 hover:bg-green-900 flex items-center justify-center text-slate-300 hover:text-white border border-slate-700" aria-label="Aumentar Modificador"><Plus size={24}/></button>
                         </div>
                         <div class="text-xs text-slate-500">{$modalState.data.type === 'weapon_damage' ? 'Dados Extras' : 'Boons/Banes'}</div>
                     </div>
-                    <button on:click={() => characterActions.finalizeRoll($modalState.data, formModifier, $activeEffects.filter(e => formSelectedEffects.includes(e.id)).map(e => e.name))} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2">ROLAR</button>
-                    <!-- Effect Selection could go here if implemented -->
+                    <button onclick={() => characterActions.finalizeRoll($modalState.data, formModifier, $activeEffects.filter(e => formSelectedEffects.includes(e.id)).map(e => e.name))} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2">ROLAR</button>
                 </div>
             
             {:else if $modalState.type === 'weapon_menu'}
@@ -457,7 +456,7 @@
                     
                     <div class="grid grid-cols-2 gap-4">
                         <button 
-                            on:click={() => modalState.update(m => ({ ...m, type: 'pre_roll', data: { type: 'weapon_attack', source: $modalState.data } }))} 
+                            onclick={() => modalState.update(m => ({ ...m, type: 'pre_roll', data: { type: 'weapon_attack', source: $modalState.data } }))} 
                             class="flex flex-col items-center justify-center p-6 bg-slate-900/80 hover:bg-indigo-600 border border-slate-700 hover:border-indigo-400 rounded-2xl transition-all group"
                         >
                             <div class="p-3 rounded-full bg-slate-800 text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white mb-3 shadow-lg">
@@ -467,7 +466,7 @@
                         </button>
                         
                         <button 
-                            on:click={() => modalState.update(m => ({ ...m, type: 'pre_roll', data: { type: 'weapon_damage', source: $modalState.data } }))} 
+                            onclick={() => modalState.update(m => ({ ...m, type: 'pre_roll', data: { type: 'weapon_damage', source: $modalState.data } }))} 
                             class="flex flex-col items-center justify-center p-6 bg-slate-900/80 hover:bg-red-600 border border-slate-700 hover:border-red-400 rounded-2xl transition-all group"
                         >
                             <div class="p-3 rounded-full bg-slate-800 text-red-500 group-hover:bg-red-500 group-hover:text-white mb-3 shadow-lg">
@@ -477,14 +476,14 @@
                         </button>
                     </div>
                     
-                    <button on:click={closeModal} class="text-slate-500 hover:text-slate-300 text-[10px] font-bold uppercase tracking-[0.2em]">Voltar</button>
+                    <button onclick={closeModal} class="text-slate-500 hover:text-slate-300 text-[10px] font-bold uppercase tracking-[0.2em]">Voltar</button>
                 </div>
 
             {:else if $modalState.type === 'select_talent'}
                 <div class="space-y-3 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1">
                     {#each $character.talents as talent}
                         <button 
-                            on:click={() => modalState.update(m => ({...m, type: 'confirm_talent', data: talent}))} 
+                            onclick={() => modalState.update(m => ({...m, type: 'confirm_talent', data: talent}))} 
                             disabled={!talent.isPassive && talent.maxUses > 0 && talent.uses === 0} 
                             class="w-full text-left p-4 bg-slate-900/50 border border-slate-700 rounded-xl hover:bg-yellow-900/20 hover:border-yellow-600/50 flex items-center justify-between transition-all group disabled:opacity-30 disabled:hover:bg-slate-900/50 disabled:hover:border-slate-700 active:scale-[0.99]"
                         >
@@ -524,7 +523,7 @@
                 <div class="space-y-3 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1">
                     {#each $character.spells as spell}
                         <button 
-                            on:click={() => modalState.update(m => ({...m, type: 'confirm_spell', data: spell}))} 
+                            onclick={() => modalState.update(m => ({...m, type: 'confirm_spell', data: spell}))} 
                             disabled={spell.castings === 0} 
                             class="w-full text-left p-4 bg-slate-900/50 border border-slate-700 rounded-xl hover:bg-indigo-900/20 hover:border-indigo-600 text-indigo-400/0 hover:text-indigo-400 flex items-center justify-between transition-all group disabled:opacity-30 active:scale-[0.99]"
                         >
@@ -558,7 +557,7 @@
                 <div class="grid grid-cols-2 gap-2">
                     {#each Object.keys(AFFLICTIONS_DATA) as aff}
                         <button 
-                            on:click={() => characterActions.toggleAffliction(aff)}
+                            onclick={() => characterActions.toggleAffliction(aff)}
                             class="p-3 rounded-lg border text-sm font-bold transition-all text-left flex justify-between items-center {$character.afflictions.includes(aff) ? 'bg-red-900/40 border-red-500 text-red-200 shadow-lg shadow-red-900/20' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500 hover:bg-slate-850'}"
                         >
                             {aff}

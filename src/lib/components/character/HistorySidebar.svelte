@@ -1,20 +1,25 @@
-<script>
+<script lang="ts">
   import { rollHistory, characterActions } from '$lib/stores/characterStore';
   import { History, X, Trash2 } from 'lucide-svelte';
   
-  export let isOpen = false;
-  export let onClose = () => {};
+  interface Props {
+    isOpen: boolean;
+    onClose: () => void;
+  }
+
+  let { isOpen = false, onClose }: Props = $props();
 </script>
 
 {#if isOpen}
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="fixed inset-0 bg-black/50 z-[90] lg:hidden backdrop-blur-sm" on:click={onClose}></div>
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="fixed inset-0 bg-black/50 z-[90] lg:hidden backdrop-blur-sm" onclick={onClose} role="button" aria-label="Fechar" tabindex="-1"></div>
 {/if}
 
 <aside class="fixed top-0 right-0 h-full w-80 bg-slate-900 border-l border-slate-700 z-[100] transition-transform duration-300 shadow-2xl flex flex-col {isOpen ? 'translate-x-0' : 'translate-x-full'}">
 <div class="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-950">
   <h3 class="font-bold text-white flex items-center gap-2"><History size={18}/> Histórico</h3>
-  <button on:click={onClose} class="text-slate-400 hover:text-white"><X size={20}/></button>
+  <button onclick={onClose} class="text-slate-400 hover:text-white"><X size={20}/></button>
 </div>
 <div class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
   {#if $rollHistory.length === 0}
@@ -45,6 +50,6 @@
   {/each}
 </div>
 <div class="p-4 border-t border-slate-700 bg-slate-950">
-   <button on:click={characterActions.clearHistory} class="w-full py-2 text-xs font-bold text-red-400 hover:text-red-300 border border-red-900/50 rounded hover:bg-red-900/20 flex items-center justify-center gap-2"><Trash2 size={14}/> Limpar</button>
+   <button onclick={characterActions.clearHistory} class="w-full py-2 text-xs font-bold text-red-400 hover:text-red-300 border border-red-900/50 rounded hover:bg-red-900/20 flex items-center justify-center gap-2"><Trash2 size={14}/> Limpar</button>
 </div>
 </aside>

@@ -1,10 +1,10 @@
-<script>
+<script lang="ts">
     import { character, modalState, characterActions } from '$lib/stores/characterStore';
-    import { Plus, Edit, Zap, Infinity as InfinityIcon, Minus } from 'lucide-svelte';
+    import { Plus, Edit, Zap, Infinity as InfinityIcon } from 'lucide-svelte';
 
     const { recoverTalent } = characterActions;
 
-    function openModal(type, data = null) {
+    function openModal(type: string, data: any = null) {
         modalState.update(m => ({ ...m, type, isOpen: true, data }));
     }
 </script>
@@ -15,7 +15,13 @@
             <h3 class="text-lg font-bold text-white tracking-tight">Talentos & Habilidades</h3>
             <p class="text-xs text-slate-500">Suas capacidades especiais e passivas.</p>
         </div>
-        <button on:click={() => openModal('talent')} class="text-xs bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-white font-bold flex items-center gap-2 shadow-lg shadow-indigo-900/20 transition-all active:scale-95"><Plus size={16} /> Novo Talento</button>
+        <button 
+            onclick={() => openModal('talent')} 
+            class="text-xs bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-white font-bold flex items-center gap-2 shadow-lg shadow-indigo-900/20 transition-all active:scale-95"
+            aria-label="Adicionar Novo Talento"
+        >
+            <Plus size={16} /> Novo Talento
+        </button>
     </div>
     
     <div class="grid grid-cols-1 gap-4">
@@ -26,38 +32,50 @@
                         <div class="p-2 rounded-lg bg-slate-800 text-yellow-500 group-hover:scale-110 transition-transform shadow-inner">
                             <Zap size={18} />
                         </div>
-                        <h4 class="font-bold text-white text-lg tracking-tight">{talent.name}</h4>
-                        <button on:click={() => openModal('talent', talent)} class="text-slate-600 hover:text-indigo-400 opacity-0 group-hover:opacity-100 transition-all transform hover:scale-110"><Edit size={14}/></button>
+                        <h4 class="font-bold text-white text-lg tracking-tight uppercase tracking-tight">{talent.name}</h4>
+                        <button 
+                            onclick={() => openModal('talent', talent)} 
+                            class="text-slate-600 hover:text-indigo-400 opacity-0 group-hover:opacity-100 transition-all transform hover:scale-110"
+                            aria-label="Editar {talent.name}"
+                        >
+                            <Edit size={14}/>
+                        </button>
                     </div>
                     <p class="text-sm text-slate-400 leading-relaxed max-w-2xl">{talent.description}</p>
                 </div>
                 
                 <div class="shrink-0 flex items-center gap-4 bg-slate-950/50 p-3 rounded-xl border border-slate-800 shadow-inner">
-                   <div class="text-center px-2 border-r border-slate-800 pr-4">
+                   <div class="text-center px-2 border-r border-slate-800 pr-4 min-w-[80px]">
                       {#if talent.isPassive}
                           <span class="block text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Tipo</span>
-                          <span class="font-bold text-slate-300 text-xs flex items-center justify-center gap-1.5 bg-slate-800 px-2 py-1 rounded-md"><InfinityIcon size={12} class="text-indigo-400"/> Passivo</span>
+                          <span class="font-bold text-slate-300 text-xs flex items-center justify-center gap-1.5 bg-slate-800 px-2 py-1 rounded-md">
+                              <InfinityIcon size={12} class="text-indigo-400"/> Passivo
+                          </span>
                       {:else}
                           <span class="block text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Usos</span>
-                          <span class="font-mono font-bold text-lg {talent.uses === 0 ? 'text-red-400' : 'text-white'}">{talent.uses}<span class="text-slate-600 text-sm">/{talent.maxUses}</span></span>
+                          <span class="font-mono font-bold text-lg {talent.uses === 0 ? 'text-red-400' : 'text-white'}">
+                              {talent.uses}<span class="text-slate-600 text-sm">/{talent.maxUses}</span>
+                          </span>
                       {/if}
                    </div>
                    
                    {#if !talent.isPassive}
                        <div class="flex gap-2">
                            <button 
-                                on:click={() => recoverTalent(talent.id)} 
+                                onclick={() => recoverTalent(talent.id)} 
                                 disabled={talent.uses >= talent.maxUses} 
                                 title="Recuperar Uso"
                                 class="bg-slate-800 disabled:opacity-20 hover:bg-green-600/20 text-green-400 p-2 rounded-lg transition-all hover:scale-110 active:scale-90 border border-slate-700 hover:border-green-500/50"
+                                aria-label="Recuperar uso de {talent.name}"
                            >
                                 <Plus size={18} />
                            </button>
                            <button 
-                                on:click={() => openModal('confirm_talent', talent)} 
+                                onclick={() => openModal('confirm_talent', talent)} 
                                 disabled={talent.uses === 0} 
                                 title="Usar Talento"
                                 class="bg-slate-800 disabled:opacity-20 hover:bg-indigo-600/20 text-white p-2 rounded-lg transition-all hover:scale-110 active:scale-90 border border-slate-700 hover:border-indigo-500/50"
+                                aria-label="Usar {talent.name}"
                            >
                                 <Zap size={18} />
                            </button>
@@ -70,7 +88,12 @@
             <div class="text-center py-12 bg-slate-900/20 border-2 border-dashed border-slate-800 rounded-2xl">
                 <Zap size={48} class="mx-auto text-slate-800 mb-3" />
                 <p class="text-slate-500 font-medium">Você ainda não possui talentos cadastrados.</p>
-                <button on:click={() => openModal('talent')} class="mt-4 text-indigo-400 hover:text-indigo-300 text-sm font-bold flex items-center gap-1 mx-auto"><Plus size={14}/> Adicionar Primeiro Talento</button>
+                <button 
+                    onclick={() => openModal('talent')} 
+                    class="mt-4 text-indigo-400 hover:text-indigo-300 text-sm font-bold flex items-center gap-1 mx-auto"
+                >
+                    <Plus size={14}/> Adicionar Primeiro Talento
+                </button>
             </div>
         {/if}
     </div>

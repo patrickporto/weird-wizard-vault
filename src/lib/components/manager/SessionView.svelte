@@ -8,6 +8,8 @@
     import ConfirmationModal from './ConfirmationModal.svelte';
     import { flip } from 'svelte/animate';
     import { calculateDiceRoll } from '$lib/logic/dice';
+import { onMount } from 'svelte';
+import { joinCampaignRoom, syncCombat } from '$lib/logic/sync';
 
     let { campaign } = $props<{ campaign: any }>();
 
@@ -23,6 +25,19 @@
     
     // Confirm Modal
     let confirmState = $state({ isOpen: false, title: '', message: '', onConfirm: () => {} });
+
+    onMount(() => {
+        if (campaign?.id) {
+            joinCampaignRoom(campaign.id, true);
+        }
+    });
+
+    function copyInviteLink() {
+        // Updated URL structure as requested: /campaign/[id]/invite
+        const inviteUrl = window.location.origin + `/campaign/${campaign.id}/invite?name=${encodeURIComponent(campaign.name)}`;
+        navigator.clipboard.writeText(inviteUrl);
+        alert('Link de convite copiado!');
+    }
 
     // Reactively extract data from prop
     let roster = $derived(campaign?.sessionRoster || []);
@@ -41,6 +56,11 @@
         const current = campaignsMap.get(campaign.id) || campaign;
         const updated = { ...current, ...updates };
         campaignsMap.set(campaign.id, updated);
+
+        // Sync combat state if it changed
+        if (updates.combat) {
+            syncCombat(campaign.id, updates.combat);
+        }
     }
 
     function toggleSessionPresence(charId: string) {
@@ -106,6 +126,7 @@
 
     function startCombat() {
         updateCampaign({ combat: { active: true, round: 1 } });
+        syncCombat(campaign.id, { active: true, round: 1 });
     }
 
     function nextRound() {
@@ -132,6 +153,7 @@
             combat: { ...current.combat, round: nextRoundNum },
             activeEnemies: newEnemies
         });
+        syncCombat(campaign.id, { active: true, round: nextRoundNum });
         isEoRModalOpen = false;
     }
 
@@ -141,6 +163,7 @@
         } else {
             updateCampaign({ combat: { active: false, round: 1 } });
         }
+        syncCombat(campaign.id, { active: false, round: 1 });
     }
 
     function removeFromCombat(instanceId: string) {
@@ -378,8 +401,8 @@
         </div>
         
         <div class="flex gap-3">
-             <button onclick={() => isEoRModalOpen = false} class="flex-1 py-2 rounded bg-slate-700 hover:bg-slate-600 text-white font-bold">Cancelar</button>
-             <button onclick={proceedRound} class="flex-1 py-2 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-bold">Avançar Rodada</button>
+             <button onclick={() => isEoRModalOpen = false} class="flex-1 py-1.5 rounded bg-slate-700 hover:bg-slate-600 text-white font-bold text-sm">Cancelar</button>
+             <button onclick={proceedRound} class="flex-1 py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm">Avançar Rodada</button>
         </div>
     </div>
 </div>

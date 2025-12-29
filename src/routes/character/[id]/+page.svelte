@@ -25,7 +25,7 @@
     import TalentsTab from '$lib/components/character/TalentsTab.svelte';
     import InventoryTab from '$lib/components/character/InventoryTab.svelte';
     import NotesTab from '$lib/components/character/NotesTab.svelte';
-    import { ChevronRight, Clover } from 'lucide-svelte';
+    import { ChevronRight, Clover, Users } from 'lucide-svelte';
     // goto removed as it moved to CharacterHeader.svelte
 
     let loaded = false;
@@ -81,6 +81,14 @@
             charactersMap.set(id, newChar);
         }
         
+        // Auto-join campaign room if in a campaign
+        const charData = get(character);
+        if (charData.campaignId) {
+            import('$lib/logic/sync').then(({ joinCampaignRoom }) => {
+                joinCampaignRoom(charData.campaignId, false);
+            });
+        }
+        
         loaded = true;
     }
 
@@ -110,11 +118,29 @@
      <aside class="lg:col-span-3 space-y-4">
         <AttributesSection />
 
-        <button on:click={() => modalState.set({type: 'pre_roll', isOpen: true, data: {type:'luck', source: {name:'Sorte'}}})} class="w-full bg-slate-900 hover:bg-slate-800 p-3 rounded-xl border border-slate-800 flex items-center justify-between group transition-colors">
+        <button onclick={() => modalState.set({type: 'pre_roll', isOpen: true, data: {type:'luck', source: {name:'Sorte'}}})} class="w-full bg-slate-900 hover:bg-slate-800 p-3 rounded-xl border border-slate-800 flex items-center justify-between group transition-colors">
             <div class="flex items-center gap-2 font-bold text-slate-400 group-hover:text-green-400 uppercase text-xs"><Clover size={14}/> Teste de Sorte</div><ChevronRight size={14} class="text-slate-600"/>
         </button>
 
         <VitalsSection />
+
+        {#if $character.campaignId}
+            <div class="bg-indigo-950/20 border border-indigo-500/30 rounded-xl p-4 space-y-3">
+                 <div class="flex items-center justify-between">
+                     <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-widest flex items-center gap-2"><Users size={14}/> Campanha</h3>
+                     <button onclick={characterActions.leaveCampaign} class="text-[10px] text-slate-500 hover:text-red-400 uppercase font-bold transition-colors">Sair</button>
+                 </div>
+                 <div>
+                      <div class="font-bold text-white text-sm">{$character.campaignName}</div>
+                      <div class="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">Mestre: <span class="text-indigo-300">{$character.gmName}</span></div>
+                 </div>
+                 <div class="flex items-center gap-2 pt-2 border-t border-indigo-500/10">
+                      <div class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                      <span class="text-[10px] text-slate-500 font-bold uppercase">Sincronizado</span>
+                 </div>
+            </div>
+        {/if}
+
         <CurrencySection />
         <LanguagesSection />
         <AfflictionsSection />
