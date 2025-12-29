@@ -330,10 +330,7 @@
                    <span class="text-[9px] text-slate-500 uppercase font-black">Deslocamento</span>
                    <span class="text-white font-bold">{entity.speed || 10}</span>
                 </div>
-                 <div class="p-2 rounded bg-slate-900/50 border border-slate-800/50 flex flex-col items-center">
-                    <span class="text-[9px] text-slate-500 uppercase font-black">Percepção</span>
-                    <span class="text-white font-bold">{entity.perception || 10}</span>
-                 </div>
+
                  <div class="p-2 rounded bg-slate-900/50 border border-slate-800/50 flex flex-col items-center">
                      <span class="text-[9px] text-slate-500 uppercase font-black">Defesa</span>
                      <span class="text-white font-bold">{entity.defense || 10}</span>
