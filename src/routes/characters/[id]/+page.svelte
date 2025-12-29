@@ -10,7 +10,7 @@
     import { charactersMap, waitForSync } from '$lib/db';
     import { get } from 'svelte/store';
     import { onDestroy } from 'svelte';
-    import { syncCharacter, joinCampaignRoom } from '$lib/logic/sync';
+    import { syncCharacter, joinCampaignRoom, leaveCampaignRoom } from '$lib/logic/sync';
     import { goto } from '$app/navigation';
     import { resolve } from '$app/paths';
     import { browser } from '$app/environment';
@@ -153,6 +153,11 @@
 
         loaded = true;
     }
+
+    // Cleanup on unmount
+    onDestroy(() => {
+        leaveCampaignRoom();
+    });
 </script>
 
 <div class="min-h-screen bg-slate-950 text-slate-100 font-sans pb-28 md:pb-20 relative overflow-x-hidden">

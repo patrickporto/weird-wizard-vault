@@ -66,18 +66,44 @@ export function joinLobby() {
     return sendDiscovery;
 }
 
+
 let sendDiscovery: any;
+let lobbyInitialized = false;
+
 function initLobby() {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && !lobbyInitialized) {
+        lobbyInitialized = true;
         sendDiscovery = joinLobby();
     }
 }
-initLobby();
+
+// Only initialize once on first module load
+if (typeof window !== 'undefined') {
+    initLobby();
+}
+
+
+let currentRoomId: string | null = null;
 
 export function joinCampaignRoom(campaignId: string, isGM: boolean = false, charId: string | null = null) {
-    if (room) room.leave();
+    // Prevent duplicate connections to the same room
+    if (currentRoomId === `campaign-${campaignId}`) {
+        // Just update the state if we're already in this room
+        syncState.update(s => ({
+            ...s,
+            isGM,
+            currentCharacterId: charId
+        }));
+        return;
+    }
 
-    room = joinRoom(roomConfig, `campaign-${campaignId}`);
+    if (room) {
+        room.leave();
+        room = null;
+    }
+
+    currentRoomId = `campaign-${campaignId}`;
+    room = joinRoom(roomConfig, currentRoomId);
 
     syncState.set({
         isConnected: true,
@@ -267,7 +293,27 @@ export function syncCharacter(charData: any) {
     }
 }
 
+
+export function leaveCampaignRoom() {
+    if (room) {
+        room.leave();
+        room = null;
+    }
+    currentRoomId = null;
+    syncState.set({
+        isConnected: false,
+        isGM: false,
+        currentCharacterId: null,
+        peers: [],
+        roomId: null,
+        lastGmUpdate: 0
+    });
+}
+
 export function resetSyncStateForTesting() {
     lobby = null;
     room = null;
+    currentRoomId = null;
+    lobbyInitialized = false;
 }
+

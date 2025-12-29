@@ -11,7 +11,7 @@
     import { flip } from 'svelte/animate';
     import { calculateDiceRoll } from '$lib/logic/dice';
 import { onMount } from 'svelte';
-import { joinCampaignRoom, syncCombat, syncCampaign, syncCharacter } from '$lib/logic/sync';
+import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncCharacter } from '$lib/logic/sync';
 
     let { campaign } = $props<{ campaign: any }>();
 
@@ -46,6 +46,7 @@ import { joinCampaignRoom, syncCombat, syncCampaign, syncCharacter } from '$lib/
             
             return () => {
                 clearInterval(interval);
+                leaveCampaignRoom();
             };
         }
     });
