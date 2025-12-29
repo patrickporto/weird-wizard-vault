@@ -25,8 +25,8 @@
     import TalentsTab from '$lib/components/character/TalentsTab.svelte';
     import InventoryTab from '$lib/components/character/InventoryTab.svelte';
     import NotesTab from '$lib/components/character/NotesTab.svelte';
-    import { ChevronRight, Clover, ChevronLeft } from 'lucide-svelte';
-    import { goto } from '$app/navigation'; // Added for back button
+    import { ChevronRight, Clover } from 'lucide-svelte';
+    // goto removed as it moved to CharacterHeader.svelte
 
     let loaded = false;
     let currentId = null;
@@ -97,10 +97,6 @@
   
   <ModalManager />
 
-  <!-- HEADER -->
-  <div class="max-w-6xl mx-auto px-4 mt-6">
-      <button on:click={() => goto('/')} class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white px-4 py-2 rounded-lg border border-slate-800 transition-colors font-bold text-sm shadow-xs"><ChevronLeft size={16}/> Voltar para Dashboard</button>
-  </div>
   <CharacterHeader />
   <!-- History toggle was simulated in header, real toggle logic is via local state or store. 
        We can pass isHistoryOpen binding or equivalent. 
