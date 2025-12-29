@@ -1,11 +1,11 @@
 <script>
   import { onMount } from 'svelte';
-  import { joinRoom, selfId } from 'trystero';
+  import { joinRoom, selfId } from 'trystero/torrent';
+  import { roomConfig } from '$lib/logic/sync';
   import { _ } from 'svelte-i18n'
 
 
-  // Configuração da sala (usando tracker público de BitTorrent por padrão)
-  const roomConfig = { appId: 'weird-wizard-vault' };
+
   let room;
   let sendMsg;
   

@@ -1,10 +1,19 @@
-import { joinRoom, selfId } from 'trystero';
+import { joinRoom, selfId } from 'trystero/torrent';
 import { writable, get, derived } from 'svelte/store';
 import { characterActions, character, isHistoryOpen, damage, currentHealth, normalHealth } from '$lib/stores/characterStore';
 import { campaignsMap } from '$lib/db';
 import { appId } from '../../app';
 
-const roomConfig = { appId };
+export const roomConfig = {
+    appId,
+    trackerUrls: [
+        'wss://tracker.openwebtorrent.com',
+        'wss://tracker.files.fm:7073/announce',
+        'wss://tracker.webtorrent.dev',
+        'wss://toad.vibe.community:443/announce',
+        'wss://tracker.btorrent.xyz'
+    ]
+};
 
 export const syncState = writable({
     roomId: null as string | null,

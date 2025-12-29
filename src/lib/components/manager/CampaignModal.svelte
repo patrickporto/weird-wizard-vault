@@ -1,5 +1,6 @@
 <script lang="ts">
     import { Shield } from 'lucide-svelte';
+    import Modal from '$lib/components/common/Modal.svelte';
 
     interface Props {
         isOpen: boolean;
@@ -7,8 +8,6 @@
         onClose: () => void;
         onSave: (form: any) => void;
     }
-
-    import Modal from '$lib/components/common/Modal.svelte';
 
     let { 
         isOpen = false, 
@@ -19,30 +18,38 @@
 
     let form = $state({ name: '', description: '', gmName: '', password: '', removePassword: false });
     let hasPassword = $state(false);
+    let isEditing = $state(false); // True if editing existing campaign
     
+    // Sync form state with initialData prop
     $effect(() => {
-        if (isOpen && initialData) {
+        if (isOpen) {
             try {
-                const parsed = JSON.parse(initialData);
-                form.name = parsed.name || '';
-                form.description = parsed.description || '';
-                form.gmName = parsed.gmName || '';
-                form.password = '';
-                form.removePassword = false;
-                hasPassword = !!parsed.passwordHash;
-            } catch(e) {
-                form.name = '';
-                form.description = '';
-                form.gmName = '';
-                form.password = '';
-                form.removePassword = false;
+                const data = JSON.parse(initialData);
+                form = {
+                    name: data.name || '',
+                    description: data.description || '',
+                    gmName: data.gmName || '',
+                    password: '',
+                    removePassword: false
+                };
+                hasPassword = !!data.passwordHash;
+                isEditing = !!data.id;
+            } catch (e) {
+                form = { name: '', description: '', gmName: '', password: '', removePassword: false };
                 hasPassword = false;
+                isEditing = false;
             }
         }
     });
+    
+    function handleSave() {
+        onSave({
+            ...form
+        });
+    }
 </script>
 
-<Modal {isOpen} {onClose} title="Configurações da Campanha" maxWidth="max-w-md">
+<Modal {isOpen} {onClose} title={isEditing ? "Configurações da Campanha" : "Nova Campanha"} maxWidth="max-w-md">
     <div class="space-y-4">
         <div>
                 <label for="campaign-name" class="text-xs text-slate-500 uppercase font-black block mb-1 tracking-widest">Nome da Campanha</label>
@@ -91,9 +98,13 @@
                 <p class="text-[10px] text-slate-500 mt-1">Defina uma senha para proteger o convite desta campanha.</p>
             {/if}
         </div>
+
+
     </div>
-    <div class="flex gap-3 mt-8">
-        <button onclick={onClose} class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-xl font-bold transition-all active:scale-95">Cancelar</button>
-        <button onclick={() => onSave({...form})} class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold shadow-lg shadow-indigo-900/20 transition-all active:scale-95">Salvar</button>
+    <div class="flex flex-col-reverse sm:flex-row gap-3 mt-6">
+        <button onclick={onClose} class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-4 sm:py-3 rounded-xl font-bold transition-all active:scale-95">Cancelar</button>
+        <button onclick={handleSave} class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-4 sm:py-3 rounded-xl font-bold shadow-lg shadow-indigo-900/20 transition-all active:scale-95">{isEditing ? 'Salvar' : 'Criar Campanha'}</button>
     </div>
 </Modal>
+
+

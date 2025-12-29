@@ -2,10 +2,17 @@ import { sveltekit } from "@sveltejs/kit/vite";
 import tailwindcss from '@tailwindcss/vite'
 import devtoolsJson from 'vite-plugin-devtools-json';
 import { SvelteKitPWA } from '@vite-pwa/sveltekit';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 /** @type {import('vite').UserConfig} */
 export default {
   plugins: [
+    nodePolyfills({
+      include: ['buffer'],
+      globals: {
+        Buffer: true
+      }
+    }),
     sveltekit(),
     tailwindcss(),
     devtoolsJson(),

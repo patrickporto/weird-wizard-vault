@@ -5,71 +5,111 @@
     import { charactersMap, campaignsMap } from '$lib/db';
     import { goto } from '$app/navigation';
     import { resolve } from '$app/paths';
-    import { Skull, Users, Scroll, Plus, Edit, Play, Trash2, Globe, Wifi, Shield } from 'lucide-svelte';
+    import { Skull, Users, Scroll, Plus, Edit, Play, Trash2, Globe, Wifi, Settings } from 'lucide-svelte';
     import { publicCampaigns } from '$lib/logic/sync';
     import ConfirmationModal from './ConfirmationModal.svelte';
     import CampaignModal from './CampaignModal.svelte';
     import CharacterModal from './CharacterModal.svelte';
+    import CharacterSettingsModal from './CharacterSettingsModal.svelte';
     import { hashPassword } from '$lib/logic/crypto';
+    import { initializeGoogleAuth, googleSession, syncFromCloud, syncToCloud } from '$lib/logic/googleDrive';
+    import GoogleSignIn from '$lib/components/common/GoogleSignIn.svelte';
+    import { onMount } from 'svelte';
+    import { CloudUpload, Cloud } from 'lucide-svelte';
+
+    onMount(() => {
+        initializeGoogleAuth();
+    });
 
     let activeTab = $state('characters');
     
-    // Character Modal
+    // Auto-Sync Effects
+    $effect(() => {
+        if ($googleSession.signedIn) {
+            syncFromCloud();
+        }
+    });
+
+    $effect(() => {
+        if ($googleSession.signedIn) {
+            // track dependencies
+            $liveCharacters;
+            $liveCampaigns;
+            syncToCloud();
+        }
+    });
+    
+    // Character Settings Modal (for existing characters)
+    let isCharSettingsOpen = $state(false);
+    let settingsCharData = $state<any>(null);
+    
+    function openCharSettings(char: any) {
+        settingsCharData = char;
+        isCharSettingsOpen = true;
+    }
+    
+    function saveCharSettings(updates: any) {
+        if (!settingsCharData) return;
+        const id = settingsCharData.id;
+        const current = charactersMap.get(id) as any;
+        const updated = {
+            ...current,
+            ...updates
+        };
+        
+
+        
+        charactersMap.set(id, updated);
+        isCharSettingsOpen = false;
+    }
+    
+    // Character Creation Modal
     let isCharModalOpen = $state(false);
-    let editingCharId = $state<string | null>(null);
     let charFormStr = $state("{}");
     
-    const defaultCharForm = { name: '', ancestry: 'Humano', novicePath: '', level: 0, defense: 8, health: 5 };
+    const defaultCharForm = { name: '', playerName: '', ancestry: 'Humano', novicePath: '', level: 0, defense: 8, health: 5 };
 
-    function openCharModal(char: any = null) {
-        editingCharId = char ? char.id : null;
-        charFormStr = JSON.stringify(char || defaultCharForm);
+    function openCharModal() {
+        charFormStr = JSON.stringify(defaultCharForm);
         isCharModalOpen = true;
     }
 
-    function saveCharacter(formData: any) {
-        const id = editingCharId || uuidv7();
-        const base = editingCharId ? (charactersMap.get(id) as any) : {};
+    async function saveCharacter(formData: any) {
+        const id = uuidv7();
         
         const newChar: any = {
-             ...base,
             id,
             name: formData.name,
+            playerName: formData.playerName || '',
             ancestry: formData.ancestry,
             level: formData.level,
             defense: formData.defense,
             paths: { 
-                novice: formData.novicePath || (base.paths?.novice || '-'),
-                expert: base.paths?.expert || '-',
-                master: base.paths?.master || '-'
+                novice: formData.novicePath || '-',
+                expert: '-',
+                master: '-'
             },
-            attributes: base.attributes || [
+            attributes: [
                 { name: "Força", value: 10, key: "str" },
                 { name: "Agilidade", value: 10, key: "agi" },
                 { name: "Intelecto", value: 10, key: "int" },
                 { name: "Vontade", value: 10, key: "wil" }
             ],
-            speed: base.speed || 5,
+            speed: 5,
             health: formData.health,
-            currentHealth: editingCharId ? (base.currentHealth || formData.health) : formData.health
+            currentHealth: formData.health,
+            spells: [],
+            talents: [],
+            equipment: [],
+            afflictions: [],
+            effects: [],
+            currency: { gp: 0, sp: 0, cp: 0 },
+            languages: ['Comum']
         };
-
-        if (!editingCharId) {
-             newChar.spells = [];
-             newChar.talents = [];
-             newChar.equipment = [];
-             newChar.afflictions = [];
-             newChar.effects = [];
-             newChar.currency = { gp: 0, sp: 0, cp: 0 };
-             newChar.languages = ['Comum'];
-        }
 
         charactersMap.set(id, newChar);
         isCharModalOpen = false;
-        
-        if (!editingCharId) {
-             goto(resolve('/characters/[id]', { id }));
-        }
+        goto(resolve('/characters/[id]', { id }));
     }
 
     // Campaign Modal
@@ -94,7 +134,9 @@
             name: formData.name,
             description: formData.description,
             gmName: formData.gmName,
-            players: current.players || []
+            players: current.players || [],
+            backupEnabled: formData.backupEnabled || false,
+            backupHash: formData.backupHash || ''
         };
 
         // Handle password updates
@@ -103,6 +145,8 @@
         } else if (formData.password) {
             newCamp.passwordHash = await hashPassword(formData.password);
         }
+
+
 
         campaignsMap.set(id, newCamp);
         isCampModalOpen = false;
@@ -165,6 +209,16 @@
         };
         isConfirmOpen = true;
     }
+
+    onMount(() => {
+        // TODO: This should come from an environment variable or user setting
+        // For now we don't auto-init effectively until user provides client ID in restore modal or we hardcode it
+        // OR we can ask user via notify_user to input it.
+        // initializeGoogleAuth('YOUR_CLIENT_ID'); 
+    });
+
+
+
 </script>
 
 <div class="animate-in fade-in p-4 md:p-8 max-w-7xl mx-auto pb-20">
@@ -175,19 +229,23 @@
         </h1>
         <p class="text-slate-400 mt-1">Gestor de Personagens e Campanhas</p>
       </div>
-      <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-800 glass shadow-xl">
-        <button 
-            onclick={() => activeTab = 'characters'} 
-            class="px-5 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 {activeTab === 'characters' ? 'bg-indigo-600 text-white shadow-[0_0_20px_rgba(79,70,229,0.4)]' : 'text-slate-400 hover:text-white hover:bg-slate-800'}"
-        >
-            <Users size={16}/> Personagens
-        </button>
-        <button 
-            onclick={() => activeTab = 'campaigns'} 
-            class="px-5 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 {activeTab === 'campaigns' ? 'bg-indigo-600 text-white shadow-[0_0_20px_rgba(79,70,229,0.4)]' : 'text-slate-400 hover:text-white hover:bg-slate-800'}"
-        >
-            <Scroll size={16}/> Campanhas
-        </button>
+      <div class="flex items-center gap-3">
+        <GoogleSignIn />
+
+        <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-800 glass shadow-xl">
+          <button 
+              onclick={() => activeTab = 'characters'} 
+              class="px-5 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 {activeTab === 'characters' ? 'bg-indigo-600 text-white shadow-[0_0_20px_rgba(79,70,229,0.4)]' : 'text-slate-400 hover:text-white hover:bg-slate-800'}"
+          >
+              <Users size={16}/> Personagens
+          </button>
+          <button 
+              onclick={() => activeTab = 'campaigns'} 
+              class="px-5 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 {activeTab === 'campaigns' ? 'bg-indigo-600 text-white shadow-[0_0_20px_rgba(79,70,229,0.4)]' : 'text-slate-400 hover:text-white hover:bg-slate-800'}"
+          >
+              <Scroll size={16}/> Campanhas
+          </button>
+        </div>
       </div>
    </header>
 
@@ -198,18 +256,31 @@
                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 hover:border-indigo-500/40 transition-all relative group flex flex-col justify-between shadow-lg hover:shadow-indigo-500/10 border-t-white/5">
                   <div class="flex justify-between items-start mb-4">
                      <div class="flex-1">
-                        <h3 class="font-black text-xl text-white group-hover:text-indigo-400 transition-colors uppercase tracking-tight truncate pr-8">{char.name}</h3>
-                        <div class="flex items-center gap-2 mt-1">
+                        <h3 class="font-black text-xl text-white group-hover:text-indigo-400 transition-colors uppercase tracking-tight truncate pr-16">{char.name}</h3>
+                        <div class="flex items-center gap-2 mt-1 flex-wrap">
                             <span class="text-[10px] bg-indigo-500/10 text-indigo-400 font-black px-2 py-0.5 rounded uppercase tracking-wider">{char.ancestry || 'Humano'}</span>
                             <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Nível {char.level}</span>
+                            {#if char.playerName}
+                                <span class="text-[10px] text-slate-400 font-medium">• {char.playerName}</span>
+                            {/if}
                         </div>
                      </div>
-                     <button 
-                        onclick={() => deleteCharacter(char.id)} 
-                        class="text-slate-700 hover:text-red-400 p-2 rounded-xl hover:bg-red-400/5 transition-all opacity-40 group-hover:opacity-100"
-                    >
-                        <Trash2 size={16}/>
-                    </button>
+                     <div class="flex items-center gap-1">
+                        <button 
+                            onclick={() => openCharSettings(char)}
+                            class="text-slate-700 hover:text-indigo-400 p-2 rounded-xl hover:bg-indigo-400/5 transition-all opacity-40 group-hover:opacity-100"
+                            title="Configurações"
+                        >
+                            <Settings size={16}/>
+                        </button>
+                        <button 
+                            onclick={() => deleteCharacter(char.id)} 
+                            class="text-slate-700 hover:text-red-400 p-2 rounded-xl hover:bg-red-400/5 transition-all opacity-40 group-hover:opacity-100"
+                            title="Excluir"
+                        >
+                            <Trash2 size={16}/>
+                        </button>
+                     </div>
                   </div>
 
                   <div class="space-y-3 mb-6">
@@ -248,40 +319,38 @@
                        <div class="mb-4">
                           <div class="flex justify-between items-start mb-1">
                               <h3 class="font-black text-2xl text-white group-hover:text-indigo-400 transition-colors uppercase tracking-tight">{camp.name}</h3>
-                              {#if camp.isPublished}
-                                  <span class="text-[9px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20 font-black uppercase tracking-widest flex items-center gap-1">
-                                      <Globe size={10}/> Publicada
-                                  </span>
-                              {/if}
+                              <div class="flex items-center gap-1">
+                                  {#if camp.isPublished}
+                                      <span class="text-[9px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20 font-black uppercase tracking-widest flex items-center gap-1">
+                                          <Globe size={10}/> Publicada
+                                      </span>
+                                  {/if}
+                                  <button 
+                                      onclick={() => openCampModal(camp)}
+                                      class="text-slate-700 hover:text-indigo-400 p-2 rounded-xl hover:bg-indigo-400/5 transition-all opacity-40 group-hover:opacity-100"
+                                      title="Editar"
+                                  >
+                                      <Edit size={16}/>
+                                  </button>
+                                  <button 
+                                      onclick={() => deleteCampaign(camp.id)} 
+                                      class="text-slate-700 hover:text-red-400 p-2 rounded-xl hover:bg-red-400/5 transition-all opacity-40 group-hover:opacity-100"
+                                      title="Excluir"
+                                  >
+                                      <Trash2 size={16}/>
+                                  </button>
+                              </div>
                           </div>
                            <p class="text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em] mb-3">{camp.gmName || 'Mestre'}</p>
                            <p class="text-sm text-slate-400 line-clamp-2 leading-relaxed h-10">{camp.description || 'Uma jornada sem descrição ainda.'}</p>
                        </div>
                        
-                       <div class="flex gap-3 mt-4">
-                         <button 
-                            onclick={() => goto(resolve('/campaigns/[id]', { id: camp.id }))} 
-                            class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2 border border-indigo-400/20 shadow-lg shadow-indigo-900/20 transition-all active:scale-[0.98]"
-                        >
-                            <Play size={18} fill="currentColor"/> Iniciar Sessão
-                        </button>
-                        <div class="flex gap-2">
-                            <button 
-                                onclick={() => openCampModal(camp)} 
-                                class="p-3 text-slate-400 hover:text-white bg-slate-800/50 rounded-2xl border border-slate-800 hover:border-slate-700 transition-all" 
-                                title="Editar"
-                            >
-                                <Edit size={20}/>
-                            </button>
-                            <button 
-                                onclick={() => deleteCampaign(camp.id)} 
-                                class="p-3 text-slate-400 hover:text-red-400 bg-slate-800/50 rounded-2xl border border-slate-800 hover:border-red-900/30 transition-all" 
-                                title="Excluir"
-                            >
-                                <Trash2 size={20}/>
-                            </button>
-                        </div>
-                       </div>
+                       <button 
+                           onclick={() => goto(resolve('/campaigns/[id]', { id: camp.id }))} 
+                           class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2 border border-indigo-400/20 shadow-lg shadow-indigo-900/20 transition-all active:scale-[0.98]"
+                       >
+                           <Play size={18} fill="currentColor"/> Iniciar Sessão
+                       </button>
                     </div>
                  {/each}
                  
@@ -348,5 +417,7 @@
    <CharacterModal isOpen={isCharModalOpen} initialData={charFormStr} onClose={() => isCharModalOpen = false} onSave={saveCharacter} />
    <CampaignModal isOpen={isCampModalOpen} initialData={campFormStr} onClose={() => isCampModalOpen = false} onSave={saveCampaign} />
    <ConfirmationModal isOpen={isConfirmOpen} title={confirmConfig.title} message={confirmConfig.message} onConfirm={confirmConfig.onConfirm} onCancel={() => isConfirmOpen = false} />
+
+   <CharacterSettingsModal isOpen={isCharSettingsOpen} characterData={settingsCharData} onClose={() => isCharSettingsOpen = false} onSave={saveCharSettings} />
 
 </div>
