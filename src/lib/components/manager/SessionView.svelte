@@ -2,7 +2,7 @@
     import { liveCharacters, liveEnemies, liveEncounters } from '$lib/stores/live';
     import { characterActions, isHistoryOpen } from '$lib/stores/characterStore';
     import { campaignsMap } from '$lib/db';
-    import { Users, UserPlus, Ghost, GripVertical, Plus, Minus, Swords, RotateCcw, X, Clock, AlertTriangle, Dices, ChevronLeft, ChevronDown, ChevronUp, History, Layers, Play, Copy, QrCode, Check, Globe, Wifi } from 'lucide-svelte';
+    import { Users, UserPlus, Ghost, GripVertical, Plus, Minus, Swords, RotateCcw, X, Clock, AlertTriangle, Dices, ChevronLeft, ChevronDown, ChevronUp, History, Layers, Play, Copy, QrCode, Check, Globe, Wifi, Trash2 } from 'lucide-svelte';
     import CombatCard from './CombatCard.svelte';
     import HistorySidebar from '$lib/components/character/HistorySidebar.svelte';
     import ConfirmationModal from './ConfirmationModal.svelte';
@@ -115,21 +115,46 @@ import { joinCampaignRoom, syncCombat, syncCampaign } from '$lib/logic/sync';
 
     function toggleSessionPresence(charId: string) {
         if (roster.includes(charId)) {
-            const char = $liveCharacters.find(c => c.id === charId);
-            confirmState = {
-                isOpen: true,
-                title: 'Retirar Personagem',
-                message: `Tem certeza que deseja retirar ${char?.name || 'este personagem'} da sessão atual?`,
-                onConfirm: () => {
-                    const newRoster = roster.filter(id => id !== charId);
-                    updateCampaign({ sessionRoster: newRoster });
-                    confirmState.isOpen = false;
-                }
-            };
+            const newRoster = roster.filter(id => id !== charId);
+            updateCampaign({ sessionRoster: newRoster });
         } else {
             const newRoster = [...roster, charId];
             updateCampaign({ sessionRoster: newRoster });
         }
+    }
+
+    function removePlayerFromCampaign(charId: string) {
+        const char = $liveCharacters.find(c => c.id === charId) || players.find(p => p.id === charId);
+        confirmState = {
+            isOpen: true,
+            title: 'Expulsar Jogador',
+            message: `Tem certeza que deseja remover ${char?.name || 'este personagem'} PERMANENTEMENTE da campanha? Esta ação não pode ser desfeita.`,
+            onConfirm: () => {
+                const current = campaignsMap.get(campaign.id) || campaign;
+                
+                // Remove from session roster
+                const newRoster = (current.sessionRoster || []).filter((id: string) => id !== charId);
+                
+                // Remove from members
+                const newMembers = (current.members || []).filter((m: any) => m.id !== charId);
+                
+                // Remove from active combat
+                const newEnemies = (current.activeEnemies || []).filter((e: any) => e.type !== 'player' || e.id !== charId);
+
+                // Update campaign
+                updateCampaign({ 
+                    sessionRoster: newRoster, 
+                    members: newMembers,
+                    activeEnemies: newEnemies
+                });
+                
+                // Also update the character locally to remove campaignId if it's one of ours
+                // NOTE: We can't easily force-update remote characters to plain "no campaign" without them syncing, 
+                // but removing them from the member list effectively kicks them out of sync updates.
+                
+                confirmState.isOpen = false;
+            }
+        };
     }
 
     function addToCombat(enemyTemplate: any) {
@@ -217,19 +242,10 @@ import { joinCampaignRoom, syncCombat, syncCampaign } from '$lib/logic/sync';
     }
 
     function removeFromCombat(instanceId: string) {
-        const enemy = activeEnemies.find(e => e.instanceId === instanceId);
-        confirmState = {
-            isOpen: true,
-            title: 'Remover do Combate',
-            message: `Tem certeza que deseja remover ${enemy?.name || 'este inimigo'} do combate?`,
-            onConfirm: () => {
-                const current = campaignsMap.get(campaign.id) || campaign;
-                updateCampaign({ 
-                    activeEnemies: (current.activeEnemies || []).filter(e => e.instanceId !== instanceId) 
-                });
-                confirmState.isOpen = false;
-            }
-        };
+        const current = campaignsMap.get(campaign.id) || campaign;
+        updateCampaign({ 
+            activeEnemies: (current.activeEnemies || []).filter((e: any) => e.instanceId !== instanceId) 
+        });
     }
 
     function updateEnemy(instanceId: string, updates: any) {
@@ -287,8 +303,8 @@ import { joinCampaignRoom, syncCombat, syncCampaign } from '$lib/logic/sync';
 
     // Explicit derivation of sorted combatants
     let sortedCombatants = $derived<any[]>((() => {
-        // Players to show: those in roster OR those online
-        const activePlayers = players.filter(p => roster.includes(p.id) || isOnline(p));
+        // Players to show: ONLY those in roster
+        const activePlayers = players.filter(p => roster.includes(p.id));
 
         const playersWithInit = activePlayers.filter(c => c && c.initiative).map(c => ({...c, type: 'player'}));
         const enemies = activeEnemies.map(e => ({...e, type: 'enemy'}));
@@ -350,33 +366,37 @@ import { joinCampaignRoom, syncCombat, syncCampaign } from '$lib/logic/sync';
             </div>
             
             <div class="space-y-2 flex-1 overflow-y-auto max-h-[300px] custom-scrollbar pr-1">
-                {#if isAddCharOpen}
-                    <div class="p-2 bg-indigo-500/5 rounded-lg border border-indigo-500/20 mb-2 animate-in slide-in-from-top-2">
-                         <h4 class="text-[9px] uppercase font-black text-indigo-400 mb-2 tracking-tighter text-center">Disponíveis para Adicionar</h4>
-                         <div class="space-y-1">
-                             {#each availableCharacters as char}
-                                 <button onclick={() => toggleSessionPresence(char.id)} class="w-full text-left flex items-center justify-between p-2 hover:bg-indigo-500/10 rounded-lg group transition-colors">
-                                     <span class="text-xs font-bold text-slate-400 group-hover:text-white transition-colors">{char.name}</span>
-                                     <Plus size={14} class="text-indigo-500 opacity-50 group-hover:opacity-100 transition-opacity"/>
-                                 </button>
-                             {/each}
-                             {#if availableCharacters.length === 0}
-                                 <div class="text-[10px] text-slate-600 italic text-center py-2">Nenhum personagem disponível.</div>
-                             {/if}
-                         </div>
-                    </div>
-                {/if}
+            <!-- Removed inline list -->
 
                 <div class="space-y-2">
                     {#each players as char (char.id)}
                         {@const online = isOnline(char)}
-                        <div class="p-2.5 rounded-xl border flex items-center gap-3 transition-all {online ? 'bg-indigo-900/10 border-indigo-500/20' : 'bg-slate-900/50 border-slate-800 opacity-60'} hover:border-indigo-500/40 group shadow-sm">
+                        {@const inRoster = roster.includes(char.id)}
+                        <div class="p-2.5 rounded-xl border flex items-center gap-3 transition-all {online ? 'bg-indigo-900/10 border-indigo-500/20' : 'bg-slate-900/50 border-slate-800'} {online || inRoster ? 'opacity-100' : 'opacity-40'} hover:border-indigo-500/40 group shadow-sm">
                             <div class="w-2 h-2 rounded-full {online ? 'bg-green-500 shadow-[0_0_8px_rgba(74,222,128,0.4)]' : 'bg-slate-700'}"></div>
                             <div class="flex-1">
                                  <div class="font-bold text-sm {online ? 'text-white' : 'text-slate-500'} group-hover:text-indigo-300 transition-colors">{char.name}</div>
-                                 <div class="text-[10px] text-slate-500 font-medium">Lvl {char.level} • {char.ancestry}</div>
+                                 <div class="text-[10px] text-slate-500 font-medium">
+                                    {#if inRoster}
+                                        <span class="text-indigo-400 font-bold uppercase tracking-tighter mr-1">Sessão</span>
+                                    {/if}
+                                    Lvl {char.level} • {char.ancestry}
+                                 </div>
                             </div>
-                            <button onclick={() => toggleSessionPresence(char.id)} class="text-slate-600 hover:text-red-400 p-1.5 hover:bg-red-400/10 rounded-lg transition-all" title="Remover da Sessão"><X size={14}/></button>
+                            <div class="flex items-center gap-1">
+                                <button 
+                                    onclick={() => toggleSessionPresence(char.id)} 
+                                    class="p-1.5 rounded-lg transition-all {inRoster ? 'text-amber-400 hover:bg-amber-400/10' : 'text-slate-500 hover:text-indigo-400 hover:bg-indigo-400/10'}" 
+                                    title={inRoster ? 'Remover da Sessão' : 'Adicionar à Sessão'}
+                                >
+                                    {#if inRoster}
+                                        <Minus size={14}/>
+                                    {:else}
+                                        <Plus size={14}/>
+                                    {/if}
+                                </button>
+                                <button onclick={() => removePlayerFromCampaign(char.id)} class="text-slate-600 hover:text-red-400 p-1.5 hover:bg-red-400/10 rounded-lg transition-all" title="Expulsar da Campanha"><Trash2 size={14}/></button>
+                            </div>
                         </div>
                     {/each}
                     {#if players.length === 0}
@@ -593,6 +613,48 @@ import { joinCampaignRoom, syncCombat, syncCampaign } from '$lib/logic/sync';
              </div>
              <div class="text-xs text-center text-slate-500 mb-6 uppercase font-bold">{quickRollState.sides === 20 ? 'Boons / Banes' : 'Modificador Fixo'}</div>
              <button onclick={confirmQuickRoll} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl shadow-lg">ROLAR AGORA</button>
+        </div>
+    </div>
+{/if}
+
+{#if isAddCharOpen}
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onclick={(e) => { if (e.target === e.currentTarget) isAddCharOpen = false; }} role="button" aria-label="Fechar" tabindex="-1">
+        <div class="bg-slate-800 rounded-xl w-full max-w-md border border-slate-700 shadow-2xl p-6" role="dialog" aria-modal="true">
+             <div class="flex justify-between items-center mb-6">
+                 <div>
+                     <h3 class="font-bold text-white text-lg">Gerenciar Sessão</h3>
+                     <p class="text-xs text-slate-400">Adicione personagens disponíveis à sessão.</p>
+                 </div>
+                 <button onclick={() => isAddCharOpen = false} class="bg-slate-700 hover:bg-slate-600 p-2 rounded-lg text-white transition-colors"><X size={16}/></button>
+             </div>
+
+             <div class="space-y-3 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
+                 {#each availableCharacters as char}
+                     <button onclick={() => toggleSessionPresence(char.id)} class="w-full text-left flex items-center gap-3 p-3 bg-slate-900 border border-slate-700 hover:border-indigo-500 hover:bg-indigo-500/10 rounded-xl group transition-all">
+                         <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-sm font-bold text-slate-500 group-hover:text-indigo-400 border border-slate-700 group-hover:border-indigo-500/30">
+                             {char.name.charAt(0)}
+                         </div>
+                         <div class="flex-1">
+                             <div class="font-bold text-white group-hover:text-indigo-300">{char.name}</div>
+                             <div class="text-[10px] text-slate-500">Nível {char.level} • {char.ancestry}</div>
+                         </div>
+                         <div class="bg-slate-800 p-2 rounded-lg text-slate-500 group-hover:bg-indigo-500 group-hover:text-white transition-colors">
+                            <Plus size={16} />
+                         </div>
+                     </button>
+                 {/each}
+                 {#if availableCharacters.length === 0}
+                     <div class="text-center py-8">
+                         <div class="w-12 h-12 bg-slate-700/50 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-500">
+                             <Ghost size={24} />
+                         </div>
+                         <p class="text-slate-500 text-sm font-bold">Nenhum personagem disponível.</p>
+                         <p class="text-[10px] text-slate-600 mt-1">Todos os personagens da campanha já estão na sessão.</p>
+                     </div>
+                 {/if}
+             </div>
         </div>
     </div>
 {/if}

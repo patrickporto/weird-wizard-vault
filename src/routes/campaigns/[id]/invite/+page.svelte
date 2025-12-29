@@ -121,10 +121,11 @@
 
         {#if passwordHash}
             <div class="mb-6 bg-slate-950/50 p-4 rounded-xl border border-slate-800">
-                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                 <label for="campaign-pwd-input" class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-2">
                      <div class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div> Senha Necessária
                  </label>
                  <input 
+                    id="campaign-pwd-input"
                     type="password" 
                     placeholder="Digite a senha da campanha..."
                     bind:value={passwordInput}
@@ -137,9 +138,8 @@
         {/if}
 
         <div class="space-y-4 mb-8">
-            <!-- svelte-ignore a11y_label_has_associated_control -->
-            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Escolha seu Personagem</label>
-            <div class="space-y-2 max-h-60 overflow-y-auto custom-scrollbar pr-2">
+            <label for="char-selector" class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Escolha seu Personagem</label>
+            <div id="char-selector" class="space-y-2 max-h-60 overflow-y-auto custom-scrollbar pr-2">
                 {#each availableCharacters as char}
                     <button 
                         onclick={() => { selectedCharId = char.id; generalError = ''; }}
