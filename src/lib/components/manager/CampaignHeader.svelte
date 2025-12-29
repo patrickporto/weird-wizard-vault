@@ -1,6 +1,7 @@
 <script lang="ts">
   import { ChevronLeft, LayoutDashboard, History, Sword, Library, Settings } from 'lucide-svelte';
   import { goto } from '$app/navigation';
+  import { resolve } from '$app/paths';
   import { isHistoryOpen } from '$lib/stores/characterStore';
   import { rollHistory } from '$lib/stores/characterStore';
 
@@ -28,7 +29,7 @@
           <!-- Lado Esquerdo: Voltar e Título -->
           <div class="flex items-center gap-1 sm:gap-3 shrink-0">
              <button 
-                onclick={() => goto('/')} 
+                onclick={() => goto(resolve('/'))} 
                 class="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition-all flex items-center gap-1 group"
                 aria-label="Voltar para Dashboard"
                 title="Voltar para Dashboard"

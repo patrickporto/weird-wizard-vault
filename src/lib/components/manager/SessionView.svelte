@@ -2,7 +2,7 @@
     import { liveCharacters, liveEnemies, liveEncounters } from '$lib/stores/live';
     import { characterActions, isHistoryOpen } from '$lib/stores/characterStore';
     import { campaignsMap } from '$lib/db';
-    import { resolveRoute } from '$app/paths';
+    import { resolve } from '$app/paths';
     import { Users, UserPlus, Ghost, GripVertical, Plus, Minus, Swords, RotateCcw, X, Clock, AlertTriangle, Dices, ChevronLeft, ChevronDown, ChevronUp, History, Layers, Play, Copy, QrCode, Check, Globe, Wifi, Trash2 } from 'lucide-svelte';
     import CombatCard from './CombatCard.svelte';
     import HistorySidebar from '$lib/components/character/HistorySidebar.svelte';
@@ -49,7 +49,7 @@ import { joinCampaignRoom, syncCombat, syncCampaign, syncCharacter } from '$lib/
         }
     });
 
-    const inviteUrl = $derived(typeof window !== 'undefined' ? `${window.location.origin}${resolveRoute('/campaigns/[id]/invite', { id: campaign?.id })}` : '');
+    const inviteUrl = $derived(typeof window !== 'undefined' ? `${window.location.origin}${resolve('/campaigns/[id]/invite', { id: campaign?.id })}` : '');
 
     function copyInviteLink() {
         if (!inviteUrl) return;

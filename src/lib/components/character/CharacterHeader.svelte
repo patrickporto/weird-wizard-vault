@@ -2,6 +2,7 @@
   import { character, modalState, damage, effectiveMaxHealth, tempHealth, isInjured, isIncapacitated, damagePercentage, rollHistory, isHistoryOpen } from '$lib/stores/characterStore';
   import { Settings, Moon, Dices, ChevronLeft, LayoutDashboard } from 'lucide-svelte';
   import { goto } from '$app/navigation';
+  import { resolve } from '$app/paths';
   import CampaignStatus from './CampaignStatus.svelte';
 
   function openModal(type: string) {
@@ -16,7 +17,7 @@
           <!-- Lado Esquerdo: Voltar e Perfil Rapido -->
           <div class="flex items-center gap-1 sm:gap-3">
              <button 
-                onclick={() => goto('/')} 
+                onclick={() => goto(resolve('/'))} 
                 class="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition-all flex items-center gap-1 group"
                 aria-label="Voltar para Dashboard"
                 title="Voltar para Dashboard"

@@ -4,7 +4,7 @@
     import { uuidv7 } from 'uuidv7';
     import { charactersMap, campaignsMap } from '$lib/db';
     import { goto } from '$app/navigation';
-    import { resolveRoute } from '$app/paths';
+    import { resolve } from '$app/paths';
     import { Skull, Users, Scroll, Plus, Edit, Play, Trash2, Globe, Wifi, Shield } from 'lucide-svelte';
     import { publicCampaigns } from '$lib/logic/sync';
     import ConfirmationModal from './ConfirmationModal.svelte';
@@ -68,7 +68,7 @@
         isCharModalOpen = false;
         
         if (!editingCharId) {
-             goto(resolveRoute('/characters/[id]', { id }));
+             goto(resolve('/characters/[id]', { id }));
         }
     }
 
@@ -236,7 +236,7 @@
                   </div>
 
                   <button 
-                    onclick={() => goto(resolveRoute('/characters/[id]', { id: char.id }))}
+                    onclick={() => goto(resolve('/characters/[id]', { id: char.id }))}
                     class="w-full bg-slate-800 hover:bg-indigo-600 text-white py-3 rounded-2xl font-bold transition-all active:scale-[0.98] border border-slate-700 hover:border-indigo-400/30 flex items-center justify-center gap-2"
                   >
                     Abrir Ficha <Play size={14} fill="currentColor" />
@@ -274,7 +274,7 @@
                    
                    <div class="flex gap-3 mt-4">
                      <button 
-                        onclick={() => goto(resolveRoute('/campaigns/[id]', { id: camp.id }))} 
+                        onclick={() => goto(resolve('/campaigns/[id]', { id: camp.id }))} 
                         class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2 border border-indigo-400/20 shadow-lg shadow-indigo-900/20 transition-all active:scale-[0.98]"
                     >
                         <Play size={18} fill="currentColor"/> Gerir Sessão
@@ -316,7 +316,7 @@
                       <p class="text-sm text-slate-400 line-clamp-3 leading-relaxed mb-6 h-15">{camp.description || 'Uma jornada por terras desconhecidas aguarada heróis.'}</p>
                    </div>
                    <button 
-                        onclick={() => goto(resolveRoute('/campaigns/[id]/invite', { id: camp.id }))} 
+                        onclick={() => goto(resolve('/campaigns/[id]/invite', { id: camp.id }))} 
                         class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-2xl font-black uppercase text-xs tracking-[0.1em] flex items-center justify-center gap-2 border border-emerald-400/20 transition-all active:scale-[0.98] group"
                     >
                         Participar da Aventura <Plus size={18} class="group-hover:rotate-90 transition-transform"/>

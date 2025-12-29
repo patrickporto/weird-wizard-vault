@@ -4,7 +4,7 @@
     import { character } from '$lib/stores/characterStore';
     import { Users, Check, Wifi, AlertTriangle } from 'lucide-svelte';
 	import { goto } from '$app/navigation';
-	import { resolveRoute } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { joinCampaignRoom, isGmOnline } from '$lib/logic/sync';
 	import { onMount } from 'svelte';
 	import ConfirmationModal from '$lib/components/manager/ConfirmationModal.svelte';
@@ -87,7 +87,7 @@
 					gmName,
 					campaignApproval: 'pending'
 				});
-				goto(resolveRoute('/characters/[id]', { id: selectedCharId }));
+				goto(resolve('/characters/[id]', { id: selectedCharId }));
 			});
 		}
 	}
@@ -177,7 +177,7 @@
         </div>
 
         <div class="flex gap-3">
-            <button onclick={() => goto('/')} class="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold transition-all">Recusar</button>
+            <button onclick={() => goto(resolve('/'))} class="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold transition-all">Recusar</button>
             <button 
                 disabled={!selectedCharId || isVerifying || (!!passwordHash && !passwordInput) || campaignName === 'Buscando campanha...'}
                 onclick={handleJoin} 

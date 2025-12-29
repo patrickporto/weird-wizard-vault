@@ -12,6 +12,7 @@
     import { onDestroy } from 'svelte';
     import { syncCharacter, joinCampaignRoom } from '$lib/logic/sync';
     import { goto } from '$app/navigation';
+    import { resolve } from '$app/paths';
 
     // Components
     import CharacterHeader from '$lib/components/character/CharacterHeader.svelte';
@@ -152,7 +153,7 @@
                 <h1 class="text-2xl font-black text-white mb-2 uppercase tracking-tight">Personagem Não Encontrado</h1>
                 <p class="text-slate-400 mb-8">Este personagem não existe na sua base local. Crie um novo personagem através da página inicial.</p>
                 <button 
-                    onclick={() => goto('/')}
+                    onclick={() => goto(resolve('/'))}
                     class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all"
                 >
                     <ArrowLeft size={18} /> Voltar ao Início
