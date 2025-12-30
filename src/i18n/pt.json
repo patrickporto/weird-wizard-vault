@@ -626,5 +626,16 @@
     },
     "chat": {
         "send": "Enviar"
+    },
+    "home": {
+        "install": {
+            "button": "Instalar App",
+            "title": "Instalar Aplicativo",
+            "close": "Entendi",
+            "ios_step1": "Toque no botão {icon} <strong>Compartilhar</strong> na barra do navegador.",
+            "ios_step2": "Role e selecione {icon} <strong>Adicionar à Tela de Início</strong>.",
+            "android_step1": "Toque no menu do navegador {icon}",
+            "android_step2": "Selecione <strong>Instalar aplicativo</strong> ou <strong>Adicionar à tela inicial</strong>."
+        }
     }
 }
