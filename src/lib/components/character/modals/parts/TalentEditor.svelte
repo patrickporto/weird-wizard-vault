@@ -9,6 +9,9 @@
     let isOpen = $derived($modalState.isOpen && $modalState.type === 'talent');
     let data = $derived($modalState.data);
 
+    // Track if we're editing an existing talent (has an id that was passed initially)
+    let isEditing = $state(false);
+
     let formData = $state({
         id: undefined as string | undefined,
         name: '',
@@ -25,14 +28,26 @@
 
     $effect(() => {
         if (isOpen && data) {
+            // Check if this is an existing talent being edited (has an id property directly on data)
+            // vs. returning from EffectEditor (data comes from parentData which may not have id)
+            const existingTalentId = data.id;
+            isEditing = !!existingTalentId;
+            
             formData = { 
-                ...data,
+                id: data.id,
+                name: data.name || '',
+                description: data.description || '',
                 source: data.source || TALENT_SOURCES.ANCESTRY,
                 activityType: data.activityType || (data.isPassive ? 'Passive' : 'Uses'),
+                uses: data.uses || 0,
+                maxUses: data.maxUses || 0,
                 duration: data.duration || 'ROUNDS',
-                durationValue: data.durationValue || 1
+                durationValue: data.durationValue || 1,
+                isPassive: data.isPassive ?? true,
+                effect: data.effect || null
             };
         } else if (isOpen && !data) {
+            isEditing = false;
             formData = { 
                 id: undefined, 
                 name: '', 
@@ -65,16 +80,14 @@
         if (formData.activityType === 'Passive') {
             newTalent.maxUses = 0;
             newTalent.uses = 0;
-        } else if (formData.activityType === 'Uses' && !data) {
+        } else if (formData.activityType === 'Uses' && !isEditing) {
             newTalent.uses = formData.maxUses;
-        } else if (formData.activityType === 'Duration' && formData.duration === 'LUCK_ENDS' && !data) {
+        } else if (formData.activityType === 'Duration' && formData.duration === 'LUCK_ENDS' && !isEditing) {
             newTalent.maxUses = 1;
             newTalent.uses = 1;
         }
-        // Note: 'Duration' type might not use 'uses' property in the same way, or could rely on duration logic. 
-        // For simplicity, we keep maxUses=0 for Duration type unless specified otherwise.
         
-        if (data) characterActions.updateTalent(newTalent);
+        if (isEditing) characterActions.updateTalent(newTalent);
         else characterActions.addTalent(newTalent);
         onClose();
     }
