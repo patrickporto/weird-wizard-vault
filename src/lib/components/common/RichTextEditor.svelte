@@ -265,10 +265,11 @@
 
 </script>
 
-<div class="relative w-full">
+<div class="relative w-full bg-slate-900/50 border border-slate-800 rounded-xl p-1 group focus-within:border-indigo-500/30 transition-all">
 
     <!-- Bubble Menu (Selected Text) -->
-    <div bind:this={bubbleMenuElement} class="flex items-center bg-slate-900 border border-slate-700 rounded-lg shadow-2xl overflow-hidden p-1 gap-0.5 z-50">
+    <!-- Added 'hidden' to prevent FOUC. The extension/tippy handles visibility when active -->
+    <div bind:this={bubbleMenuElement} class="hidden flex items-center bg-slate-900 border border-slate-700 rounded-lg shadow-2xl overflow-hidden p-1 gap-0.5 z-50">
         {#if editor}
             <button
                 onclick={() => editor?.chain().focus().toggleBold().run()}
@@ -302,7 +303,7 @@
         {/if}
     </div>
 
-    <div bind:this={element} class="custom-scrollbar w-full outline-none prose-invert pb-[30vh]"></div>
+    <div bind:this={element} class="custom-scrollbar w-full outline-none prose-invert min-h-[60vh] p-4"></div>
 </div>
 
 <style>
@@ -321,6 +322,11 @@
         height: 0;
         pointer-events: none;
         font-style: italic;
+    }
+
+    /* Remove top margin from the first element to align with padding */
+    :global(.ProseMirror > *:first-child) {
+        margin-top: 0 !important;
     }
 
     /* Notion-like Block Spacing & Typography */
