@@ -27,6 +27,7 @@ export const defaultCharacter = {
     speed: 10,
     currentRound: 1,
     languages: ["Comum", "Élfico"],
+    senses: [],
     afflictions: [],
     effects: [],
     notes: "",
@@ -297,6 +298,10 @@ export const characterActions = {
     addLanguage: (lang) => character.update(c => ({ ...c, languages: [...c.languages, lang] })),
     removeLanguage: (index) => character.update(c => ({ ...c, languages: c.languages.filter((_, i) => i !== index) })),
 
+    // Senses
+    addSense: (sense) => character.update(c => ({ ...c, senses: [...(c.senses || []), sense] })),
+    removeSense: (index) => character.update(c => ({ ...c, senses: (c.senses || []).filter((_, i) => i !== index) })),
+
     confirmRest: () => {
         character.update(c => {
             const restoredSpells = c.spells.map(s => ({ ...s, castings: s.maxCastings }));
@@ -361,7 +366,7 @@ export const characterActions = {
             }
 
             // Calculate Boons/Banes from Effects
-            // Target: 'boons' -> Value is added to modifier. 
+            // Target: 'boons' -> Value is added to modifier.
             // Positive value = Boons, Negative value = Banes (handled by modifier logic below)
             const effectBoons = selectedEffects
                 .flatMap(e => Array.isArray(e.modifiers) ? e.modifiers : [])

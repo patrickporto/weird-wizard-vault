@@ -179,8 +179,9 @@ Forms and Actions
 - Implement proper client-side form validation using Svelte's reactive declarations.
 - Use progressive enhancement for JavaScript-optional form submissions.
 
-Internationalization (i18n) with Paraglide.js
-- Use svelte-i18nfor internationalization: https://github.com/kaisermann/svelte-i18n/blob/main/docs/Getting%20Started.md
+Internationalization (i18n) with svelte-i18n
+- Always translate to english (en.js)
+- Use svelte-i18n for internationalization: https://github.com/kaisermann/svelte-i18n/blob/main/docs/Getting%20Started.md
 - Use the `$_` function to translate strings:
 ```svelte
 <script>

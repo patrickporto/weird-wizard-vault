@@ -40,6 +40,7 @@
     import VitalsSection from '$lib/components/character/VitalsSection.svelte';
     import CurrencySection from '$lib/components/character/CurrencySection.svelte';
     import LanguagesSection from '$lib/components/character/LanguagesSection.svelte';
+    import SensesSection from '$lib/components/character/SensesSection.svelte';
     import AfflictionsSection from '$lib/components/character/AfflictionsSection.svelte';
     import CampaignStatus from '$lib/components/character/CampaignStatus.svelte';
     import TabNavigation from '$lib/components/character/TabNavigation.svelte';
@@ -88,6 +89,7 @@
                 initiative: charData.initiative,
                 acted: charData.acted,
                 afflictions: charData.afflictions || [],
+                senses: charData.senses || [],
                 campaignApproval: charData.campaignApproval,
                 imageUrl: charData.imageUrl,
                 notes: charData.notes
@@ -117,6 +119,7 @@
                 initiative: current.initiative,
                 acted: current.acted,
                 afflictions: current.afflictions || [],
+                senses: current.senses || [],
                 campaignApproval: current.campaignApproval,
                 imageUrl: current.imageUrl,
                 notes: current.notes
@@ -248,6 +251,7 @@
                 </button>
 
                 <VitalsSection />
+                <SensesSection />
                 <CurrencySection />
                 <LanguagesSection />
                 <AfflictionsSection />

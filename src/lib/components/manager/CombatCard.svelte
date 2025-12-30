@@ -1,7 +1,7 @@
 <script lang="ts">
     import { t } from 'svelte-i18n';
     import { charactersMap } from '$lib/db';
-    import { Swords, CheckCircle, Skull, X, Plus, Flame, ChevronUp, ChevronDown } from 'lucide-svelte';
+    import { Swords, CheckCircle, Skull, X, Plus, Flame, ChevronUp, ChevronDown, Eye } from 'lucide-svelte';
     import { slide } from 'svelte/transition';
     import Avatar from '../common/Avatar.svelte';
     import AfflictionModal from '../common/AfflictionModal.svelte';
@@ -13,11 +13,11 @@
         removeFromCombat?: (instanceId: string) => void;
     }
 
-    let { 
-        entity, 
-        updateEnemy = (id: string, u: any) => {}, 
-        updatePlayer = (id: string, u: any) => {}, 
-        removeFromCombat = (id: string) => {} 
+    let {
+        entity,
+        updateEnemy = (id: string, u: any) => {},
+        updatePlayer = (id: string, u: any) => {},
+        removeFromCombat = (id: string) => {}
     }: Props = $props();
 
     // Derived values
@@ -27,11 +27,11 @@
     let maxHealth = $derived(entity.normalHealth || entity.health || 10);
     // Current health is the actual current cap (can be reduced from normal)
     let currentHealth = $derived(entity.currentHealth ?? maxHealth);
-    
+
     // In Weird Wizard, you are incapacitated if Damage >= Health
     let isIncapacitated = $derived(damage >= currentHealth);
-    let isInjured = $derived((damage >= currentHealth / 2) && !isIncapacitated); 
-    
+    let isInjured = $derived((damage >= currentHealth / 2) && !isIncapacitated);
+
     // Bar should fill based on Damage relative to Current Health (the "container")
     let damagePercent = $derived(currentHealth > 0 ? Math.min(100, Math.max(0, (damage / currentHealth) * 100)) : 100);
 
@@ -43,7 +43,7 @@
     $effect(() => {
         const currentAfflictions = entity.afflictions || [];
         const hasIncap = currentAfflictions.includes("Incapacitated");
-        
+
         if (isIncapacitated && !hasIncap) {
             const newList = [...currentAfflictions, "Incapacitated"];
             const updates = { afflictions: newList };
@@ -62,16 +62,16 @@
     // Helper for player updates
     function handleUpdatePlayer(updates: any) {
         if (entity.type !== 'player') return;
-        
+
         // 1. Update GM's view/local storage
         const currentLocal = charactersMap.get(entity.id);
         if (currentLocal) {
             charactersMap.set(entity.id, { ...currentLocal, ...updates });
         }
-        
+
         // 2. Notify parent (SessionView) to update campaign member state
         updatePlayer(entity.id, updates);
-        
+
         // 3. Sync to the room so the player character sheet receives it
         syncCharacter({
             id: entity.id,
@@ -81,7 +81,7 @@
 
     function handleDamageInput(e: any) {
         const val = parseInt(e.target.value);
-        if (isNaN(val)) return; 
+        if (isNaN(val)) return;
         const d = Math.max(0, val);
         const updates = { damage: d };
         if(entity.type === 'player') handleUpdatePlayer(updates);
@@ -92,7 +92,7 @@
         const val = parseInt(e.target.value);
         if (isNaN(val)) return;
         const h = Math.max(0, val);
-        
+
         let d = damage;
         if (h < damage) {
             d = h;
@@ -102,7 +102,7 @@
         if(entity.type === 'player') handleUpdatePlayer(updates);
         else updateEnemy(entity.instanceId, updates);
     }
-    
+
     function toggleActed() {
         const newVal = !entity.acted;
         if(entity.type === 'player') handleUpdatePlayer({ acted: newVal });
@@ -146,9 +146,9 @@
                         <Avatar hash={entity.imageUrl} alt={entity.name} size="custom" fallbackText={entity.name.charAt(0)} />
                     {/key}
                  </div>
-                 
+
                  <!-- Action Status Badge -->
-                 <button 
+                 <button
                     onclick={toggleActed}
                     class="absolute -bottom-2 -right-2 w-7 h-7 rounded-lg flex items-center justify-center border shadow-lg transition-all hover:scale-110 z-20 {entity.acted ? 'bg-slate-800 border-slate-600 text-slate-500' : isPlayer ? 'bg-indigo-600 border-indigo-400 text-white' : 'bg-red-600 border-red-400 text-white'}"
                     title={entity.acted ? $t('session.combat_card.acted') : $t('session.combat_card.act')}
@@ -175,13 +175,13 @@
                             {/if}
                         </div>
                     </div>
-                    
+
                     <!-- Top Controls (Mobile friendly) -->
                     <div class="flex gap-1 flex-shrink-0">
                         <button onclick={() => expanded = !expanded} class="w-7 h-7 flex items-center justify-center rounded bg-slate-800 text-slate-500 hover:text-white hover:bg-slate-700 border border-slate-700/50 transition-colors">
                             {#if expanded}<ChevronUp size={14}/>{:else}<ChevronDown size={14}/>{/if}
                         </button>
-                        
+
                         {#if isPlayer}
                             <button onclick={toggleInitiative} class="w-7 h-7 flex items-center justify-center rounded transition-all {entity.initiative ? 'bg-yellow-500 text-yellow-950 shadow-lg shadow-yellow-500/20' : 'bg-slate-800 text-slate-500 hover:text-white hover:bg-slate-700'}" title={$t('session.combat_card.initiative')}>
                                 <Flame size={14}/>
@@ -199,15 +199,15 @@
                 <div class="relative w-full h-3.5 sm:h-4 bg-slate-950 rounded-full border border-white/5 overflow-hidden shadow-inner group-hover:border-white/20 transition-all mb-2">
                     <!-- Background health indicator -->
                     <div class="absolute inset-0 w-full {damage === 0 ? 'bg-emerald-900/20' : 'bg-slate-900/50'}"></div>
-                    
+
                     <!-- Damage fill bar with gradient -->
                     {#if damagePercent > 0}
-                        <div 
-                            class="absolute top-0 left-0 h-full transition-all duration-500 ease-out z-10 
-                            {isIncapacitated ? 'bg-gradient-to-r from-red-600 via-red-500 to-rose-500 animate-pulse' : 
-                             damagePercent >= 80 ? 'bg-gradient-to-r from-red-600 to-rose-500' : 
-                             isInjured ? 'bg-gradient-to-r from-amber-600 to-orange-500' : 
-                             'bg-gradient-to-r from-orange-500 to-amber-400'}" 
+                        <div
+                            class="absolute top-0 left-0 h-full transition-all duration-500 ease-out z-10
+                            {isIncapacitated ? 'bg-gradient-to-r from-red-600 via-red-500 to-rose-500 animate-pulse' :
+                             damagePercent >= 80 ? 'bg-gradient-to-r from-red-600 to-rose-500' :
+                             isInjured ? 'bg-gradient-to-r from-amber-600 to-orange-500' :
+                             'bg-gradient-to-r from-orange-500 to-amber-400'}"
                             style="width: {damagePercent}%"
                         >
                             <!-- Shine effect -->
@@ -236,7 +236,7 @@
 
                 <!-- Stats & Afflictions Row -->
                 <div class="flex flex-col sm:flex-row gap-3">
-                    
+
                     <!-- Stats Compact -->
                     <!-- Stats Compact -->
                     <div class="flex items-start gap-1.5">
@@ -276,7 +276,7 @@
                                {aff} <X size={8} class="opacity-50 group-hover/btn:opacity-100"/>
                            </button>
                         {/each}
-                        
+
                         <button onclick={() => showAfflictionModal = true} class="text-[10px] sm:text-[9px] font-bold text-slate-500 hover:text-indigo-400 px-1.5 py-0.5 rounded border border-transparent hover:border-indigo-500/30 hover:bg-indigo-500/10 transition-all flex items-center gap-1 whitespace-nowrap">
                                <Plus size={10}/> {$t('session.combat_card.add_affliction')}
                         </button>
@@ -288,18 +288,18 @@
     </div>
 
     <!-- Right Controls -->
-    <!-- This section was part of the grid in previous logic, but now it's inside the main container or needs to be positioned. 
-         Wait, looking at my previous edit, the controls were NOT in the p-4 block I just replaced? 
+    <!-- This section was part of the grid in previous logic, but now it's inside the main container or needs to be positioned.
+         Wait, looking at my previous edit, the controls were NOT in the p-4 block I just replaced?
          Ah, I replaced the whole internal grid previously. I need to make sure I am targeting the correct area.
          Let's stick to the visible structure. The previous replace replaced "SECTION 1", "SECTION 2" and "SECTION 3".
-         
+
          The attributes/stats need to go into the expanded section.
          The expand button needs to be added for players.
     -->
 
     {#if expanded}
         <div class="border-t border-slate-800/50 bg-slate-950/30 p-4">
-            
+
             <!-- Attributes Section (New) -->
             <div class="mb-4">
                 <div class="text-slate-500 font-bold uppercase text-[10px] mb-2 flex items-center gap-2">
@@ -338,8 +338,27 @@
                  </div>
             </div>
 
-            <!-- Sections: Traits, Actions, Reactions -->
+            <!-- Sections: Senses, Traits, Actions, Reactions -->
             <div class="space-y-4">
+                 <!-- Senses Display -->
+                 {#if entity.senses && entity.senses.length > 0}
+                    <div>
+                         <div class="text-emerald-500 text-[10px] font-black uppercase mb-2 flex items-center gap-2">
+                             {$t('character.senses.title')} <span class="h-px flex-1 bg-current opacity-20"></span>
+                         </div>
+                         <div class="flex flex-wrap gap-2">
+                             {#each entity.senses as sense}
+                                 {@const [key, val] = sense.split(':')}
+                                 {@const label = $t(`character.senses.list.${key}`) + (val ? ` ${val}` : '')}
+                                 {@const desc = $t(`character.senses.descriptions.${key}`)}
+                                 <div class="text-xs bg-emerald-950/30 text-emerald-200 px-3 py-1.5 rounded border border-emerald-900/50 font-bold flex items-center gap-2" title={desc}>
+                                    <Eye size={12} class="text-emerald-500"/> {label}
+                                 </div>
+                             {/each}
+                         </div>
+                    </div>
+                 {/if}
+
                  {#each [
                      { key: 'traits', label: 'Traços', color: 'text-amber-500' },
                      { key: 'actions', label: 'Ações', color: 'text-red-400' },
@@ -367,8 +386,8 @@
     {/if}
 
     <!-- Affliction Modal -->
-    <AfflictionModal 
-        isOpen={showAfflictionModal} 
+    <AfflictionModal
+        isOpen={showAfflictionModal}
         onClose={() => showAfflictionModal = false}
         afflictions={entity.afflictions || []}
         onToggle={toggleAffliction}

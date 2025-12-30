@@ -118,6 +118,28 @@
       "add_placeholder": "Adicionar novo idioma...",
       "add_label": "Adicionar novo idioma"
     },
+    "senses": {
+      "title": "Sentidos",
+      "add": "Adicionar",
+      "select_placeholder": "Selecione...",
+      "value_label": "Alcance (jardas)",
+      "list": {
+        "awareness": "Consciência",
+        "dark_vision": "Visão no Escuro",
+        "keen_hearing": "Audição Aguçada",
+        "keen_scent": "Olfato Aguçado",
+        "keen_vision": "Visão Aguçada",
+        "true_vision": "Visão Verdadeira"
+      },
+      "descriptions": {
+        "awareness": "A criatura percebe sempre tudo ao seu redor dentro do número listado em jardas. Essa percepção ignora os efeitos de obscurecimento e iluminação.",
+        "dark_vision": "A criatura pode ver a um alcance de 3 jardas mesmo sem nenhuma luz.",
+        "keen_hearing": "A criatura ouve o dobro das distâncias normais.",
+        "keen_scent": "A criatura sabe a localização de cada criatura viva ou morta dentro de 10 jardas.",
+        "keen_vision": "A criatura pode ver duas vezes mais longe que outras criaturas em luz natural e dobra o alcance normal de fontes de luz artificial. Reduz obscurecimento em um passo.",
+        "true_vision": "A criatura não precisa de luz para ver e trata tudo como iluminado. Vê invisíveis, disfarces e ilusões."
+      }
+    },
     "afflictions": {
       "title": "Aflições",
       "none": "Nenhuma aflição ativa.",

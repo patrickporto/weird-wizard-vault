@@ -338,6 +338,7 @@ export function joinCampaignRoom(campaignId: string, isGM: boolean = false, char
                         ...c,
                         name: charData.name || c.name,
                         afflictions: charData.afflictions || c.afflictions,
+                        senses: charData.senses || c.senses,
                         initiative: charData.initiative !== undefined ? charData.initiative : (c.initiative ?? false),
                         acted: charData.acted !== undefined ? charData.acted : (c.acted ?? false),
                         campaignApproval: charData.campaignApproval || c.campaignApproval,
