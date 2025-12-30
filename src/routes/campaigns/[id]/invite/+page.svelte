@@ -3,7 +3,8 @@
     import { page } from '$app/stores';
     import { liveCharacters } from '$lib/stores/live';
     import { character } from '$lib/stores/characterStore';
-    import { Users, Check, Wifi, AlertTriangle } from 'lucide-svelte';
+    import { Users, Check, Wifi, AlertTriangle, Gamepad2 } from 'lucide-svelte';
+    import { DEFAULT_SYSTEM, getSystem } from '$lib/systems';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { joinCampaignRoom, isGmOnline } from '$lib/logic/sync';
@@ -17,8 +18,10 @@
 	let gmName = $derived($character.gmName || '...');
 	let passwordHash = $derived($character.passwordHash);
 
-	// Filter out characters that are already in a campaign
-	let availableCharacters = $derived($liveCharacters.filter(c => !c.campaignId));
+	// Filter out characters that are already in a campaign AND have matching system
+    let campaignSystem = $derived($character.system || DEFAULT_SYSTEM);
+	let availableCharacters = $derived($liveCharacters.filter(c => !c.campaignId && (c.system || DEFAULT_SYSTEM) === campaignSystem));
+    let hasSystemMismatch = $derived($liveCharacters.some(c => !c.campaignId && (c.system || DEFAULT_SYSTEM) !== campaignSystem));
 
 	let selectedCharId = $state<string | null>(null);
 	let showConfirm = $state(false);
@@ -108,6 +111,9 @@
                     <span class="block text-xs mt-1 uppercase tracking-widest text-slate-500 font-black">{$t('common.labels.master')}: {gmName}</span>
                 {/if}
             </p>
+             <div class="mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded bg-slate-800 text-[10px] text-slate-400 border border-slate-700 font-bold uppercase tracking-wider">
+                 <Gamepad2 size={12} /> {getSystem(campaignSystem).name}
+             </div>
             {#if !$isGmOnline}
                 <div class="mt-4 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full text-[10px] text-amber-500 font-bold uppercase tracking-wider animate-pulse flex items-center gap-2">
                     <Wifi size={12}/> {$t('invite.waiting_gm')}
@@ -153,7 +159,11 @@
                         </div>
                         <div class="flex-1 text-left">
                             <div class="font-bold text-sm">{char.name}</div>
-                            <div class="text-[10px] opacity-60">{$t('common.labels.level')} {char.level} • {char.ancestry}</div>
+                            <div class="text-[10px] opacity-60 flex items-center gap-1">
+                                {$t('common.labels.level')} {char.level} • {char.ancestry}
+                                <span class="w-1 h-1 rounded-full bg-slate-600"></span>
+                                <Gamepad2 size={8} /> {getSystem(char.system || DEFAULT_SYSTEM).name}
+                            </div>
                         </div>
                         {#if selectedCharId === char.id}
                             <Check size={16} class="text-indigo-400" />
@@ -169,7 +179,11 @@
                             <div class="flex flex-col items-center gap-2">
                                 <AlertTriangle size={24} class="text-amber-500" />
                                 <div class="text-amber-500 font-bold">{$t('invite.all_in_campaigns')}</div>
-                                <div class="text-xs text-slate-500">{$t('invite.create_or_leave')}</div>
+                                {#if hasSystemMismatch}
+                                    <div class="text-xs text-slate-500 max-w-[200px]">Você tem personagens, mas eles são de outro sistema de jogo. Crie um personagem para <strong>{getSystem(campaignSystem).name}</strong>.</div>
+                                {:else}
+                                    <div class="text-xs text-slate-500">{$t('invite.create_or_leave')}</div>
+                                {/if}
                             </div>
                         {/if}
                     </div>

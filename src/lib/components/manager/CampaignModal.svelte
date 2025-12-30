@@ -1,6 +1,7 @@
 <script lang="ts">
-    import { Shield } from 'lucide-svelte';
+    import { Shield, Gamepad2 } from 'lucide-svelte';
     import Modal from '$lib/components/common/Modal.svelte';
+    import { SYSTEMS, DEFAULT_SYSTEM } from '$lib/systems';
 
     interface Props {
         isOpen: boolean;
@@ -16,7 +17,7 @@
         onSave 
     }: Props = $props();
 
-    let form = $state({ name: '', description: '', gmName: '', password: '', removePassword: false });
+    let form = $state({ name: '', description: '', gmName: '', password: '', removePassword: false, system: DEFAULT_SYSTEM });
     let hasPassword = $state(false);
     let isEditing = $state(false); // True if editing existing campaign
     
@@ -30,12 +31,13 @@
                     description: data.description || '',
                     gmName: data.gmName || '',
                     password: '',
-                    removePassword: false
+                    removePassword: false,
+                    system: data.system || DEFAULT_SYSTEM
                 };
                 hasPassword = !!data.passwordHash;
                 isEditing = !!data.id;
             } catch (e) {
-                form = { name: '', description: '', gmName: '', password: '', removePassword: false };
+                form = { name: '', description: '', gmName: '', password: '', removePassword: false, system: DEFAULT_SYSTEM };
                 hasPassword = false;
                 isEditing = false;
             }
@@ -51,6 +53,36 @@
 
 <Modal {isOpen} {onClose} title={isEditing ? "Configurações da Campanha" : "Nova Campanha"} maxWidth="max-w-md">
     <div class="space-y-4">
+        {#if !isEditing}
+            <div>
+                <label class="text-xs text-slate-500 uppercase font-black block mb-2 tracking-widest flex items-center gap-1">
+                    <Gamepad2 size={12} /> Sistema de Jogo
+                </label>
+                <div class="grid grid-cols-1 gap-2">
+                    {#each SYSTEMS as system}
+                        <button 
+                            class="relative flex items-center p-3 rounded-lg border text-left transition-all {form.system === system.id ? 'bg-indigo-600/20 border-indigo-500 text-white' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-600'} {system.disabled ? 'opacity-60 cursor-not-allowed' : ''}"
+                            onclick={() => !system.disabled && (form.system = system.id)}
+                            disabled={system.disabled}
+                        >
+                            <div class="flex-1">
+                                <div class="font-bold text-sm flex items-center gap-2">
+                                    {system.name}
+                                    {#if system.comingSoon}
+                                        <span class="text-[9px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded uppercase tracking-wider">Em Breve</span>
+                                    {/if}
+                                </div>
+                                <div class="text-[10px] opacity-60 mt-0.5">{system.description}</div>
+                            </div>
+                            {#if form.system === system.id}
+                                <div class="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>
+                            {/if}
+                        </button>
+                    {/each}
+                </div>
+            </div>
+        {/if}
+
         <div>
                 <label for="campaign-name" class="text-xs text-slate-500 uppercase font-black block mb-1 tracking-widest">Nome da Campanha</label>
                 <input id="campaign-name" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none focus:border-indigo-500 transition-colors" placeholder="Ex: A Sombra do Feiticeiro" bind:value={form.name} />

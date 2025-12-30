@@ -18,7 +18,8 @@
     import { onMount } from 'svelte';
     import { slide, fly } from 'svelte/transition';
     import { quintOut } from 'svelte/easing';
-    import { CloudUpload, Cloud } from 'lucide-svelte';
+    import { CloudUpload, Cloud, Gamepad2 } from 'lucide-svelte';
+    import { DEFAULT_SYSTEM, getSystem } from '$lib/systems';
 
     onMount(() => {
         initializeGoogleAuth();
@@ -90,7 +91,7 @@
     let isCharModalOpen = $state(false);
     let charFormStr = $state("{}");
     
-    const defaultCharForm = { name: '', playerName: '', ancestry: 'Humano', novicePath: '', level: 0, defense: 8, health: 5 };
+    const defaultCharForm = { name: '', playerName: '', ancestry: 'Humano', novicePath: '', level: 0, defense: 8, health: 5, system: DEFAULT_SYSTEM };
 
     function openCharModal() {
         charFormStr = JSON.stringify(defaultCharForm);
@@ -107,6 +108,7 @@
             ancestry: formData.ancestry,
             level: formData.level,
             defense: formData.defense,
+            system: formData.system || DEFAULT_SYSTEM,
             paths: { 
                 novice: formData.novicePath || '-',
                 expert: '-',
@@ -139,7 +141,7 @@
     let isCampModalOpen = $state(false);
     let editingCampId = $state<string | null>(null);
     let campFormStr = $state("{}");
-    const defaultCampForm = { name: '', description: '', gmName: '' };
+    const defaultCampForm = { name: '', description: '', gmName: '', system: DEFAULT_SYSTEM };
 
     function openCampModal(camp: any = null) {
         editingCampId = camp ? camp.id : null;
@@ -159,7 +161,8 @@
             gmName: formData.gmName,
             players: current.players || [],
             backupEnabled: formData.backupEnabled || false,
-            backupHash: formData.backupHash || ''
+            backupHash: formData.backupHash || '',
+            system: formData.system || DEFAULT_SYSTEM
         };
 
         // Handle password updates
@@ -366,6 +369,11 @@
                                 <span class="text-[10px] text-slate-400 font-medium">• {char.playerName}</span>
                             {/if}
                         </div>
+                         <div class="mt-2 flex items-center gap-2">
+                             <div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-800 text-[9px] text-slate-400 border border-slate-700 font-bold uppercase tracking-wider">
+                                 <Gamepad2 size={10} /> {getSystem(char.system).name}
+                             </div>
+                         </div>
                      </div>
                      <div class="flex items-center gap-1">
                         <button 
@@ -448,6 +456,11 @@
                               </div>
                           </div>
                            <p class="text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em] mb-3">{camp.gmName || $t('common.labels.master')}</p>
+                           <div class="mb-3">
+                                <div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-800 text-[9px] text-slate-400 border border-slate-700 font-bold uppercase tracking-wider">
+                                    <Gamepad2 size={10} /> {getSystem(camp.system || DEFAULT_SYSTEM).name}
+                                </div>
+                           </div>
                            <p class="text-sm text-slate-400 line-clamp-2 leading-relaxed h-10">{camp.description || $t('dashboard.campaigns.no_description')}</p>
                        </div>
                        
@@ -491,6 +504,11 @@
                                    <div class="flex items-center gap-1 px-2 py-0.5 bg-emerald-500/10 rounded text-[9px] text-emerald-400 font-black uppercase tracking-wider">
                                         <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
                                         {$t('dashboard.campaigns.online')}
+                                   </div>
+                              </div>
+                              <div class="mb-4">
+                                   <div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-800/50 text-[9px] text-slate-400 border border-slate-700/50 font-bold uppercase tracking-wider">
+                                       <Gamepad2 size={10} /> {getSystem(camp.system || DEFAULT_SYSTEM).name}
                                    </div>
                               </div>
                               <p class="text-sm text-slate-400 line-clamp-3 leading-relaxed mb-6 h-15">{camp.description || $t('dashboard.campaigns.public_description')}</p>
