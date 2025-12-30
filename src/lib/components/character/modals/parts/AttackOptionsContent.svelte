@@ -1,7 +1,7 @@
 <script lang="ts">
     import { t } from 'svelte-i18n';
     import { Dices, Wand2, Sword, ArrowLeft, Plus, Minus } from 'lucide-svelte';
-    import { modalState, characterActions, character } from '$lib/stores/characterStore';
+    import { modalState, characterActions, character, activeEffects } from '$lib/stores/characterStore';
     import Modal from '$lib/components/common/Modal.svelte';
 
     let isOpen = $derived($modalState.isOpen && $modalState.type === 'weapon_menu');
@@ -10,12 +10,15 @@
     let view = $state<'selection' | 'roll'>('selection');
     let rollType = $state<'attack' | 'damage'>('attack');
     let modifier = $state(0);
+    let selectedEffectsIds = $state<string[]>([]);
 
     // Reset state when modal opens
     $effect(() => {
         if (isOpen) {
             view = 'selection';
             modifier = 0;
+            // Default to all active effects selected
+            selectedEffectsIds = $activeEffects.map(e => e.id);
         }
     });
 
@@ -29,6 +32,14 @@
         modifier = 0;
     }
 
+    function toggleEffect(id: string) {
+        if (selectedEffectsIds.includes(id)) {
+            selectedEffectsIds = selectedEffectsIds.filter(e => e !== id);
+        } else {
+            selectedEffectsIds = [...selectedEffectsIds, id];
+        }
+    }
+
     function confirmRoll() {
         if (!data) return;
         
@@ -37,11 +48,9 @@
             source: data
         };
 
-        const activeEffects = $character.effects
-            .filter(e => e.isActive)
-            .map(e => e.name);
+        const selectedEffects = $activeEffects.filter(e => selectedEffectsIds.includes(e.id));
 
-        characterActions.finalizeRoll(rollData, modifier, activeEffects);
+        characterActions.finalizeRoll(rollData, modifier, selectedEffects);
         onClose();
     }
 </script>
@@ -153,6 +162,40 @@
                         {rollType === 'damage' ? $t('character.dice_roll.extra_dice') : $t('character.dice_roll.boons_banes')}
                     </div>
                 </div>
+                
+                <!-- ACTIVE EFFECTS SELECTION -->
+                {#if $activeEffects.length > 0}
+                    <div class="space-y-2">
+                         <h4 class="text-xs font-bold text-slate-500 uppercase px-1">{$t('character.effects.active')}</h4>
+                         <div class="grid grid-cols-1 gap-2 max-h-[150px] overflow-y-auto pr-1">
+                            {#each $activeEffects as eff (eff.id)}
+                                <button 
+                                    onclick={() => toggleEffect(eff.id)}
+                                    class="flex items-center justify-between p-3 rounded-lg border transition-all text-left {selectedEffectsIds.includes(eff.id) ? 'bg-indigo-900/30 border-indigo-500/50 shadow-sm' : 'bg-slate-900/50 border-slate-800 opacity-60 hover:opacity-100 hover:border-slate-700'}"
+                                >
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-4 h-4 rounded border flex items-center justify-center transition-colors {selectedEffectsIds.includes(eff.id) ? 'bg-indigo-500 border-indigo-400' : 'border-slate-600 bg-slate-900'}">
+                                            {#if selectedEffectsIds.includes(eff.id)}
+                                                <div class="w-2 h-2 bg-white rounded-sm"></div>
+                                            {/if}
+                                        </div>
+                                        <div>
+                                            <span class="text-sm font-bold text-slate-200 block leading-tight">{eff.name}</span>
+                                            {#if eff.modifiers && eff.modifiers.length > 0}
+                                                <div class="flex flex-wrap gap-1 mt-1">
+                                                    {#each eff.modifiers as mod}
+                                                        <span class="text-[9px] text-slate-400 bg-slate-800 px-1 rounded">{mod.target}: {mod.value}</span>
+                                                    {/each}
+                                                </div>
+                                            {/if}
+                                        </div>
+                                    </div>
+                                    <!-- Optional: Icon or visual indicator of the source -->
+                                </button>
+                            {/each}
+                         </div>
+                    </div>
+                {/if}
 
                 <div class="p-4 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between">
                      <span class="text-xs font-bold uppercase text-slate-500 tracking-wider">{$t('character.modals.rolling')}</span>

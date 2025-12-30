@@ -309,7 +309,7 @@ export const characterActions = {
         modalState.set({ type: null, isOpen: false, data: null });
     },
 
-    finalizeRoll: (data, modifier, activeEffectsNames = []) => {
+    finalizeRoll: (data, modifier, selectedEffects = []) => {
         const char = get(character);
         const derivedStatsVal = get(derivedStats); // map of key -> val
 
@@ -360,6 +360,16 @@ export const characterActions = {
                 attrUsed = attrLabel;
             }
 
+            // Calculate Boons/Banes from Effects
+            // Target: 'boons' -> Value is added to modifier. 
+            // Positive value = Boons, Negative value = Banes (handled by modifier logic below)
+            const effectBoons = selectedEffects
+                .flatMap(e => Array.isArray(e.modifiers) ? e.modifiers : [])
+                .filter(m => m.target === 'boons' && m.type === MOD_TYPES.ADD)
+                .reduce((acc, m) => acc + m.value, 0);
+
+            modifier += effectBoons;
+
             let boonBaneTotal = 0;
             let boonBaneStr = '';
 
@@ -397,7 +407,7 @@ export const characterActions = {
                 formula: `d20(${d20})${attrMod !== 0 ? (attrMod >= 0 ? '+' : '') + attrMod : ''}${boonBaneStr} `,
                 total: total,
                 crit: d20 === 20,
-                effectsApplied: activeEffectsNames
+                effectsApplied: selectedEffects.map(e => e.name)
             });
 
             // Consume NEXT_ROLL effects
@@ -434,8 +444,10 @@ export const characterActions = {
             }
 
             // Effect Bonus
-            const effectBonus = get(activeEffects).flatMap(e => Array.isArray(e.modifiers) ? e.modifiers : [])
-                .filter(m => m.target === 'damage' && m.type === MOD_TYPES.ADD).reduce((acc, m) => acc + m.value, 0);
+            const effectBonus = selectedEffects
+                .flatMap(e => Array.isArray(e.modifiers) ? e.modifiers : [])
+                .filter(m => m.target === 'damage' && m.type === MOD_TYPES.ADD)
+                .reduce((acc, m) => acc + m.value, 0);
 
             const totalBonus = charBonus + effectBonus;
             const totalDice = Math.max(0, baseDice + totalBonus + modifier);
@@ -461,13 +473,15 @@ export const characterActions = {
                 sum += r;
             }
 
+            damage.set(sum);
+
             characterActions.addToHistory({
                 source: `Dano`,
                 name: item.name,
                 description: `Dano: ${totalDice}d6 ${hasTrait(item, 'Brutal') ? '(Brutal)' : ''}`,
                 formula: `${totalDice}d6 [${results.join(', ')}] ${originalRollsInfo.some(s => s.includes('->')) ? `(Rolagens: ${originalRollsInfo.join(', ')})` : ''}`,
                 total: sum,
-                effectsApplied: activeEffectsNames
+                effectsApplied: selectedEffects.map(e => e.name)
             });
 
             if (item.type === ITEM_TYPES.EXPLOSIVE) characterActions.useConsumable(item);
