@@ -33,6 +33,10 @@
   "dependencies": {
     "@sentry/svelte": "^10.32.1",
     "@tailwindcss/vite": "^4.1.18",
+    "@tiptap/core": "^3.14.0",
+    "@tiptap/extension-collaboration": "^3.14.0",
+    "@tiptap/pm": "^3.14.0",
+    "@tiptap/starter-kit": "^3.14.0",
     "@types/spark-md5": "^3.0.5",
     "bip39": "^3.1.0",
     "buffer": "^6.0.3",
@@ -40,6 +44,7 @@
     "spark-md5": "^3.0.2",
     "svelte-easy-crop": "^5.0.0",
     "svelte-i18n": "^4.0.1",
+    "svelte-tiptap": "^3.0.1",
     "tailwindcss": "^4.1.18",
     "trystero": "^0.22.0",
     "uuidv7": "^1.1.0",
