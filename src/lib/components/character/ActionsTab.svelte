@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from 'svelte-i18n';
     import { activeTab, character, modalState, characterActions } from '$lib/stores/characterStore';
     import { Sword, Bomb, Wand2, Zap, Backpack } from 'lucide-svelte';
     import { fade } from 'svelte/transition';
@@ -47,7 +48,7 @@
             <div class="flex flex-col items-end gap-2">
                 <div class="flex items-center gap-4 bg-slate-900 p-2 rounded-lg border border-slate-800">
                     <div class="text-center px-2">
-                        <span class="block text-[10px] font-bold text-slate-500 uppercase">Dano</span>
+                        <span class="block text-[10px] font-bold text-slate-500 uppercase">{$t('character.actions.damage')}</span>
                         <span class="text-xl font-mono text-white font-bold">{item.damageDice || 0}d6</span>
                     </div>
                 </div>
@@ -57,7 +58,7 @@
                         class="text-xs bg-red-900/50 text-red-200 px-3 py-1 rounded border border-red-800 hover:bg-red-900 flex items-center gap-1"
                         aria-label="Usar {item.name}"
                     >
-                        <Bomb size={12}/> Throw ({item.quantity})
+                        <Bomb size={12}/> {$t('character.actions.throw')} ({item.quantity})
                     </button>
                 {/if}
             </div>
@@ -76,12 +77,12 @@
             <div class="flex items-start gap-3 w-full">
                 <div class="bg-indigo-900/50 p-2 rounded text-indigo-300 mt-1"><Wand2 size={20}/></div>
                 <div>
-                    <p class="font-bold text-white flex items-center gap-2 group-hover:text-indigo-300 transition-colors">Conjurar Magia</p>
-                    <p class="text-xs text-slate-500">Selecione uma magia do grimório para lançar.</p>
+                    <p class="font-bold text-white flex items-center gap-2 group-hover:text-indigo-300 transition-colors">{$t('character.actions.cast_spell')}</p>
+                    <p class="text-xs text-slate-500">{$t('character.actions.cast_spell_desc')}</p>
                 </div>
             </div>
             <div class="ml-auto">
-                <div class="bg-slate-900 px-3 py-1 rounded text-xs font-bold text-indigo-400 uppercase tracking-wider border border-slate-800">Selecionar</div>
+                <div class="bg-slate-900 px-3 py-1 rounded text-xs font-bold text-indigo-400 uppercase tracking-wider border border-slate-800">{$t('character.actions.select')}</div>
             </div>
         </div>
     {/if}
@@ -98,12 +99,12 @@
             <div class="flex items-start gap-3 w-full">
                 <div class="bg-yellow-900/30 p-2 rounded text-yellow-300 mt-1"><Zap size={20}/></div>
                 <div>
-                    <p class="font-bold text-white flex items-center gap-2 group-hover:text-yellow-300 transition-colors">Usar Talento</p>
-                    <p class="text-xs text-slate-500">Ative uma habilidade ou talento especial.</p>
+                    <p class="font-bold text-white flex items-center gap-2 group-hover:text-yellow-300 transition-colors">{$t('character.actions.use_talent')}</p>
+                    <p class="text-xs text-slate-500">{$t('character.actions.use_talent_desc')}</p>
                 </div>
             </div>
             <div class="ml-auto">
-                <div class="bg-slate-900 px-3 py-1 rounded text-xs font-bold text-yellow-500 uppercase tracking-wider border border-slate-800">Selecionar</div>
+                <div class="bg-slate-900 px-3 py-1 rounded text-xs font-bold text-yellow-500 uppercase tracking-wider border border-slate-800">{$t('character.actions.select')}</div>
             </div>
         </div>
     {/if}
@@ -122,9 +123,9 @@
                     <Sword size={40} class="opacity-80" />
                 </div>
                 
-                <h3 class="text-2xl font-black text-white mb-3 uppercase tracking-tight">Pronto para o Combate?</h3>
+                <h3 class="text-2xl font-black text-white mb-3 uppercase tracking-tight">{$t('character.actions.empty_title')}</h3>
                 <p class="text-slate-400 mb-8 max-w-sm mx-auto leading-relaxed">
-                    Sua lista de ações rápidas está vazia. Equipe seu herói para ver armas, magias e talentos ativos aqui.
+                    {$t('character.actions.empty_desc')}
                 </p>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-md">
@@ -135,7 +136,7 @@
                         <div class="p-2 bg-slate-800 rounded-lg text-slate-400 group-hover/btn:text-indigo-400 transition-colors">
                             <Backpack size={20} />
                         </div>
-                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-500 group-hover/btn:text-slate-300">Inventário</span>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-500 group-hover/btn:text-slate-300">{$t('character.actions.inventory')}</span>
                     </button>
 
                     <button 
@@ -145,7 +146,7 @@
                         <div class="p-2 bg-slate-800 rounded-lg text-slate-400 group-hover/btn:text-indigo-400 transition-colors">
                             <Wand2 size={20} />
                         </div>
-                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-500 group-hover/btn:text-slate-300">Magias</span>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-500 group-hover/btn:text-slate-300">{$t('character.tabs.spells')}</span>
                     </button>
 
                     <button 
@@ -155,7 +156,7 @@
                         <div class="p-2 bg-slate-800 rounded-lg text-slate-400 group-hover/btn:text-indigo-400 transition-colors">
                             <Zap size={20} />
                         </div>
-                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-500 group-hover/btn:text-slate-300">Talentos</span>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-500 group-hover/btn:text-slate-300">{$t('character.tabs.talents')}</span>
                     </button>
                 </div>
             </div>

@@ -1,32 +1,33 @@
 <script lang="ts">
+    import { t } from 'svelte-i18n';
     import { activeTab } from '$lib/stores/characterStore';
     import { Sword, Book, Backpack, Zap, Activity, FileText, User, MoreHorizontal, X } from 'lucide-svelte';
     import { slide, fade } from 'svelte/transition';
 
     // Desktop tabs (no stats - shown in sidebar)
-    const desktopTabs = [
-        { id: 'acoes', label: 'AÇÕES', icon: Sword },
-        { id: 'magias', label: 'MAGIAS', icon: Book },
-        { id: 'talentos', label: 'TALENTOS', icon: Zap },
-        { id: 'equipamento', label: 'ITENS', icon: Backpack },
-        { id: 'notas', label: 'NOTAS', icon: FileText },
-        { id: 'efeitos', label: 'EFEITOS', icon: Activity }
-    ];
+    const desktopTabs = $derived([
+        { id: 'acoes', label: $t('character.tabs.actions'), icon: Sword },
+        { id: 'magias', label: $t('character.tabs.spells'), icon: Book },
+        { id: 'talentos', label: $t('character.tabs.talents'), icon: Zap },
+        { id: 'equipamento', label: $t('character.tabs.items'), icon: Backpack },
+        { id: 'notas', label: $t('character.tabs.notes'), icon: FileText },
+        { id: 'efeitos', label: $t('character.tabs.effects'), icon: Activity }
+    ]);
     
     // Mobile main tabs (visible in bottom bar)
-    const mobileTabs = [
-        { id: 'stats', label: 'STATS', icon: User },
-        { id: 'acoes', label: 'AÇÕES', icon: Sword },
-        { id: 'notas', label: 'NOTAS', icon: FileText },
-        { id: 'equipamento', label: 'ITENS', icon: Backpack }
-    ];
+    const mobileTabs = $derived([
+        { id: 'stats', label: $t('character.tabs.stats'), icon: User },
+        { id: 'acoes', label: $t('character.tabs.actions'), icon: Sword },
+        { id: 'notas', label: $t('character.tabs.notes'), icon: FileText },
+        { id: 'equipamento', label: $t('character.tabs.items'), icon: Backpack }
+    ]);
 
     // Mobile secondary tabs (hidden in "MAIS" menu)
-    const moreMenuTabs = [
-        { id: 'magias', label: 'MAGIAS', icon: Book },
-        { id: 'talentos', label: 'TALENTOS', icon: Zap },
-        { id: 'efeitos', label: 'EFEITOS', icon: Activity }
-    ];
+    const moreMenuTabs = $derived([
+        { id: 'magias', label: $t('character.tabs.spells'), icon: Book },
+        { id: 'talentos', label: $t('character.tabs.talents'), icon: Zap },
+        { id: 'efeitos', label: $t('character.tabs.effects'), icon: Activity }
+    ]);
 
     let isMoreMenuOpen = $state(false);
 
@@ -55,7 +56,7 @@
         class="md:hidden fixed bottom-0 left-0 right-0 z-[70] bg-slate-900 border-t border-slate-700 rounded-t-3xl shadow-2xl safe-area-pb"
     >
         <div class="flex justify-between items-center px-6 py-4 border-b border-slate-800">
-            <h3 class="text-sm font-black text-white uppercase tracking-wider">Mais Opções</h3>
+            <h3 class="text-sm font-black text-white uppercase tracking-wider">{$t('character.tabs.more_options')}</h3>
             <button 
                 onclick={() => isMoreMenuOpen = false}
                 class="p-2 rounded-full bg-slate-800 text-slate-400 hover:text-white transition-colors"
@@ -100,7 +101,7 @@
             aria-expanded={isMoreMenuOpen}
         >
             <MoreHorizontal size={20} class="{isMoreTabActive || isMoreMenuOpen ? 'text-indigo-400' : 'text-slate-500'}" />
-            <span class="text-[9px] font-bold uppercase tracking-wide">MAIS</span>
+            <span class="text-[9px] font-bold uppercase tracking-wide">{$t('character.tabs.more')}</span>
         </button>
     </div>
 </div>

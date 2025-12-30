@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from 'svelte-i18n';
     import { page } from '$app/stores';
     import { liveCharacters } from '$lib/stores/live';
     import { character } from '$lib/stores/characterStore';
@@ -12,7 +13,7 @@
 
 	const campaignId = $page.params.id;
 	// Get campaign info from the character store which is updated by the getCampaign sync action
-	let campaignName = $derived($character.campaignName || 'Buscando campanha...');
+	let campaignName = $derived($character.campaignName || $t('invite.searching'));
 	let gmName = $derived($character.gmName || '...');
 	let passwordHash = $derived($character.passwordHash);
 
@@ -41,7 +42,7 @@
 		// Double-check that the character is not already in a campaign
 		const char = $liveCharacters.find(c => c.id === selectedCharId);
 		if (char?.campaignId) {
-			generalError = 'Este personagem já está em uma campanha!';
+			generalError = $t('invite.already_in_campaign');
 			return;
 		}
 
@@ -74,7 +75,7 @@
 		if (char) {
 			// Final check before joining
 			if (char.campaignId) {
-				generalError = 'Este personagem já está em uma campanha!';
+				generalError = $t('invite.already_in_campaign');
 				showConfirm = false;
 				return;
 			}
@@ -99,17 +100,17 @@
             <div class="w-16 h-16 bg-indigo-600/20 rounded-full flex items-center justify-center text-indigo-400 mb-4 border border-indigo-500/30">
                 <Users size={32} />
             </div>
-            <h1 class="text-2xl font-bold text-white mb-2">Convite para Campanha</h1>
+            <h1 class="text-2xl font-bold text-white mb-2">{$t('invite.title')}</h1>
             <p class="text-slate-400">
-                Você foi convidado para participar de 
+                {$t('invite.invited_to')} 
                 <span class="text-indigo-400 font-bold">{campaignName}</span>
                 {#if gmName !== '...'}
-                    <span class="block text-xs mt-1 uppercase tracking-widest text-slate-500 font-black">Mestre: {gmName}</span>
+                    <span class="block text-xs mt-1 uppercase tracking-widest text-slate-500 font-black">{$t('common.labels.master')}: {gmName}</span>
                 {/if}
             </p>
             {#if !$isGmOnline}
                 <div class="mt-4 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full text-[10px] text-amber-500 font-bold uppercase tracking-wider animate-pulse flex items-center gap-2">
-                    <Wifi size={12}/> Aguardando o Mestre ficar online...
+                    <Wifi size={12}/> {$t('invite.waiting_gm')}
                 </div>
             {/if}
         </div>
@@ -124,23 +125,23 @@
         {#if passwordHash}
             <div class="mb-6 bg-slate-950/50 p-4 rounded-xl border border-slate-800">
                  <label for="campaign-pwd-input" class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-2">
-                     <div class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div> Senha Necessária
+                     <div class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div> {$t('invite.password.required')}
                  </label>
                  <input 
                     id="campaign-pwd-input"
                     type="password" 
-                    placeholder="Digite a senha da campanha..."
+                    placeholder={$t('invite.password.placeholder')}
                     bind:value={passwordInput}
                     class="w-full bg-slate-900 border {passwordError ? 'border-red-500' : 'border-slate-700'} rounded-lg p-3 text-white outline-none focus:border-indigo-500 transition-colors"
                  />
                  {#if passwordError}
-                    <p class="text-red-400 text-xs mt-1">Senha incorreta.</p>
+                    <p class="text-red-400 text-xs mt-1">{$t('invite.password.incorrect')}</p>
                  {/if}
             </div>
         {/if}
 
         <div class="space-y-4 mb-8">
-            <label for="char-selector" class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Escolha seu Personagem</label>
+            <label for="char-selector" class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">{$t('invite.select_character')}</label>
             <div id="char-selector" class="space-y-2 max-h-60 overflow-y-auto custom-scrollbar pr-2">
                 {#each availableCharacters as char}
                     <button 
@@ -152,7 +153,7 @@
                         </div>
                         <div class="flex-1 text-left">
                             <div class="font-bold text-sm">{char.name}</div>
-                            <div class="text-[10px] opacity-60">Lvl {char.level} • {char.ancestry}</div>
+                            <div class="text-[10px] opacity-60">{$t('common.labels.level')} {char.level} • {char.ancestry}</div>
                         </div>
                         {#if selectedCharId === char.id}
                             <Check size={16} class="text-indigo-400" />
@@ -162,13 +163,13 @@
                 {#if availableCharacters.length === 0}
                     <div class="text-center py-8 text-slate-600 italic text-sm space-y-2">
                         {#if $liveCharacters.length === 0}
-                            <div>Nenhum personagem encontrado.</div>
-                            <div>Crie um personagem primeiro!</div>
+                            <div>{$t('invite.no_characters')}</div>
+                            <div>{$t('invite.create_first')}</div>
                         {:else}
                             <div class="flex flex-col items-center gap-2">
                                 <AlertTriangle size={24} class="text-amber-500" />
-                                <div class="text-amber-500 font-bold">Todos os seus personagens já estão em campanhas.</div>
-                                <div class="text-xs text-slate-500">Crie um novo personagem ou saia de uma campanha existente.</div>
+                                <div class="text-amber-500 font-bold">{$t('invite.all_in_campaigns')}</div>
+                                <div class="text-xs text-slate-500">{$t('invite.create_or_leave')}</div>
                             </div>
                         {/if}
                     </div>
@@ -177,18 +178,18 @@
         </div>
 
         <div class="flex gap-3">
-            <button onclick={() => goto(resolve('/'))} class="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold transition-all">Recusar</button>
+            <button onclick={() => goto(resolve('/'))} class="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold transition-all">{$t('invite.decline')}</button>
             <button 
                 disabled={!selectedCharId || isVerifying || (!!passwordHash && !passwordInput) || campaignName === 'Buscando campanha...'}
                 onclick={handleJoin} 
                 class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold transition-all shadow-lg shadow-indigo-900/20 flex items-center justify-center gap-2"
             >
                 {#if isVerifying}
-                    <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> Validando...
-                {:else if campaignName === 'Buscando campanha...'}
-                    <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> Carregando...
+                    <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> {$t('invite.validating')}
+                {:else if campaignName === $t('invite.searching')}
+                    <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> {$t('invite.loading')}
                 {:else}
-                    Aceitar Convite
+                    {$t('invite.accept')}
                 {/if}
             </button>
         </div>
@@ -197,8 +198,8 @@
 
 <ConfirmationModal 
     isOpen={showConfirm}
-    title="Confirmar Participação"
-    message={`Deseja entrar na campanha "${campaignName}" com o personagem "${$liveCharacters.find(c => c.id === selectedCharId)?.name}"?`}
+    title={$t('invite.confirm_title')}
+    message={$t('invite.confirm_message', { values: { campaign: campaignName, character: $liveCharacters.find(c => c.id === selectedCharId)?.name } })}
     onConfirm={confirmJoin}
     onCancel={() => showConfirm = false}
 />

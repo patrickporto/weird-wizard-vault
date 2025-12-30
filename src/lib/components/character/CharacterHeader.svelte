@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from 'svelte-i18n';
   import { character, modalState, damage, effectiveMaxHealth, tempHealth, isInjured, isIncapacitated, damagePercentage, rollHistory, isHistoryOpen } from '$lib/stores/characterStore';
   import { Settings, Moon, Dices, ChevronLeft, LayoutDashboard } from 'lucide-svelte';
   import { goto } from '$app/navigation';
@@ -58,8 +59,8 @@
              <button 
                 onclick={() => goto(resolve('/'))} 
                 class="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition-all flex items-center gap-1 group"
-                aria-label="Voltar para Dashboard"
-                title="Voltar para Dashboard"
+                aria-label={$t('character.header.back_dashboard')}
+                title={$t('character.header.back_dashboard')}
              >
                 <ChevronLeft size={20} class="group-hover:-translate-x-0.5 transition-transform"/>
                 <LayoutDashboard size={18} class="hidden sm:block opacity-50"/>
@@ -80,11 +81,11 @@
                          />
                     </div>
                     
-                    <div class="hidden xs:block">
+                    <div>
                        <div class="flex items-center gap-2">
                            <h1 class="text-xs sm:text-sm font-bold text-white leading-tight truncate max-w-[80px] sm:max-w-none group-hover:text-indigo-400 transition-colors">{$character.name}</h1>
                        </div>
-                       <p class="text-[10px] text-slate-500 font-medium">Nv {$character.level}</p>
+                       <p class="hidden xs:block text-[10px] text-slate-500 font-medium">Nv {$character.level}</p>
                     </div>
                  </button>
 
@@ -98,13 +99,13 @@
                             onclick={() => fileInput.click()}
                             class="w-full text-left px-4 py-3 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700 flex items-center gap-3 transition-colors border-b border-slate-700/50"
                         >
-                            <Camera size={16} class="text-indigo-400"/> Alterar Foto
+                            <Camera size={16} class="text-indigo-400"/> {$t('character.header.change_photo')}
                         </button>
                         <button 
                             onclick={() => { openModal('character_info'); isMenuOpen = false; }}
                             class="w-full text-left px-4 py-3 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700 flex items-center gap-3 transition-colors"
                         >
-                            <UserCog size={16} class="text-slate-400"/> Editar Informações
+                            <UserCog size={16} class="text-slate-400"/> {$t('character.header.edit_info')}
                         </button>
                     </div>
                  {/if}
@@ -115,18 +116,18 @@
           <button 
             class="flex-1 max-w-md cursor-pointer group px-2 sm:px-0 text-left" 
             onclick={() => openModal('health')}
-            aria-label="Estado de Saúde"
+            aria-label={$t('character.header.health_label')}
           >
              <div class="flex justify-between text-[10px] sm:text-xs mb-1.5 px-1">
                 <span class="font-black uppercase tracking-wider {$isIncapacitated ? 'text-red-500 animate-pulse' : $isInjured ? 'text-amber-500' : $damage > 0 ? 'text-slate-400' : 'text-emerald-500'}">
                    {#if $isIncapacitated}
-                      INCAPACITADO
+                      {$t('character.health.incapacitated')}
                    {:else if $isInjured}
-                      FERIDO
+                      {$t('character.health.injured')}
                    {:else if $damage > 0}
                       <!-- Show damage value when not in special state -->
                    {:else}
-                      SAUDÁVEL
+                      {$t('character.health.healthy')}
                    {/if}
                 </span>
                 <span class="text-slate-400 font-mono flex items-center gap-1 group-hover:text-white transition-colors">
@@ -166,7 +167,7 @@
              <button 
                 onclick={() => openModal('rest_confirm')} 
                 class="p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 rounded-full transition-all" 
-                title="Descanso"
+                title={$t('character.header.rest')}
              >
                 <Moon size={18}/>
              </button>
@@ -174,7 +175,7 @@
              <button 
                 onclick={() => isHistoryOpen.update(v => !v)} 
                 class="p-2 bg-indigo-600/10 text-indigo-400 border border-indigo-400/20 rounded-lg hover:bg-indigo-600 hover:text-white transition-all relative" 
-                title="Histórico"
+                title={$t('character.header.history')}
              >
                  <Dices size={18}/>
                  {#if $rollHistory.length > 0}

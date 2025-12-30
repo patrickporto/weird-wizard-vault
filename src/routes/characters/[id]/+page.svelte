@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from 'svelte-i18n';
     import { 
         activeTab, modalState, rollHistory, character, defaultCharacter, 
         isHistoryOpen, normalHealth, currentHealth, damage, totalDefense,
@@ -169,13 +170,13 @@
                 <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-600">
                     <Ghost size={40} />
                 </div>
-                <h1 class="text-2xl font-black text-white mb-2 uppercase tracking-tight">Personagem Não Encontrado</h1>
-                <p class="text-slate-400 mb-8">Este personagem não existe na sua base local. Crie um novo personagem através da página inicial.</p>
+                <h1 class="text-2xl font-black text-white mb-2 uppercase tracking-tight">{$t('character.not_found.title')}</h1>
+                <p class="text-slate-400 mb-8">{$t('character.not_found.message')}</p>
                 <button 
                     onclick={() => goto(resolve('/'))}
                     class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all"
                 >
-                    <ArrowLeft size={18} /> Voltar ao Início
+                    <ArrowLeft size={18} /> {$t('character.back_to_home')}
                 </button>
             </div>
         </div>
@@ -196,7 +197,7 @@
                     <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <Clover size={24} class="text-white"/>
                     </div>
-                    <span class="font-black text-white uppercase tracking-wider text-sm">Teste de Sorte</span>
+                    <span class="font-black text-white uppercase tracking-wider text-sm">{$t('character.luck_test')}</span>
                 </button>
 
                 <VitalsSection />

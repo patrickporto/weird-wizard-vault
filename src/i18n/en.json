@@ -1,3 +1,546 @@
 {
-    "chat.send": "Send"
+    "common": {
+        "buttons": {
+            "close": "Close",
+            "cancel": "Cancel",
+            "confirm": "Confirm",
+            "save": "Save",
+            "delete": "Delete",
+            "add": "Add",
+            "remove": "Remove",
+            "back": "Back",
+            "edit": "Edit",
+            "settings": "Settings",
+            "copied": "Copied!"
+        },
+        "labels": {
+            "level": "Level",
+            "master": "Game Master",
+            "session": "Session"
+        }
+    },
+    "dashboard": {
+        "title": "Schwalb Vault",
+        "tabs": {
+            "characters": "Characters",
+            "campaigns": "Campaigns"
+        },
+        "characters": {
+            "paths": "Paths",
+            "open_sheet": "Open Sheet",
+            "new_character": "New Character",
+            "delete_title": "Delete Character",
+            "delete_message": "Are you sure you want to permanently delete this character?"
+        },
+        "campaigns": {
+            "start_session": "Start Session",
+            "new_campaign": "New Campaign",
+            "no_description": "A journey without a description yet.",
+            "delete_title": "Delete Campaign",
+            "delete_message": "Are you sure you want to permanently delete this campaign?",
+            "published": "Published",
+            "public_campaigns": "Public Campaigns",
+            "join_adventure": "Join the Adventure",
+            "no_online_campaigns": "No Online Campaigns",
+            "no_online_description": "Game Masters need to publish their sessions to appear here.",
+            "public_description": "A journey through unknown lands awaits heroes.",
+            "online": "Online"
+        }
+    },
+    "campaign": {
+        "not_found": {
+            "title": "Campaign Not Found",
+            "message": "This campaign does not exist in your local database or has been removed. Create a new campaign through the home page."
+        }
+    },
+    "character": {
+        "not_found": {
+            "title": "Character Not Found",
+            "message": "This character does not exist in your local database. Create a new character through the home page."
+        },
+        "back_to_home": "Back to Home",
+        "luck_test": "Luck Test",
+        "header": {
+            "change_photo": "Change Photo",
+            "edit_info": "Edit Info",
+            "health_label": "Health Status",
+            "back_dashboard": "Back to Dashboard",
+            "rest": "Rest",
+            "history": "History"
+        },
+        "health": {
+            "healthy": "HEALTHY",
+            "injured": "INJURED",
+            "incapacitated": "INCAPACITATED"
+        },
+        "tabs": {
+            "stats": "STATS",
+            "actions": "ACTIONS",
+            "spells": "SPELLS",
+            "talents": "TALENTS",
+            "items": "ITEMS",
+            "notes": "NOTES",
+            "effects": "EFFECTS",
+            "more": "MORE",
+            "more_options": "More Options"
+        },
+        "vitals": {
+            "defense": "Defense",
+            "speed": "Speed",
+            "bonus_damage": "Bonus Damage",
+            "extra_dice": "Extra Dice"
+        },
+        "currency": {
+            "title": "Currency"
+        },
+        "languages": {
+            "title": "Languages",
+            "none": "No languages registered.",
+            "add_placeholder": "Add new language...",
+            "add_label": "Add new language"
+        },
+        "afflictions": {
+            "title": "Afflictions",
+            "none": "No active afflictions.",
+            "add": "Add Affliction",
+            "active": "Active Affliction"
+        },
+        "effects": {
+            "current_round": "Current Round",
+            "status": "Status",
+            "out_of_combat": "Out of Combat",
+            "prev_round": "Previous Round",
+            "next_round": "Next Round",
+            "clean_inactive": "Clean Inactive",
+            "new_effect": "New Effect",
+            "none": "No active effects.",
+            "luck_ends": "Luck Ends"
+        },
+        "actions": {
+            "damage": "Damage",
+            "throw": "Throw",
+            "cast_spell": "Cast Spell",
+            "cast_spell_desc": "Select a spell from the grimoire to cast.",
+            "select": "Select",
+            "use_talent": "Use Talent",
+            "use_talent_desc": "Activate a special ability or talent.",
+            "empty_title": "Ready for Combat?",
+            "empty_desc": "Your quick actions list is empty. Equip your hero to see weapons, spells, and active talents here.",
+            "inventory": "Inventory"
+        },
+        "spells": {
+            "grimoire": "Arcane Grimoire",
+            "grimoire_desc": "Your known spells and incantations.",
+            "new_spell": "New Spell",
+            "add_spell": "Add New Spell",
+            "magic_uses": "Magic Uses",
+            "cast": "Cast",
+            "empty": "Your grimoire is empty.",
+            "add_first": "Add First Spell",
+            "novice": "Novice Spells",
+            "expert": "Expert Spells",
+            "master": "Master Spells"
+        },
+        "talents": {
+            "title": "Talents & Abilities",
+            "subtitle": "Your special capabilities and passives.",
+            "new": "New Talent",
+            "add": "Add New Talent",
+            "type": "Type",
+            "uses": "Uses",
+            "passive": "Passive",
+            "recover": "Recover Use",
+            "use": "Use Talent",
+            "empty": "You don't have any talents registered yet.",
+            "add_first": "Add First Talent"
+        },
+        "inventory": {
+            "title": "Inventory",
+            "new_item": "New Item",
+            "item": "Item",
+            "type": "Type",
+            "actions_equip": "Actions / Equip",
+            "qty": "Qty",
+            "use": "Use",
+            "equipped": "Equipped",
+            "equip": "Equip"
+        },
+        "notes": {
+            "title": "Character Notes",
+            "autosave": "Auto-saved",
+            "placeholder": "Write here: backstory, campaign notes, important NPCs, secrets..."
+        },
+        "history": {
+            "title": "History",
+            "none": "No rolls yet.",
+            "clear": "Clear",
+            "close": "Close"
+        },
+        "dice_roll": {
+            "confirm_roll": "Confirm Roll",
+            "roll": "ROLL",
+            "boons_banes": "Boons / Banes",
+            "extra_dice": "Extra Dice",
+            "quick_rolls": "Quick Rolls",
+            "history_note": "The result will be recorded in history.",
+            "roll_d20": "Roll d20",
+            "roll_d6": "Roll d6",
+            "roll_2d6": "Roll 2d6",
+            "roll_3d6": "Roll 3d6"
+        },
+        "modals": {
+            "item_editor": "Item Editor",
+            "spell_editor": "Edit Spell",
+            "talent_editor": "Edit Talent",
+            "effect_manager": "Manage Effect",
+            "confirm_cast": "Confirm Casting",
+            "confirm_activation": "Confirm Activation",
+            "grimoire": "Grimoire",
+            "your_talents": "Your Talents",
+            "attack_options": "Attack Options",
+            "character_info": "Character Information",
+            "health_damage": "Health & Damage",
+            "attribute": "Attribute",
+            "manage_afflictions": "Manage Afflictions",
+            "info": "Information",
+            "name": "Name",
+            "name_required": "* Name required",
+            "type": "Type",
+            "qty": "Qty",
+            "damage": "Damage",
+            "traits": "Traits",
+            "grip": "Grip",
+            "range": "Range",
+            "fixed_def": "Fixed Def",
+            "mod_def": "Mod Def",
+            "description": "Description",
+            "delete": "Delete",
+            "tier": "Tier",
+            "tradition": "Tradition",
+            "castings": "Castings",
+            "associated_effect": "Associated Effect",
+            "configured": "Configured",
+            "none": "None",
+            "passive_unlimited": "Passive / Unlimited",
+            "max_uses": "Max Uses",
+            "effect_name_required": "* Effect name is required",
+            "inherited_from_parent": "Name and Description inherited from parent item.",
+            "duration": "Duration",
+            "modifiers": "Modifiers",
+            "add": "Add",
+            "remove_modifier": "Remove Modifier",
+            "save_effect": "Save Effect",
+            "base_value": "Base Value",
+            "normal_health": "Normal Health",
+            "current_health": "Current Health",
+            "update": "Update",
+            "level": "Level",
+            "ancestry": "Ancestry",
+            "apply_effect_use": "APPLY EFFECT AND USE",
+            "use_without_effect": "USE WITHOUT APPLYING EFFECT",
+            "confirm_use": "CONFIRM USE",
+            "perform_rest": "Perform Rest?",
+            "rest": "Rest",
+            "no_traits": "No Traits",
+            "attack": "Attack",
+            "passive": "Passive",
+            "charges": "Charges",
+            "no_talent_available": "No talent available.",
+            "casts": "Casts",
+            "grimoire_empty": "Grimoire is empty.",
+            "effects_summary": "Effects Summary",
+            "no_affliction_selected": "No affliction selected.",
+            "back": "Back"
+        }
+    },
+    "invite": {
+        "title": "Campaign Invite",
+        "invited_to": "You have been invited to join",
+        "waiting_gm": "Waiting for the Game Master to come online...",
+        "password": {
+            "required": "Password Required",
+            "placeholder": "Enter the campaign password...",
+            "incorrect": "Incorrect password."
+        },
+        "select_character": "Choose Your Character",
+        "no_characters": "No characters found.",
+        "create_first": "Create a character first!",
+        "all_in_campaigns": "All your characters are already in campaigns.",
+        "create_or_leave": "Create a new character or leave an existing campaign.",
+        "already_in_campaign": "This character is already in a campaign!",
+        "decline": "Decline",
+        "accept": "Accept Invite",
+        "validating": "Validating...",
+        "loading": "Loading...",
+        "searching": "Searching campaign...",
+        "confirm_title": "Confirm Participation",
+        "confirm_message": "Do you want to join the campaign \"{campaign}\" with the character \"{character}\"?"
+    },
+    "session": {
+        "players": {
+            "title": "Characters",
+            "add": "Add",
+            "close": "Close",
+            "waiting_approval": "Waiting for Approval",
+            "new_request": "New join request",
+            "none": "No players in the session.",
+            "remove_from_session": "Remove from Session",
+            "add_to_session": "Add to Session",
+            "kick_from_campaign": "Kick from Campaign",
+            "remove_title": "Remove from Campaign",
+            "remove_message": "Do you want to remove {name} from the campaign? They can rejoin through the invite link."
+        },
+        "publish": {
+            "publish_session": "Publish Session",
+            "make_visible": "Make your session visible and get the invite link",
+            "public_session": "Public Session",
+            "remove_public": "Remove from public area",
+            "qr_code": "View QR Code",
+            "copy_link": "Copy link",
+            "qr_alt": "Invite QR Code"
+        },
+        "combat": {
+            "start": "START COMBAT",
+            "end": "End",
+            "round": "Round",
+            "next": "Next",
+            "previous": "Previous Round",
+            "empty": "Combat is empty."
+        },
+        "combat_card": {
+            "initiative": "Initiative",
+            "acted": "Already acted",
+            "act": "Act",
+            "incapacitated": "INCAPACITATED",
+            "injured": "INJURED",
+            "defense": "Def",
+            "damage": "Damage",
+            "health": "Health",
+            "difficulty": "Dif",
+            "add_affliction": "Affliction",
+            "attributes": "Attributes",
+            "size": "Size",
+            "speed": "Speed",
+            "traits": "Traits",
+            "actions": "Actions",
+            "reactions": "Reactions",
+            "end_of_round": "End of Round"
+        },
+        "enemies": {
+            "title": "Enemies",
+            "encounters": "Encounters",
+            "none": "No enemies.",
+            "no_encounters": "No encounters.",
+            "difficulty": "Diff"
+        },
+        "quick": {
+            "title": "Quick",
+            "roll_title": "Quick Roll",
+            "boons_banes": "Boons / Banes",
+            "fixed_modifier": "Fixed Modifier"
+        },
+        "end_of_round": {
+            "title": "End of Round",
+            "summary": "Summary of effects that occur now.",
+            "advance": "Advance Round"
+        },
+        "manage_session": {
+            "title": "Manage Session",
+            "description": "Add available characters to the session.",
+            "no_available": "No characters available.",
+            "all_in_session": "All characters in the campaign are already in the session."
+        },
+        "bestiary": {
+            "title": "Enemy Library",
+            "encounters_title": "Ready Encounters",
+            "new_enemy": "New Enemy",
+            "new_encounter": "New Encounter",
+            "empty_encounter": "Empty",
+            "no_enemies": "No enemies registered.",
+            "no_description": "No description.",
+            "see_more": "See more...",
+            "see_less": "See less",
+            "start": "Start",
+            "level": "Level",
+            "delete_enemy_title": "Delete Enemy",
+            "delete_enemy_message": "Are you sure you want to permanently delete the enemy \"{name}\"?",
+            "delete_encounter_title": "Delete Encounter",
+            "delete_encounter_message": "Are you sure you want to permanently delete the encounter \"{name}\"?"
+        },
+        "affliction_modal": {
+            "title": "Manage Afflictions",
+            "effects": "Effects",
+            "none_selected": "No affliction selected.",
+            "done": "Done"
+        },
+        "enemy_modal": {
+            "title": "Enemy Editor",
+            "close": "Close modal",
+            "tab_general": "General",
+            "tab_attributes": "Attributes",
+            "tab_abilities": "Abilities",
+            "name": "Name",
+            "difficulty": "Difficulty",
+            "size": "Size",
+            "description": "Description",
+            "description_placeholder": "Brief description or notes about the creature...",
+            "speed": "Speed",
+            "main_attributes": "Main Attributes",
+            "senses": "Senses",
+            "senses_placeholder": "Ex: Darkvision",
+            "languages": "Languages",
+            "languages_placeholder": "Ex: Common, Elvish",
+            "immunities": "Immunities",
+            "immunities_placeholder": "Ex: Fire, Poison",
+            "traits": "Traits",
+            "actions": "Actions",
+            "reactions": "Reactions",
+            "end_of_round": "End of Round",
+            "add": "Add",
+            "name_placeholder": "Name",
+            "desc_placeholder": "Description...",
+            "empty": "Empty",
+            "preview": "Preview",
+            "defense": "Defense",
+            "health": "Health",
+            "enemy_default": "Enemy",
+            "image_error": "Error saving image"
+        },
+        "encounter_modal": {
+            "title": "Create/Edit Encounter",
+            "close": "Close",
+            "name": "Encounter Name",
+            "name_placeholder": "Ex: Crypt Ambush",
+            "enemies_in_encounter": "Enemies in Encounter",
+            "unknown": "Unknown",
+            "none_added": "No enemies added.",
+            "add_enemies": "Add Enemies",
+            "save_encounter": "Save Encounter"
+        }
+    },
+    "sofww": {
+        "attributes": {
+            "str": "Strength",
+            "agi": "Agility",
+            "int": "Intellect",
+            "wil": "Will"
+        },
+        "duration": {
+            "next_roll": "Next Roll",
+            "rounds": "Rounds",
+            "minutes": "Minutes",
+            "hours": "Hours",
+            "days": "Days",
+            "luck_ends": "Luck Ends",
+            "permanent": "Permanent"
+        },
+        "item_types": {
+            "weapon": "Weapon",
+            "armor": "Armor",
+            "shield": "Shield",
+            "consumable": "Consumable",
+            "explosive": "Explosive",
+            "other": "Other"
+        },
+        "mod_targets": {
+            "str": "Strength",
+            "agi": "Agility",
+            "int": "Intellect",
+            "wil": "Will",
+            "defense": "Defense",
+            "speed": "Speed",
+            "health": "Health",
+            "damage": "Damage (Dice)",
+            "boons": "Boons/Banes"
+        },
+        "grips": {
+            "off": "Off Hand",
+            "one": "One Hand",
+            "two": "Two Hands"
+        },
+        "availability": {
+            "common": "Common",
+            "uncommon": "Uncommon",
+            "rare": "Rare",
+            "exotic": "Exotic"
+        },
+        "quality": {
+            "standard": "Standard",
+            "inferior": "Inferior",
+            "superior": "Superior"
+        },
+        "afflictions": {
+            "blinded": {
+                "name": "Blinded",
+                "effect": "Make rolls with 3 banes. No sight reactions. Speed halved."
+            },
+            "confused": {
+                "name": "Confused",
+                "effect": "No reactions. Intellect and Will rolls with 1 bane."
+            },
+            "controlled": {
+                "name": "Controlled",
+                "effect": "Controller decides your turn. Regard source as ally."
+            },
+            "cursed": {
+                "name": "Cursed",
+                "effect": "Luck rolls with 1 bane."
+            },
+            "deafened": {
+                "name": "Deafened",
+                "effect": "No hearing reactions. Immune to hearing effects."
+            },
+            "frightened": {
+                "name": "Frightened",
+                "effect": "Attribute rolls with 1 bane (while in LOS). Grant 1 boon on rolls against you."
+            },
+            "held": {
+                "name": "Held",
+                "effect": "Speed 0. Cannot increase Speed. Auto-fail Agility defense rolls."
+            },
+            "impaired": {
+                "name": "Impaired",
+                "effect": "Roll with 1 bane for specified attribute. Grant 1 boon against that attribute."
+            },
+            "incapacitated": {
+                "name": "Incapacitated",
+                "effect": "Damage equals or exceeds Health. You cannot use actions or reactions. Speed 0."
+            },
+            "on_fire": {
+                "name": "On Fire",
+                "effect": "Take 1d6 damage at end of round. Action/Luck roll to extinguish."
+            },
+            "poisoned": {
+                "name": "Poisoned",
+                "effect": "Attribute rolls with 1 bane. Grant 1 boon against you. Lose 1d6 Health end of round."
+            },
+            "prone": {
+                "name": "Prone",
+                "effect": "No reactions. Grant 1 boon to melee vs you, impose 1 bane to ranged vs you."
+            },
+            "slowed": {
+                "name": "Slowed",
+                "effect": "Speed drops to 2 (if higher). Cannot benefit from Speed increases."
+            },
+            "stunned": {
+                "name": "Stunned",
+                "effect": "No actions/reactions. Speed 0. Grant 2 boons against you. Attribute rolls with 2 banes."
+            },
+            "unconscious": {
+                "name": "Unconscious",
+                "effect": "No actions/reactions. Speed 0. Grant 3 boons against you. Auto-fail attribute rolls."
+            },
+            "vulnerable": {
+                "name": "Vulnerable",
+                "effect": "Grant 1 boon on attacks/rolls against you."
+            },
+            "weakened": {
+                "name": "Weakened",
+                "effect": "Strength/Agility rolls with 1 bane. Grant 1 boon vs Str/Agi. Speed halved."
+            }
+        }
+    },
+    "chat": {
+        "send": "Send"
+    }
 }

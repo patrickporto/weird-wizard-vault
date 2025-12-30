@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from 'svelte-i18n';
     import { character, characterActions } from '$lib/stores/characterStore';
     import { Coins, Minus, Plus } from 'lucide-svelte';
 
@@ -8,7 +9,7 @@
 <div class="bg-slate-900 p-3 rounded-2xl border border-slate-800 shadow-xl shadow-black/20">
     <div class="flex justify-between items-center mb-3">
         <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-1.5">
-            <Coins size={14} class="text-yellow-500"/> Moedas
+            <Coins size={14} class="text-yellow-500"/> {$t('character.currency.title')}
         </h4>
     </div>
     

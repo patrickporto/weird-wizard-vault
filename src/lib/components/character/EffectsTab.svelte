@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from 'svelte-i18n';
     import { character, modalState, characterActions } from '$lib/stores/characterStore';
     import { Rewind, FastForward, Eraser, Plus, Edit, Trash2, Clock, Clover } from 'lucide-svelte';
     import { MOD_TYPES, MOD_TARGETS, DURATION_TYPES } from '../../../routes/sofww';
@@ -17,25 +18,25 @@
                 onclick={() => advanceRound('prev')} 
                 disabled={!!$character.campaignId}
                 class="p-2 hover:bg-slate-700 rounded text-slate-400 disabled:opacity-30 disabled:cursor-not-allowed"
-                aria-label="Voltar Rodada"
+                aria-label={$t('character.effects.prev_round')}
             >
                 <Rewind size={20}/>
             </button>
             <div class="text-center min-w-[80px]">
                 <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                    {$character.combatActive ? 'Rodada Atual' : 'Status'}
+                    {$character.combatActive ? $t('character.effects.current_round') : $t('character.effects.status')}
                 </div>
                 {#if $character.combatActive}
                     <div class="text-2xl font-mono font-bold text-white leading-tight">{$character.currentRound || 1}</div>
                 {:else}
-                    <div class="text-sm font-bold text-slate-500 uppercase tracking-tighter mt-1 italic">Fora de Combate</div>
+                    <div class="text-sm font-bold text-slate-500 uppercase tracking-tighter mt-1 italic">{$t('character.effects.out_of_combat')}</div>
                 {/if}
             </div>
             <button 
                 onclick={() => advanceRound('next')} 
                 disabled={!!$character.campaignId}
                 class="p-2 hover:bg-slate-700 rounded text-white disabled:opacity-30 disabled:cursor-not-allowed"
-                aria-label="Avançar Rodada"
+                aria-label={$t('character.effects.next_round')}
             >
                 <FastForward size={20}/>
             </button>
@@ -45,19 +46,19 @@
                 onclick={characterActions.cleanInactiveEffects} 
                 class="bg-slate-800 hover:bg-red-900/50 text-slate-400 hover:text-red-300 px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1 border border-slate-700"
             >
-                <Eraser size={14}/> Limpar Inativos
+                <Eraser size={14}/> {$t('character.effects.clean_inactive')}
             </button>
             <button 
                 onclick={() => openModal('effect')} 
                 class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1"
             >
-                <Plus size={14}/> Novo Efeito
+                <Plus size={14}/> {$t('character.effects.new_effect')}
             </button>
         </div>
     </div>
     <div class="space-y-2">
         {#if $character.effects.length === 0}
-            <div class="text-center text-slate-500 italic py-4">Nenhum efeito ativo.</div>
+            <div class="text-center text-slate-500 italic py-4">{$t('character.effects.none')}</div>
         {/if}
         {#each $character.effects as eff}
             <div class="p-3 rounded border flex flex-col gap-2 transition-all {eff.isActive ? 'bg-slate-900 border-indigo-900 shadow-lg shadow-indigo-950/20' : 'bg-slate-950 border-slate-800 opacity-60'}">
@@ -110,7 +111,7 @@
                             class="bg-yellow-900/40 hover:bg-yellow-800/40 text-yellow-500 border border-yellow-800 px-2 py-0.5 rounded flex items-center gap-1 transition-colors"
                             aria-label="Sortear encerramento do efeito"
                         >
-                            <Clover size={10}/> Sorte Encerra
+                            <Clover size={10}/> {$t('character.effects.luck_ends')}
                         </button>
                     {/if}
                 </div>

@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from 'svelte-i18n';
     import { modalState, characterActions, character, activeEffects, damage, normalHealth, currentHealth } from '$lib/stores/characterStore';
     import { X, Trash2, Plus, Minus, Zap, Wand2, Check, Dices } from 'lucide-svelte';
     import DiceRollModal from '$lib/components/common/DiceRollModal.svelte';
@@ -153,88 +154,88 @@
 </script>
 
 <Modal isOpen={$modalState.isOpen && $modalState.type !== 'pre_roll'} onClose={closeModal} maxWidth="max-w-lg" title={
-    $modalState.type === 'item' ? 'Editor de Item' :
-    $modalState.type === 'spell' ? 'Editar Magia' :
-    $modalState.type === 'talent' ? 'Editar Talento' :
-    $modalState.type === 'effect' ? 'Gerenciar Efeito' :
+    $modalState.type === 'item' ? $t('character.modals.item_editor') :
+    $modalState.type === 'spell' ? $t('character.modals.spell_editor') :
+    $modalState.type === 'talent' ? $t('character.modals.talent_editor') :
+    $modalState.type === 'effect' ? $t('character.modals.effect_manager') :
     $modalState.type === 'pre_roll' ? '' : // Handled by DiceRollModal
-    $modalState.type === 'confirm_spell' ? 'Confirmar Conjuração' :
-    $modalState.type === 'confirm_talent' ? 'Confirmar Ativação' :
-    $modalState.type === 'cast_spell' ? 'Grimório' :
-    $modalState.type === 'select_talent' ? 'Seus Talentos' :
-    $modalState.type === 'weapon_menu' ? 'Opções de Ataque' :
-    $modalState.type === 'character_info' ? 'Informações do Personagem' :
-    $modalState.type === 'health' ? 'Vigor & Dano' :
-    $modalState.type === 'attribute' ? 'Atributo' :
+    $modalState.type === 'confirm_spell' ? $t('character.modals.confirm_cast') :
+    $modalState.type === 'confirm_talent' ? $t('character.modals.confirm_activation') :
+    $modalState.type === 'cast_spell' ? $t('character.modals.grimoire') :
+    $modalState.type === 'select_talent' ? $t('character.modals.your_talents') :
+    $modalState.type === 'weapon_menu' ? $t('character.modals.attack_options') :
+    $modalState.type === 'character_info' ? $t('character.modals.character_info') :
+    $modalState.type === 'health' ? $t('character.modals.health_damage') :
+    $modalState.type === 'attribute' ? $t('character.modals.attribute') :
     $modalState.type === 'stat' ? formData.name :
-    $modalState.type === 'affliction' ? 'Gerenciar Aflições' :
-    'Informação'
+    $modalState.type === 'affliction' ? $t('character.modals.manage_afflictions') :
+    $t('character.modals.info')
 }>
         <div class="p-6 overflow-y-auto custom-scrollbar">
             {#if $modalState.type === 'item'}
                 <div class="space-y-3">
                     <div>
-                        <label class="text-xs font-bold text-slate-400 uppercase">Nome <input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white font-bold mb-1" placeholder="Nome" bind:value={formData.name} /></label>
-                        {#if !formData.name}<p class="text-[10px] text-red-500">* Nome obrigatório</p>{/if}
+                        <label class="text-xs font-bold text-slate-400 uppercase">{$t('character.modals.name')} <input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white font-bold mb-1" placeholder={$t('character.modals.name')} bind:value={formData.name} /></label>
+                        {#if !formData.name}<p class="text-[10px] text-red-500">{$t('character.modals.name_required')}</p>{/if}
                     </div>
                     <div class="grid grid-cols-2 gap-2">
-                        <label class="block"><span class="text-[10px] text-slate-500 uppercase font-bold">Tipo</span>
+                        <label class="block"><span class="text-[10px] text-slate-500 uppercase font-bold">{$t('character.modals.type')}</span>
                             <select class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-xs" bind:value={formData.type}>
                                 {#each Object.values(ITEM_TYPES) as t}<option value={t}>{t}</option>{/each}
                             </select>
                         </label>
-                        <label class="block"><span class="text-[10px] text-slate-500 uppercase font-bold">Qtd</span>
-                            <input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-xs" placeholder="Qtd" bind:value={formData.quantity} />
+                        <label class="block"><span class="text-[10px] text-slate-500 uppercase font-bold">{$t('character.modals.qty')}</span>
+                            <input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-xs" placeholder={$t('character.modals.qty')} bind:value={formData.quantity} />
                         </label>
                     </div>
                     {#if formData.type === ITEM_TYPES.WEAPON}
                         <div class="grid grid-cols-3 gap-2">
-                            <label class="block"><span class="text-[10px] text-slate-500 uppercase font-bold">Dano</span>
+                            <label class="block"><span class="text-[10px] text-slate-500 uppercase font-bold">{$t('character.modals.damage')}</span>
                                 <input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-xs" placeholder="Dano (d6)" bind:value={formData.damageDice} />
                             </label>
-                            <label class="block col-span-2"><span class="text-[10px] text-slate-500 uppercase font-bold">Traits</span>
+                            <label class="block col-span-2"><span class="text-[10px] text-slate-500 uppercase font-bold">{$t('character.modals.traits')}</span>
                                 <input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-xs" placeholder="Traits" bind:value={formData.traits} />
                             </label>
-                            <label class="block"><span class="text-[10px] text-slate-500 uppercase font-bold">Empunhadura</span>
+                            <label class="block"><span class="text-[10px] text-slate-500 uppercase font-bold">{$t('character.modals.grip')}</span>
                                 <select class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-xs" bind:value={formData.grip}>{#each Object.values(GRIPS) as g}<option value={g}>{g}</option>{/each}</select>
                             </label>
-                            <label class="block col-span-2"><span class="text-[10px] text-slate-500 uppercase font-bold">Alcance</span>
+                            <label class="block col-span-2"><span class="text-[10px] text-slate-500 uppercase font-bold">{$t('character.modals.range')}</span>
                                 <input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-xs" placeholder="Range" bind:value={formData.range} />
                             </label>
                         </div>
                     {/if}
                     {#if formData.type === ITEM_TYPES.ARMOR}
                          <div class="grid grid-cols-2 gap-2">
-                             <label class="block"><span class="text-[10px] text-slate-500 uppercase font-bold">Def. Fixa</span>
+                             <label class="block"><span class="text-[10px] text-slate-500 uppercase font-bold">{$t('character.modals.fixed_def')}</span>
                                 <input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-xs" placeholder="Fixed Def" bind:value={formData.defenseFixed} />
                              </label>
-                             <label class="block"><span class="text-[10px] text-slate-500 uppercase font-bold">Def. Mod</span>
+                             <label class="block"><span class="text-[10px] text-slate-500 uppercase font-bold">{$t('character.modals.mod_def')}</span>
                                 <input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-xs" placeholder="Mod Def" bind:value={formData.defenseMod} />
                              </label>
                          </div>
                     {/if}
-                    <label class="block text-xs font-bold text-slate-400 uppercase">Descrição <textarea class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm" rows={3} placeholder="Descrição" bind:value={formData.description}></textarea></label>
+                    <label class="block text-xs font-bold text-slate-400 uppercase">{$t('character.modals.description')} <textarea class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm" rows={3} placeholder={$t('character.modals.description')} bind:value={formData.description}></textarea></label>
                     <div class="flex gap-2">
-                        {#if $modalState.data}<button onclick={() => { characterActions.deleteItem($modalState.data.id); closeModal(); }} class="bg-red-900/50 hover:bg-red-900 text-red-200 p-2 rounded" title="Excluir"><Trash2 size={18}/></button>{/if}
-                        <button onclick={saveItem} class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">Salvar</button>
+                        {#if $modalState.data}<button onclick={() => { characterActions.deleteItem($modalState.data.id); closeModal(); }} class="bg-red-900/50 hover:bg-red-900 text-red-200 p-2 rounded" title={$t('character.modals.delete')}><Trash2 size={18}/></button>{/if}
+                        <button onclick={saveItem} class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">{$t('common.buttons.save')}</button>
                     </div>
                 </div>
 
             {:else if $modalState.type === 'spell'}
                 <div class="space-y-3">
                     <div>
-                        <label class="text-xs font-bold text-slate-400 uppercase">Nome <input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white font-bold mb-1" placeholder="Nome" bind:value={formData.name} /></label>
-                        {#if !formData.name}<p class="text-[10px] text-red-500">* Nome obrigatório</p>{/if}
+                        <label class="text-xs font-bold text-slate-400 uppercase">{$t('character.modals.name')} <input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white font-bold mb-1" placeholder={$t('character.modals.name')} bind:value={formData.name} /></label>
+                        {#if !formData.name}<p class="text-[10px] text-red-500">{$t('character.modals.name_required')}</p>{/if}
                     </div>
                     <div class="grid grid-cols-2 gap-2">
-                        <label class="block"><span class="text-[10px] text-slate-500 uppercase font-bold">Tier</span>
+                        <label class="block"><span class="text-[10px] text-slate-500 uppercase font-bold">{$t('character.modals.tier')}</span>
                             <select class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-xs" bind:value={formData.tier}>
                                  {#each ['Novice', 'Expert', 'Master'] as t}<option value={t}>{t}</option>{/each}
                             </select>
                         </label>
                         <div class="relative">
-                            <label class="block"><span class="text-[10px] text-slate-500 uppercase font-bold">Tradição</span>
-                                <input list="traditions" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-xs" placeholder="Tradição" bind:value={formData.tradition} />
+                            <label class="block"><span class="text-[10px] text-slate-500 uppercase font-bold">{$t('character.modals.tradition')}</span>
+                                <input list="traditions" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-xs" placeholder={$t('character.modals.tradition')} bind:value={formData.tradition} />
                             </label>
                             <datalist id="traditions">
                                 {#each MAGIC_TRADITIONS as t}<option value={t}>{t}</option>{/each}
@@ -242,48 +243,48 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2 bg-slate-900 p-2 rounded border border-slate-700">
-                        <label for="maxCastings" class="text-xs text-slate-400 uppercase">Castings</label>
+                        <label for="maxCastings" class="text-xs text-slate-400 uppercase">{$t('character.modals.castings')}</label>
                         <input id="maxCastings" type="number" class="w-16 bg-slate-800 border border-slate-600 rounded p-1 text-white text-center" bind:value={formData.maxCastings} oninput={() => formData.castings = formData.maxCastings} />
                     </div>
                     <div class="bg-slate-900 p-2 rounded border border-slate-700 flex justify-between items-center">
-                         <span class="text-xs text-slate-400 font-bold uppercase">Efeito Associado</span>
+                         <span class="text-xs text-slate-400 font-bold uppercase">{$t('character.modals.associated_effect')}</span>
                          <button onclick={() => modalState.update(m => ({ ...m, type: 'effect', data: { parentType: 'spell', parentData: formData } }))} class="text-[10px] px-2 py-1 rounded border {formData.effect ? 'bg-indigo-900 border-indigo-500 text-indigo-200' : 'bg-slate-800 border-slate-600 text-slate-500'}">
-                             {formData.effect ? 'Configurado' : 'Nenhum'}
+                             {formData.effect ? $t('character.modals.configured') : $t('character.modals.none')}
                          </button>
                     </div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase">Descrição <textarea class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm" rows={4} placeholder="Descrição" bind:value={formData.description}></textarea></label>
+                    <label class="block text-xs font-bold text-slate-400 uppercase">{$t('character.modals.description')} <textarea class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm" rows={4} placeholder={$t('character.modals.description')} bind:value={formData.description}></textarea></label>
                     <div class="flex gap-2">
-                        {#if $modalState.data}<button onclick={() => { characterActions.deleteSpell($modalState.data.id); closeModal(); }} class="bg-red-900/50 hover:bg-red-900 text-red-200 p-2 rounded" title="Excluir"><Trash2 size={18}/></button>{/if}
-                        <button onclick={saveSpell} class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">Salvar</button>
+                        {#if $modalState.data}<button onclick={() => { characterActions.deleteSpell($modalState.data.id); closeModal(); }} class="bg-red-900/50 hover:bg-red-900 text-red-200 p-2 rounded" title={$t('character.modals.delete')}><Trash2 size={18}/></button>{/if}
+                        <button onclick={saveSpell} class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">{$t('common.buttons.save')}</button>
                     </div>
                 </div>
 
             {:else if $modalState.type === 'talent'}
                 <div class="space-y-3">
                     <div>
-                        <label class="text-xs font-bold text-slate-400 uppercase">Nome <input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white font-bold mb-1" placeholder="Nome" bind:value={formData.name} /></label>
-                        {#if !formData.name}<p class="text-[10px] text-red-500">* Nome obrigatório</p>{/if}
+                        <label class="text-xs font-bold text-slate-400 uppercase">{$t('character.modals.name')} <input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white font-bold mb-1" placeholder={$t('character.modals.name')} bind:value={formData.name} /></label>
+                        {#if !formData.name}<p class="text-[10px] text-red-500">{$t('character.modals.name_required')}</p>{/if}
                     </div>
                     <div class="flex items-center gap-2 bg-slate-900 p-2 rounded border border-slate-700">
                          <input type="checkbox" id="isPassive" bind:checked={formData.isPassive} class="w-4 h-4 rounded bg-slate-800 border-slate-600 text-indigo-600 focus:ring-indigo-500" />
-                         <label for="isPassive" class="text-xs text-slate-400 uppercase font-bold flex-1 cursor-pointer">Passivo / Ilimitado</label>
+                         <label for="isPassive" class="text-xs text-slate-400 uppercase font-bold flex-1 cursor-pointer">{$t('character.modals.passive_unlimited')}</label>
                          {#if !formData.isPassive}
                             <div class="flex items-center gap-2 border-l border-slate-700 pl-2">
-                                <label for="maxUses" class="text-xs text-slate-400 uppercase">Max Uses</label>
+                                <label for="maxUses" class="text-xs text-slate-400 uppercase">{$t('character.modals.max_uses')}</label>
                                 <input id="maxUses" type="number" class="w-16 bg-slate-800 border border-slate-600 rounded p-1 text-white text-center" bind:value={formData.maxUses} />
                             </div>
                          {/if}
                     </div>
                     <div class="bg-slate-900 p-2 rounded border border-slate-700 flex justify-between items-center">
-                         <span class="text-xs text-slate-400 font-bold uppercase">Efeito Associado</span>
+                         <span class="text-xs text-slate-400 font-bold uppercase">{$t('character.modals.associated_effect')}</span>
                          <button onclick={() => modalState.update(m => ({ ...m, type: 'effect', data: { parentType: 'talent', parentData: formData } }))} class="text-[10px] px-2 py-1 rounded border {formData.effect ? 'bg-indigo-900 border-indigo-500 text-indigo-200' : 'bg-slate-800 border-slate-600 text-slate-500'}">
-                             {formData.effect ? 'Configurado' : 'Nenhum'}
+                             {formData.effect ? $t('character.modals.configured') : $t('character.modals.none')}
                          </button>
                     </div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase">Descrição <textarea class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm" rows={4} placeholder="Descrição" bind:value={formData.description}></textarea></label>
+                    <label class="block text-xs font-bold text-slate-400 uppercase">{$t('character.modals.description')} <textarea class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm" rows={4} placeholder={$t('character.modals.description')} bind:value={formData.description}></textarea></label>
                     <div class="flex gap-2">
-                        {#if $modalState.data}<button onclick={() => { characterActions.deleteTalent($modalState.data.id); closeModal(); }} class="bg-red-900/50 hover:bg-red-900 text-red-200 p-2 rounded" title="Excluir"><Trash2 size={18}/></button>{/if}
-                        <button onclick={saveTalent} class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">Salvar</button>
+                        {#if $modalState.data}<button onclick={() => { characterActions.deleteTalent($modalState.data.id); closeModal(); }} class="bg-red-900/50 hover:bg-red-900 text-red-200 p-2 rounded" title={$t('character.modals.delete')}><Trash2 size={18}/></button>{/if}
+                        <button onclick={saveTalent} class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">{$t('common.buttons.save')}</button>
                     </div>
                 </div>
 
@@ -291,14 +292,14 @@
                 <div class="space-y-4">
                     {#if !$modalState.data?.parentType}
                         <div>
-                            <label for="effectName" class="text-xs font-bold text-slate-400 uppercase">Nome</label>
+                            <label for="effectName" class="text-xs font-bold text-slate-400 uppercase">{$t('character.modals.name')}</label>
                             <input id="effectName" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formEffectData.name} />
-                            {#if !formEffectData.name}<p class="text-[10px] text-red-500">* Nome obrigatório</p>{/if}
+                            {#if !formEffectData.name}<p class="text-[10px] text-red-500">{$t('character.modals.effect_name_required')}</p>{/if}
                         </div>
                     {:else}
-                         <div class="text-center text-xs text-slate-500 italic mb-2">Nome e Descrição herdados do item pai.</div>
+                         <div class="text-center text-xs text-slate-500 italic mb-2">{$t('character.modals.inherited_from_parent')}</div>
                     {/if}
-                    <div><label for="effectDuration" class="text-xs font-bold text-slate-400 uppercase">Duração</label>
+                    <div><label for="effectDuration" class="text-xs font-bold text-slate-400 uppercase">{$t('character.modals.duration')}</label>
                         <div class="grid grid-cols-2 gap-2">
                             <select id="effectDuration" class="bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm" bind:value={formEffectData.duration}>
                                 {#each Object.entries(DURATION_TYPES) as [k,v]}<option value={k}>{v}</option>{/each}
@@ -310,8 +311,8 @@
                     </div>
                     <div class="bg-slate-950 p-3 rounded border border-slate-800">
                         <div class="flex justify-between items-center mb-2">
-                            <span class="text-xs font-bold text-indigo-400 uppercase">Modificadores</span>
-                            <button onclick={addModifier} class="text-[10px] bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded border border-slate-600 flex items-center gap-1"><Plus size={10}/> Add</button>
+                            <span class="text-xs font-bold text-indigo-400 uppercase">{$t('character.modals.modifiers')}</span>
+                            <button onclick={addModifier} class="text-[10px] bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded border border-slate-600 flex items-center gap-1"><Plus size={10}/> {$t('character.modals.add')}</button>
                         </div>
                         <div class="space-y-2">
                             {#each formEffectData.modifiers as mod, idx}
@@ -323,54 +324,54 @@
                                         <option value={MOD_TYPES.ADD}>Add (+/-)</option><option value={MOD_TYPES.SET}>Set (=)</option><option value={MOD_TYPES.MULT}>Mult (x)</option>
                                     </select>
                                     <input type="number" step={mod.type === MOD_TYPES.MULT ? "0.1" : "1"} class="bg-slate-900 border border-slate-700 rounded text-[10px] text-white p-1 w-1/4 text-center" bind:value={mod.value} />
-                                    <button onclick={() => removeModifier(idx)} class="text-slate-600 hover:text-red-400 p-1" aria-label="Remover Modificador"><Trash2 size={12}/></button>
+                                    <button onclick={() => removeModifier(idx)} class="text-slate-600 hover:text-red-400 p-1" aria-label={$t('character.modals.remove_modifier')}><Trash2 size={12}/></button>
                                 </div>
                             {/each}
                         </div>
                     </div>
                     {#if !$modalState.data?.parentType}
-                         <div><label class="text-xs font-bold text-slate-400 uppercase">Descrição <textarea class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formEffectData.description}></textarea></label></div>
+                         <div><label class="text-xs font-bold text-slate-400 uppercase">{$t('character.modals.description')} <textarea class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formEffectData.description}></textarea></label></div>
                     {/if}
-                    <button onclick={saveEffect} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">Salvar Efeito</button>
+                    <button onclick={saveEffect} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">{$t('character.modals.save_effect')}</button>
                 </div>
 
             {:else if $modalState.type === 'attribute'}
                 <div class="space-y-4">
                     <h3 class="text-white font-bold text-lg">{formData.name}</h3>
-                    <div><label class="text-xs text-slate-400 uppercase font-bold">Valor Base <input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formData.value} /></label></div>
-                    <button onclick={saveAttribute} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">Salvar</button>
+                    <div><label class="text-xs text-slate-400 uppercase font-bold">{$t('character.modals.base_value')} <input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formData.value} /></label></div>
+                    <button onclick={saveAttribute} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">{$t('common.buttons.save')}</button>
                 </div>
 
             {:else if $modalState.type === 'stat'}
                 <div class="space-y-4">
                     <h3 class="text-white font-bold text-lg uppercase">{formData.name}</h3>
-                    <div><label class="text-xs text-slate-400 uppercase font-bold">Valor Base <input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formData.value} /></label></div>
-                    <button onclick={saveStat} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">Salvar</button>
+                    <div><label class="text-xs text-slate-400 uppercase font-bold">{$t('character.modals.base_value')} <input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formData.value} /></label></div>
+                    <button onclick={saveStat} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">{$t('common.buttons.save')}</button>
                 </div>
 
             {:else if $modalState.type === 'health'}
                 <div class="space-y-4">
                     <div class="grid grid-cols-2 gap-4">
-                        <div><label class="text-xs text-slate-400 uppercase font-bold">Vida Normal <input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formData.nh} /></label></div>
-                        <div><label class="text-xs text-slate-400 uppercase font-bold">Vida Atual <input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formData.ch} /></label></div>
+                        <div><label class="text-xs text-slate-400 uppercase font-bold">{$t('character.modals.normal_health')} <input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formData.nh} /></label></div>
+                        <div><label class="text-xs text-slate-400 uppercase font-bold">{$t('character.modals.current_health')} <input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formData.ch} /></label></div>
                     </div>
-                    <div><label class="text-xs text-red-400 uppercase font-bold">Dano <input type="number" class="w-full bg-slate-900 border border-red-900/50 rounded p-2 text-white" bind:value={formData.d} /></label></div>
-                    <button onclick={saveHealth} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">Atualizar</button>
+                    <div><label class="text-xs text-red-400 uppercase font-bold">{$t('character.modals.damage')} <input type="number" class="w-full bg-slate-900 border border-red-900/50 rounded p-2 text-white" bind:value={formData.d} /></label></div>
+                    <button onclick={saveHealth} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded">{$t('character.modals.update')}</button>
                 </div>
 
             {:else if $modalState.type === 'character_info'}
                 <div class="space-y-4">
-                        <div><label class="text-xs font-bold text-slate-400 uppercase">Nome <input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formData.name} /></label></div>
+                        <div><label class="text-xs font-bold text-slate-400 uppercase">{$t('character.modals.name')} <input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formData.name} /></label></div>
                         <div class="grid grid-cols-2 gap-4">
-                            <div><label class="text-xs font-bold text-slate-400 uppercase">Nível <input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formData.level} /></label></div>
-                            <div><label class="text-xs font-bold text-slate-400 uppercase">Ancestralidade <input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formData.ancestry} /></label></div>
+                            <div><label class="text-xs font-bold text-slate-400 uppercase">{$t('character.modals.level')} <input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formData.level} /></label></div>
+                            <div><label class="text-xs font-bold text-slate-400 uppercase">{$t('character.modals.ancestry')} <input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formData.ancestry} /></label></div>
                         </div>
                         <div class="pt-2 border-t border-slate-700 space-y-3">
                             <div><label class="text-[10px] font-bold text-slate-400 uppercase">Novice <input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm" bind:value={formData.novicePath} /></label></div>
                             <div><label class="text-[10px] font-bold text-slate-400 uppercase">Expert <input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm" bind:value={formData.expertPath} /></label></div>
                             <div><label class="text-[10px] font-bold text-slate-400 uppercase">Master <input class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm" bind:value={formData.masterPath} /></label></div>
                         </div>
-                        <button onclick={saveCharacterInfo} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded mt-2">Salvar</button>
+                        <button onclick={saveCharacterInfo} class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded mt-2">{$t('common.buttons.save')}</button>
                 </div>
 
             {:else if $modalState.type === 'confirm_spell' || $modalState.type === 'confirm_talent'}
@@ -381,7 +382,7 @@
                         
                         {#if $modalState.data.effect}
                             <div class="mt-4 p-3 bg-green-900/20 border border-green-900/50 rounded-lg">
-                                <div class="flex items-center gap-2 mb-1 text-[10px] font-bold text-green-400 uppercase tracking-wider">Efeito Associado</div>
+                                <div class="flex items-center gap-2 mb-1 text-[10px] font-bold text-green-400 uppercase tracking-wider">{$t('character.modals.associated_effect')}</div>
                                 <div class="text-xs text-green-200/70">{$modalState.data.effect.name}: {$modalState.data.effect.description}</div>
                             </div>
                         {/if}
@@ -397,7 +398,7 @@
                                 }} 
                                 class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
                             >
-                                <Check size={18} /> APLICAR EFEITO E USAR
+                                <Check size={18} /> {$t('character.modals.apply_effect_use')}
                             </button>
                             <button 
                                 onclick={() => { 
@@ -406,7 +407,7 @@
                                 }} 
                                 class="w-full bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold py-2 rounded-lg text-sm transition-colors"
                             >
-                                USAR SEM APLICAR EFEITO
+                                {$t('character.modals.use_without_effect')}
                             </button>
                         {:else}
                             <button 
@@ -416,7 +417,7 @@
                                 }} 
                                 class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
                             >
-                                <Zap size={18} /> CONFIRMAR USO
+                                <Zap size={18} /> {$t('character.modals.confirm_use')}
                             </button>
                         {/if}
                         
@@ -424,7 +425,7 @@
                             onclick={closeModal} 
                             class="w-full text-slate-500 hover:text-slate-300 text-xs font-bold uppercase tracking-widest py-2 transition-colors mt-2"
                         >
-                            CANCELAR
+                            {$t('common.buttons.cancel_cap')}
                         </button>
                     </div>
                 </div>
@@ -432,8 +433,8 @@
             {:else if $modalState.type === 'rest_confirm'}
                 <div class="text-center space-y-6">
                     <div class="flex justify-center"><Trash2 size={48} class="text-indigo-400" /></div>
-                    <div><p class="text-lg text-white font-bold">Realizar Descanso?</p></div>
-                    <div class="flex gap-4 justify-center"><button onclick={closeModal} class="px-6 py-2 rounded bg-slate-700 hover:bg-slate-600 text-white font-bold">Cancelar</button><button onclick={characterActions.confirmRest} class="px-6 py-2 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-bold">Descansar</button></div>
+                    <div><p class="text-lg text-white font-bold">{$t('character.modals.perform_rest')}</p></div>
+                    <div class="flex gap-4 justify-center"><button onclick={closeModal} class="px-6 py-2 rounded bg-slate-700 hover:bg-slate-600 text-white font-bold">{$t('common.buttons.cancel')}</button><button onclick={characterActions.confirmRest} class="px-6 py-2 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-bold">{$t('character.modals.rest')}</button></div>
                 </div>
 
             <!-- Handled by DiceRollModal separately -->
@@ -442,7 +443,7 @@
                 <div class="space-y-6 text-center">
                     <div class="bg-indigo-900/20 border border-indigo-500/30 p-4 rounded-xl">
                         <h3 class="text-2xl font-bold text-white mb-1">{$modalState.data.name}</h3>
-                        <p class="text-xs text-indigo-300 uppercase tracking-widest font-bold">{$modalState.data.traits || 'Sem Atributos'}</p>
+                        <p class="text-xs text-indigo-300 uppercase tracking-widest font-bold">{$modalState.data.traits || $t('character.modals.no_traits')}</p>
                     </div>
                     
                     <div class="grid grid-cols-2 gap-4">
@@ -453,7 +454,7 @@
                             <div class="p-3 rounded-full bg-slate-800 text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white mb-3 shadow-lg">
                                 <Zap size={24} />
                             </div>
-                            <span class="font-black text-white tracking-widest uppercase text-sm">Ataque</span>
+                            <span class="font-black text-white tracking-widest uppercase text-sm">{$t('character.modals.attack')}</span>
                         </button>
                         
                         <button 
@@ -463,11 +464,11 @@
                             <div class="p-3 rounded-full bg-slate-800 text-red-500 group-hover:bg-red-500 group-hover:text-white mb-3 shadow-lg">
                                 <Plus size={24} />
                             </div>
-                            <span class="font-black text-white tracking-widest uppercase text-sm">Dano</span>
+                            <span class="font-black text-white tracking-widest uppercase text-sm">{$t('character.modals.damage')}</span>
                         </button>
                     </div>
                     
-                    <button onclick={closeModal} class="text-slate-500 hover:text-slate-300 text-[10px] font-bold uppercase tracking-[0.2em]">Voltar</button>
+                    <button onclick={closeModal} class="text-slate-500 hover:text-slate-300 text-[10px] font-bold uppercase tracking-[0.2em]">{$t('character.modals.back')}</button>
                 </div>
 
             {:else if $modalState.type === 'select_talent'}
@@ -490,9 +491,9 @@
                             
                             <div class="text-right shrink-0">
                                 {#if talent.isPassive}
-                                    <span class="text-[10px] text-slate-500 uppercase font-black tracking-widest">Passivo</span>
+                                    <span class="text-[10px] text-slate-500 uppercase font-black tracking-widest">{$t('character.modals.passive')}</span>
                                 {:else}
-                                    <span class="block text-[10px] text-slate-500 uppercase font-bold text-center">Cargas</span>
+                                    <span class="block text-[10px] text-slate-500 uppercase font-bold text-center">{$t('character.modals.charges')}</span>
                                     <p class="flex items-center justify-center gap-1">
                                         {#each Array(talent.maxUses) as _, i}
                                             <span class="w-1.5 h-1.5 rounded-full {i < talent.uses ? 'bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]' : 'bg-slate-700'}"></span>
@@ -505,7 +506,7 @@
                     {:else}
                         <div class="text-center py-10 bg-slate-900/30 rounded-xl border border-dashed border-slate-700">
                             <Zap size={32} class="mx-auto text-slate-700 mb-2 opacity-20" />
-                            <p class="text-slate-500 italic text-sm">Nenhum talento disponível.</p>
+                            <p class="text-slate-500 italic text-sm">{$t('character.modals.no_talent_available')}</p>
                         </div>
                     {/each}
                 </div>
@@ -528,7 +529,7 @@
                                 </div>
                             </div>
                             <div class="text-right shrink-0">
-                                <span class="block text-[10px] text-slate-500 uppercase font-bold text-center mb-1">Casts</span>
+                                <span class="block text-[10px] text-slate-500 uppercase font-bold text-center mb-1">{$t('character.modals.casts')}</span>
                                 <div class="flex gap-0.5">
                                     {#each Array(spell.maxCastings) as _, i}
                                         <div class="w-3 h-1 rounded-full {i < spell.castings ? 'bg-indigo-500' : 'bg-slate-700'}"></div>
@@ -539,7 +540,7 @@
                     {:else}
                         <div class="text-center py-10 bg-slate-900/30 rounded-xl border border-dashed border-slate-700">
                             <Wand2 size={32} class="mx-auto text-slate-700 mb-2 opacity-20" />
-                            <p class="text-slate-500 italic text-sm">Grimório vazio.</p>
+                            <p class="text-slate-500 italic text-sm">{$t('character.modals.grimoire_empty')}</p>
                         </div>
                     {/each}
                 </div>
@@ -559,7 +560,7 @@
                     {/each}
                 </div>
                 <div class="mt-6 p-4 bg-slate-900/50 rounded-lg border border-slate-700">
-                    <p class="text-[10px] text-slate-500 uppercase font-bold mb-2">Resumo dos Efeitos</p>
+                    <p class="text-[10px] text-slate-500 uppercase font-bold mb-2">{$t('character.modals.effects_summary')}</p>
                     <div class="space-y-2">
                         {#each $character.afflictions as aff}
                             <div class="text-xs">
@@ -568,7 +569,7 @@
                             </div>
                         {/each}
                         {#if $character.afflictions.length === 0}
-                            <p class="text-xs text-slate-600 italic text-center">Nenhuma aflição selecionada.</p>
+                            <p class="text-xs text-slate-600 italic text-center">{$t('character.modals.no_affliction_selected')}</p>
                         {/if}
                     </div>
                 </div>
@@ -579,9 +580,9 @@
 
 <DiceRollModal 
     isOpen={$modalState.isOpen && $modalState.type === 'pre_roll'}
-    title="Confirmar Rolagem"
-    label={$modalState.data?.type === 'weapon_damage' ? 'Dados Extras' : 'Boons / Banes'}
-    rollLabel="ROLAR"
+    title={$t('character.dice_roll.confirm_roll')}
+    label={$modalState.data?.type === 'weapon_damage' ? $t('character.dice_roll.extra_dice') : $t('character.dice_roll.boons_banes')}
+    rollLabel={$t('character.dice_roll.roll')}
     onClose={closeModal}
     onRoll={(mod) => {
         characterActions.finalizeRoll(

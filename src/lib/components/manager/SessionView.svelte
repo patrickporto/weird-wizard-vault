@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from 'svelte-i18n';
     import { liveCharacters, liveEnemies, liveEncounters } from '$lib/stores/live';
     import { characterActions, isHistoryOpen } from '$lib/stores/characterStore';
     import { campaignsMap } from '$lib/db';
@@ -143,8 +144,8 @@ import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncChar
         const char = allPlayers.find(p => p.id === charId);
         confirmState = {
             isOpen: true,
-            title: 'Remover da Campanha',
-            message: `Deseja remover ${char?.name || 'este personagem'} da campanha? Eles poderão entrar novamente através do link de convite.`,
+            title: $t('session.players.remove_title'),
+            message: $t('session.players.remove_message', { values: { name: char?.name || 'este personagem' } }),
             onConfirm: () => {
                 const current = campaignsMap.get(campaign.id) || campaign;
                 
@@ -377,7 +378,7 @@ import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncChar
             <div class="flex justify-between items-center bg-slate-950/50 p-2 rounded-lg border border-slate-800">
                  <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
                     <Users size={14} class="text-indigo-500"/> 
-                    Personagens 
+                    {$t('session.players.title')} 
                     {#if players.length > 0}
                         <span class="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded-full">{players.length}</span>
                     {/if}
@@ -386,7 +387,7 @@ import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncChar
                     onclick={() => isAddCharOpen = !isAddCharOpen} 
                     class="text-[10px] bg-slate-800 hover:bg-slate-700 text-white px-2.5 py-1.5 rounded-md font-bold transition-all border border-slate-700 active:scale-95"
                 >
-                     {isAddCharOpen ? 'Fechar' : 'Adicionar'}
+                     {isAddCharOpen ? $t('session.players.close') : $t('session.players.add')}
                  </button>
             </div>
 
@@ -394,13 +395,13 @@ import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncChar
                 <div class="space-y-2 animate-in fade-in slide-in-from-top-2">
                     <div class="flex items-center gap-2 px-1">
                         <div class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div>
-                        <span class="text-[10px] font-black text-amber-500 uppercase tracking-wider">Aguardando Aprovação ({pendingPlayers.length})</span>
+                        <span class="text-[10px] font-black text-amber-500 uppercase tracking-wider">{$t('session.players.waiting_approval')} ({pendingPlayers.length})</span>
                     </div>
                     {#each pendingPlayers as char (char.id)}
                         <div class="p-3 rounded-xl border border-amber-500/30 bg-amber-500/5 flex items-center gap-3 transition-all hover:bg-amber-500/10 shadow-sm">
                             <div class="flex-1">
                                 <div class="font-bold text-sm text-amber-200 leading-none">{char.name}</div>
-                                <div class="text-[9px] text-amber-500/60 font-medium mt-1 uppercase tracking-tighter">Novo pedido de entrada</div>
+                                <div class="text-[9px] text-amber-500/60 font-medium mt-1 uppercase tracking-tighter">{$t('session.players.new_request')}</div>
                             </div>
                             <div class="flex items-center gap-1.5">
                                 <button 
@@ -437,16 +438,16 @@ import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncChar
                                  <div class="font-bold text-sm {online ? 'text-white' : 'text-slate-500'} group-hover:text-indigo-300 transition-colors">{char.name}</div>
                                  <div class="text-[10px] text-slate-500 font-medium">
                                     {#if inRoster}
-                                        <span class="text-indigo-400 font-bold uppercase tracking-tighter mr-1">Sessão</span>
+                                        <span class="text-indigo-400 font-bold uppercase tracking-tighter mr-1">{$t('common.labels.session')}</span>
                                     {/if}
-                                    Lvl {char.level} • {char.ancestry}
+                                    {$t('common.labels.level')} {char.level} • {char.ancestry}
                                  </div>
                             </div>
                             <div class="flex items-center gap-1">
                                 <button 
                                     onclick={() => toggleSessionPresence(char.id)} 
                                     class="p-1.5 rounded-lg transition-all {inRoster ? 'text-amber-400 hover:bg-amber-400/10' : 'text-slate-500 hover:text-indigo-400 hover:bg-indigo-400/10'}" 
-                                    title={inRoster ? 'Remover da Sessão' : 'Adicionar à Sessão'}
+                                    title={inRoster ? $t('session.players.remove_from_session') : $t('session.players.add_to_session')}
                                 >
                                     {#if inRoster}
                                         <Minus size={14}/>
@@ -454,12 +455,12 @@ import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncChar
                                         <Plus size={14}/>
                                     {/if}
                                 </button>
-                                <button onclick={() => removePlayerFromCampaign(char.id)} class="text-slate-600 hover:text-red-400 p-1.5 hover:bg-red-400/10 rounded-lg transition-all" title="Expulsar da Campanha"><Trash2 size={14}/></button>
+                                <button onclick={() => removePlayerFromCampaign(char.id)} class="text-slate-600 hover:text-red-400 p-1.5 hover:bg-red-400/10 rounded-lg transition-all" title={$t('session.players.kick_from_campaign')}><Trash2 size={14}/></button>
                             </div>
                         </div>
                     {/each}
                     {#if players.length === 0}
-                        <div class="text-xs text-slate-600 italic p-6 border-2 border-dashed border-slate-800 rounded-xl text-center">Nenhum jogador na sessão.</div>
+                        <div class="text-xs text-slate-600 italic p-6 border-2 border-dashed border-slate-800 rounded-xl text-center">{$t('session.players.none')}</div>
                     {/if}
                 </div>
             </div>
@@ -471,18 +472,18 @@ import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncChar
                         onclick={() => updateCampaign({ isPublished: true })}
                         class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-black uppercase text-[10px] tracking-[0.2em] shadow-lg shadow-indigo-900/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                     >
-                        <Globe size={14}/> Publicar Sessão
+                        <Globe size={14}/> {$t('session.publish.publish_session')}
                     </button>
-                    <p class="text-[9px] text-slate-600 text-center font-bold uppercase tracking-tighter">Torne sua sessão visível e obtenha o link de convite</p>
+                    <p class="text-[9px] text-slate-600 text-center font-bold uppercase tracking-tighter">{$t('session.publish.make_visible')}</p>
                   {:else}
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                             <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest flex items-center gap-1"><Wifi size={10} class="animate-pulse"/> Sessão Pública</span>
+                             <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest flex items-center gap-1"><Wifi size={10} class="animate-pulse"/> {$t('session.publish.public_session')}</span>
                         </div>
                         <button 
                              onclick={() => showQrCode = !showQrCode} 
                              class="text-slate-500 hover:text-white transition-colors p-1"
-                             title="Ver QR Code"
+                             title={$t('session.publish.qr_code')}
                          >
                              <QrCode size={14} />
                          </button>
@@ -492,7 +493,7 @@ import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncChar
                         <div class="flex justify-center p-3 bg-white rounded-xl mb-2 animate-in zoom-in-95 duration-200 shadow-xl mx-auto w-32 h-32">
                             <img 
                                 src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(inviteUrl)}`} 
-                                alt="QR Code de Convite"
+                                alt={$t('session.publish.qr_alt')}
                                 class="w-24 h-24"
                             />
                         </div>
@@ -511,11 +512,11 @@ import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncChar
                             <button 
                                 onclick={copyInviteLink} 
                                 class="bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded-lg transition-all active:scale-95 shadow-lg shadow-indigo-900/20 relative"
-                                aria-label="Copiar link"
+                                aria-label={$t('session.publish.copy_link')}
                             >
                                 {#if showCopyTooltip}
                                     <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-green-500 text-white text-[10px] font-bold rounded shadow-lg animate-in fade-in slide-in-from-bottom-1 whitespace-nowrap">
-                                        <Check size={10} class="inline mr-1" /> Copiado!
+                                        <Check size={10} class="inline mr-1" /> {$t('common.buttons.copied')}
                                     </div>
                                 {/if}
                                 <Copy size={14} />
@@ -526,7 +527,7 @@ import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncChar
                         onclick={() => updateCampaign({ isPublished: false })}
                         class="w-full text-[9px] text-slate-600 hover:text-red-400 font-bold uppercase tracking-widest transition-colors mt-1"
                     >
-                        Retirar de área pública
+                        {$t('session.publish.remove_public')}
                     </button>
                   {/if}
              </div>
@@ -534,8 +535,8 @@ import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncChar
 
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col h-[400px]">
             <div class="flex items-center gap-2 mb-3 bg-slate-950 p-1 rounded-lg border border-slate-800">
-                 <button onclick={() => activeQuickTab = 'enemies'} class="flex-1 text-xs font-bold py-1.5 rounded flex items-center justify-center gap-2 transition-colors {activeQuickTab === 'enemies' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-white'}"><Ghost size={14}/> Inimigos</button>
-                 <button onclick={() => activeQuickTab = 'encounters'} class="flex-1 text-xs font-bold py-1.5 rounded flex items-center justify-center gap-2 transition-colors {activeQuickTab === 'encounters' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-white'}"><Layers size={14}/> Encontros</button>
+                 <button onclick={() => activeQuickTab = 'enemies'} class="flex-1 text-xs font-bold py-1.5 rounded flex items-center justify-center gap-2 transition-colors {activeQuickTab === 'enemies' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-white'}"><Ghost size={14}/> {$t('session.enemies.title')}</button>
+                 <button onclick={() => activeQuickTab = 'encounters'} class="flex-1 text-xs font-bold py-1.5 rounded flex items-center justify-center gap-2 transition-colors {activeQuickTab === 'encounters' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-white'}"><Layers size={14}/> {$t('session.enemies.encounters')}</button>
             </div>
 
             <div class="flex-1 overflow-y-auto pr-1 custom-scrollbar space-y-2">
@@ -547,27 +548,27 @@ import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncChar
                                  <GripVertical size={12} class="text-slate-600 cursor-grab"/>
                                  <div>
                                      <div class="text-sm font-bold text-white truncate">{enemy.name}</div>
-                                     <div class="text-[10px] text-slate-500">Dif {enemy.difficulty}</div>
+                                     <div class="text-[10px] text-slate-500">{$t('session.enemies.difficulty')} {enemy.difficulty}</div>
                                  </div>
                             </div>
                             <button onclick={() => addToCombat(enemy)} class="text-slate-500 hover:text-indigo-400 p-1 ml-2 bg-slate-900 rounded border border-slate-800"><Plus size={16}/></button>
                         </div>
                     {/each}
                     {#if $liveEnemies.length === 0}
-                         <div class="text-center text-slate-600 italic text-xs mt-4">Nenhum inimigo.</div>
+                         <div class="text-center text-slate-600 italic text-xs mt-4">{$t('session.enemies.none')}</div>
                     {/if}
                 {:else}
                     {#each $liveEncounters as enc (enc.id)}
                         <div class="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-800 group hover:border-indigo-500/30 transition-all">
                             <div class="truncate flex-1">
                                  <div class="text-sm font-bold text-white truncate">{enc.name}</div>
-                                 <div class="text-[10px] text-slate-500">{enc.enemies?.reduce((a,c) => a + c.count, 0) || 0} Inimigos</div>
+                                 <div class="text-[10px] text-slate-500">{enc.enemies?.reduce((a,c) => a + c.count, 0) || 0} {$t('session.enemies.title')}</div>
                             </div>
                             <button onclick={() => addToCombatEncounter(enc)} class="text-slate-500 hover:text-indigo-400 p-1 ml-2 bg-slate-900 rounded border border-slate-800"><Play size={14}/></button>
                         </div>
                     {/each}
                      {#if $liveEncounters.length === 0}
-                         <div class="text-center text-slate-600 italic text-xs mt-4">Nenhum encontro.</div>
+                         <div class="text-center text-slate-600 italic text-xs mt-4">{$t('session.enemies.no_encounters')}</div>
                     {/if}
                 {/if}
             </div>
@@ -579,14 +580,14 @@ import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncChar
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex justify-between items-center shadow-lg sticky top-0 z-20">
              <div class="flex items-center gap-4">
                 {#if !combat.active}
-                    <button onclick={startCombat} class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-green-900/20"><Swords size={20}/> INICIAR COMBATE</button>
+                    <button onclick={startCombat} class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-green-900/20"><Swords size={20}/> {$t('session.combat.start')}</button>
                 {:else}
                     <div class="flex items-center gap-4">
-                        <button onclick={prevRound} class="p-2 hover:bg-slate-700 rounded text-slate-400" title="Voltar Rodada"><ChevronLeft size={20}/></button>
-                        <div class="text-center"><div class="text-[10px] font-bold text-slate-500 uppercase">Rodada</div><div class="text-3xl font-mono font-bold text-white leading-none">{combat.round}</div></div>
-                        <button onclick={nextRound} class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded font-bold flex items-center gap-2" title="Próxima Rodada"><RotateCcw size={16}/> Próxima</button>
+                        <button onclick={prevRound} class="p-2 hover:bg-slate-700 rounded text-slate-400" title={$t('session.combat.previous')}><ChevronLeft size={20}/></button>
+                        <div class="text-center"><div class="text-[10px] font-bold text-slate-500 uppercase">{$t('session.combat.round')}</div><div class="text-3xl font-mono font-bold text-white leading-none">{combat.round}</div></div>
+                        <button onclick={nextRound} class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded font-bold flex items-center gap-2" title={$t('session.combat.next')}><RotateCcw size={16}/> {$t('session.combat.next')}</button>
                         <div class="h-8 w-px bg-slate-700 mx-2"></div>
-                        <button onclick={() => endCombat(false)} class="text-red-400 hover:text-red-300 text-xs font-bold px-3 py-2 border border-red-900/30 rounded bg-red-900/10">Encerrar</button>
+                        <button onclick={() => endCombat(false)} class="text-red-400 hover:text-red-300 text-xs font-bold px-3 py-2 border border-red-900/30 rounded bg-red-900/10">{$t('session.combat.end')}</button>
                     </div>
                 {/if}
              </div>
@@ -599,7 +600,7 @@ import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncChar
                 </div>
             {/each}
             {#if sortedCombatants.length === 0}
-                <div class="text-center text-slate-500 italic py-10">Combate vazio.</div>
+                <div class="text-center text-slate-500 italic py-10">{$t('session.combat.empty')}</div>
             {/if}
         </div>
     </div>
@@ -620,8 +621,8 @@ import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncChar
                 <Clock size={24} />
             </div>
             <div>
-                 <h3 class="font-bold text-white text-xl">Fim da Rodada</h3>
-                 <p class="text-slate-400 text-sm">Resumo dos efeitos que ocorrem agora.</p>
+                 <h3 class="font-bold text-white text-xl">{$t('session.end_of_round.title')}</h3>
+                 <p class="text-slate-400 text-sm">{$t('session.end_of_round.summary')}</p>
             </div>
         </div>
 
@@ -641,8 +642,8 @@ import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncChar
         </div>
         
         <div class="flex gap-3">
-             <button onclick={() => isEoRModalOpen = false} class="flex-1 py-1.5 rounded bg-slate-700 hover:bg-slate-600 text-white font-bold text-sm">Cancelar</button>
-             <button onclick={proceedRound} class="flex-1 py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm">Avançar Rodada</button>
+             <button onclick={() => isEoRModalOpen = false} class="flex-1 py-1.5 rounded bg-slate-700 hover:bg-slate-600 text-white font-bold text-sm">{$t('common.buttons.cancel')}</button>
+             <button onclick={proceedRound} class="flex-1 py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm">{$t('session.end_of_round.advance')}</button>
         </div>
     </div>
 </div>
@@ -650,7 +651,7 @@ import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncChar
 
 <!-- Bottom Bar (Quick Rolls) -->
 <div class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-md border border-slate-700 rounded-2xl p-2 flex items-center gap-2 shadow-2xl z-40 animate-in slide-in-from-bottom-4">
-    <div class="px-3 border-r border-slate-700 flex items-center gap-2 text-slate-400 font-bold text-xs uppercase"><Dices size={16}/> Quick</div>
+    <div class="px-3 border-r border-slate-700 flex items-center gap-2 text-slate-400 font-bold text-xs uppercase"><Dices size={16}/> {$t('session.quick.title')}</div>
     <button onclick={() => startQuickRoll(20)} class="bg-slate-800 hover:bg-indigo-600 text-white font-bold w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:-translate-y-1 shadow-lg">d20</button>
     <button onclick={() => startQuickRoll(6)} class="bg-slate-800 hover:bg-indigo-600 text-white font-bold w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:-translate-y-1 shadow-lg">d6</button>
     <button onclick={() => startQuickRoll(6, 2)} class="bg-slate-800 hover:bg-indigo-600 text-white font-bold w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:-translate-y-1 shadow-lg text-xs">2d6</button>
@@ -659,8 +660,8 @@ import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncChar
 
 <DiceRollModal 
     isOpen={quickRollState.isOpen}
-    title="Rolagem Rápida ({quickRollState.count}d{quickRollState.sides})"
-    label={quickRollState.sides === 20 ? 'Boons / Banes' : 'Modificador Fixo'}
+    title={`${$t('session.quick.roll_title')} (${quickRollState.count}d${quickRollState.sides})`}
+    label={quickRollState.sides === 20 ? $t('session.quick.boons_banes') : $t('session.quick.fixed_modifier')}
     onClose={() => quickRollState.isOpen = false}
     onRoll={confirmQuickRoll}
     initialModifier={0}
@@ -673,8 +674,8 @@ import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncChar
         <div class="bg-slate-800 rounded-xl w-full max-w-md border border-slate-700 shadow-2xl p-6" role="dialog" aria-modal="true">
              <div class="flex justify-between items-center mb-6">
                  <div>
-                     <h3 class="font-bold text-white text-lg">Gerenciar Sessão</h3>
-                     <p class="text-xs text-slate-400">Adicione personagens disponíveis à sessão.</p>
+                     <h3 class="font-bold text-white text-lg">{$t('session.manage_session.title')}</h3>
+                     <p class="text-xs text-slate-400">{$t('session.manage_session.description')}</p>
                  </div>
                  <button onclick={() => isAddCharOpen = false} class="bg-slate-700 hover:bg-slate-600 p-2 rounded-lg text-white transition-colors"><X size={16}/></button>
              </div>
@@ -687,7 +688,7 @@ import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncChar
                          </div>
                          <div class="flex-1">
                              <div class="font-bold text-white group-hover:text-indigo-300">{char.name}</div>
-                             <div class="text-[10px] text-slate-500">Nível {char.level} • {char.ancestry}</div>
+                             <div class="text-[10px] text-slate-500">{$t('common.labels.level')} {char.level} • {char.ancestry}</div>
                          </div>
                          <div class="bg-slate-800 p-2 rounded-lg text-slate-500 group-hover:bg-indigo-500 group-hover:text-white transition-colors">
                             <Plus size={16} />
@@ -699,8 +700,8 @@ import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncChar
                          <div class="w-12 h-12 bg-slate-700/50 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-500">
                              <Ghost size={24} />
                          </div>
-                         <p class="text-slate-500 text-sm font-bold">Nenhum personagem disponível.</p>
-                         <p class="text-[10px] text-slate-600 mt-1">Todos os personagens da campanha já estão na sessão.</p>
+                         <p class="text-slate-500 text-sm font-bold">{$t('session.manage_session.no_available')}</p>
+                         <p class="text-[10px] text-slate-600 mt-1">{$t('session.manage_session.all_in_session')}</p>
                      </div>
                  {/if}
              </div>

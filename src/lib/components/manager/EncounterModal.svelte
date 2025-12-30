@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from 'svelte-i18n';
     import { X, Plus, Trash2, Save } from 'lucide-svelte';
     import { liveEnemies } from '$lib/stores/live';
 
@@ -55,30 +56,30 @@
 {#if isOpen}
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onclick={handleBackdropClick} role="button" aria-label="Fechar" tabindex="-1">
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onclick={handleBackdropClick} role="button" aria-label={$t('session.encounter_modal.close')} tabindex="-1">
     <div class="bg-slate-800 rounded-xl w-full max-w-2xl p-6 border border-slate-700 shadow-2xl flex flex-col max-h-[90vh]" role="dialog" aria-modal="true" aria-labelledby="encounter-modal-title">
         <div class="flex justify-between items-center mb-6">
-            <h3 id="encounter-modal-title" class="text-xl font-bold text-white">Criar/Editar Encontro</h3>
+            <h3 id="encounter-modal-title" class="text-xl font-bold text-white">{$t('session.encounter_modal.title')}</h3>
             <button onclick={onClose} class="text-slate-400 hover:text-white"><X size={20}/></button>
         </div>
         
         <div class="space-y-4 mb-6">
              <div>
-                <label for="encounter-name" class="text-xs text-slate-500 uppercase font-bold block mb-1">Nome do Encontro</label>
-                <input id="encounter-name" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-hidden focus:border-indigo-500" placeholder="Ex: Emboscada na Cripta" bind:value={form.name} />
+                <label for="encounter-name" class="text-xs text-slate-500 uppercase font-bold block mb-1">{$t('session.encounter_modal.name')}</label>
+                <input id="encounter-name" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-hidden focus:border-indigo-500" placeholder={$t('session.encounter_modal.name_placeholder')} bind:value={form.name} />
              </div>
         </div>
 
         <div class="flex-1 flex gap-4 min-h-0">
              <!-- Selected Enemies -->
              <div class="flex-1 bg-slate-900 border border-slate-800 rounded-lg p-3 flex flex-col">
-                 <h4 class="text-xs text-slate-500 uppercase font-bold mb-2">Inimigos no Encontro</h4>
+                 <h4 class="text-xs text-slate-500 uppercase font-bold mb-2">{$t('session.encounter_modal.enemies_in_encounter')}</h4>
                  <div class="flex-1 overflow-y-auto space-y-2 custom-scrollbar">
                      {#each form.enemies as item, idx}
                          {@const enemy = $liveEnemies.find(e => e.id === item.enemyId)}
                          <div class="flex justify-between items-center bg-slate-800 p-2 rounded border border-slate-700">
                              <div class="flex-1">
-                                 <div class="text-sm font-bold text-white">{enemy ? enemy.name : 'Desconhecido'}</div>
+                                 <div class="text-sm font-bold text-white">{enemy ? enemy.name : $t('session.encounter_modal.unknown')}</div>
                                  <div class="text-[10px] text-slate-400">Dif {enemy ? enemy.difficulty : '?'}</div>
                              </div>
                              <div class="flex items-center gap-2">
@@ -88,14 +89,14 @@
                          </div>
                      {/each}
                      {#if form.enemies.length === 0}
-                         <div class="text-center text-slate-600 italic text-sm py-4">Nenhum inimigo adicionado.</div>
+                         <div class="text-center text-slate-600 italic text-sm py-4">{$t('session.encounter_modal.none_added')}</div>
                      {/if}
                  </div>
              </div>
 
              <!-- Available Enemies -->
              <div class="flex-1 bg-slate-900 border border-slate-800 rounded-lg p-3 flex flex-col">
-                 <h4 class="text-xs text-slate-500 uppercase font-bold mb-2">Adicionar Inimigos</h4>
+                 <h4 class="text-xs text-slate-500 uppercase font-bold mb-2">{$t('session.encounter_modal.add_enemies')}</h4>
                  <div class="flex-1 overflow-y-auto space-y-2 custom-scrollbar">
                      {#each $liveEnemies as enemy (enemy.id)}
                          <div class="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-800 hover:border-indigo-500/30 transition-colors">
@@ -111,8 +112,8 @@
         </div>
         
         <div class="flex gap-3 mt-6 pt-4 border-t border-slate-700">
-            <button onclick={onClose} class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-2 rounded font-bold">Cancelar</button>
-            <button onclick={() => onSave(form)} class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded font-bold flex items-center justify-center gap-2"><Save size={18}/> Salvar Encontro</button>
+            <button onclick={onClose} class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-2 rounded font-bold">{$t('common.buttons.cancel')}</button>
+            <button onclick={() => onSave(form)} class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded font-bold flex items-center justify-center gap-2"><Save size={18}/> {$t('session.encounter_modal.save_encounter')}</button>
         </div>
     </div>
  </div>

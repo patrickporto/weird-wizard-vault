@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from 'svelte-i18n';
     import { character, characterActions } from '$lib/stores/characterStore';
     import { Languages, X, Plus } from 'lucide-svelte';
 
@@ -19,7 +20,7 @@
 <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-xl shadow-black/20">
     <div class="flex justify-between items-center mb-4">
         <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-            <Languages size={16} class="text-indigo-500"/> Idiomas
+            <Languages size={16} class="text-indigo-500"/> {$t('character.languages.title')}
         </h4>
     </div>
     
@@ -37,17 +38,17 @@
             </div>
         {/each}
         {#if $character.languages.length === 0}
-            <span class="text-sm text-slate-500 italic py-2 px-1">Nenhum idioma registrado.</span>
+            <span class="text-sm text-slate-500 italic py-2 px-1">{$t('character.languages.none')}</span>
         {/if}
     </div>
 
     <div class="relative group">
         <input 
             type="text" 
-            placeholder="Adicionar novo idioma..." 
+            placeholder={$t('character.languages.add_placeholder')} 
             class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-all placeholder:text-slate-600 focus:ring-1 focus:ring-indigo-500/20" 
             onkeydown={handleKeyDown} 
-            aria-label="Adicionar novo idioma"
+            aria-label={$t('character.languages.add_label')}
         />
         <div class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 bg-slate-800 rounded-lg text-slate-500 group-focus-within:text-indigo-400 group-focus-within:bg-indigo-400/10 transition-all">
             <Plus size={16}/>

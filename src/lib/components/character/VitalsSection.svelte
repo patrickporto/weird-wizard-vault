@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from 'svelte-i18n';
     import { character, modalState, totalDefense, effectiveSpeed } from '$lib/stores/characterStore';
     import { Shield, Zap, Sword, Minus, Plus, Activity } from 'lucide-svelte';
 
@@ -22,7 +23,7 @@
             class="bg-slate-900 overflow-hidden rounded-2xl border border-slate-800 p-3 text-left transition-all hover:bg-slate-800 active:scale-95 group shadow-lg shadow-black/20"
         >
             <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest group-hover:text-indigo-400 transition-colors flex items-center gap-1.5 mb-2">
-                <Shield size={12}/> Defesa
+                <Shield size={12}/> {$t('character.vitals.defense')}
             </div>
             <div class="flex items-baseline gap-1">
                 <span class="text-3xl font-black text-white leading-none">{$totalDefense}</span>
@@ -34,7 +35,7 @@
             class="bg-slate-900 overflow-hidden rounded-2xl border border-slate-800 p-3 text-left transition-all hover:bg-slate-800 active:scale-95 group shadow-lg shadow-black/20"
         >
             <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest group-hover:text-indigo-400 transition-colors flex items-center gap-1.5 mb-2">
-                <Zap size={12}/> Speed
+                <Zap size={12}/> {$t('character.vitals.speed')}
             </div>
             <div class="flex items-baseline justify-between w-full">
                 <span class="text-3xl font-black {$effectiveSpeed < $character.speed ? 'text-red-400' : 'text-white'} leading-none">{$effectiveSpeed}</span>
@@ -50,7 +51,7 @@
     <!-- Bonus Damage Controller -->
     <div class="bg-slate-900 rounded-2xl border border-slate-800 p-4 shadow-lg shadow-black/20">
         <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
-            <Sword size={14} class="text-indigo-500"/> Bônus de Dano
+            <Sword size={14} class="text-indigo-500"/> {$t('character.vitals.bonus_damage')}
         </span>
         <div class="flex items-center justify-between bg-black/40 rounded-xl p-1.5 border border-white/5">
             <button 
@@ -62,7 +63,7 @@
             </button>
             <div class="flex flex-col items-center">
                 <span class="text-2xl font-black text-white leading-none tracking-tighter">{$character.bonusDamage || 0}d6</span>
-                <span class="text-[9px] text-slate-600 font-bold uppercase mt-1">Dados Extras</span>
+                <span class="text-[9px] text-slate-600 font-bold uppercase mt-1">{$t('character.vitals.extra_dice')}</span>
             </div>
             <button 
                 onclick={increaseBonusDamage} 

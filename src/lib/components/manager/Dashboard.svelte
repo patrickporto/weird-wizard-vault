@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from 'svelte-i18n';
     import { get } from 'svelte/store';
     import { liveCharacters, liveCampaigns } from '$lib/stores/live';
     import { uuidv7 } from 'uuidv7';
@@ -168,8 +169,8 @@
 
     function deleteCampaign(id: string) {
         confirmConfig = {
-            title: 'Excluir Campanha',
-            message: 'Tem certeza que deseja apagar esta campanha permanentemente?',
+            title: $t('dashboard.campaigns.delete_title'),
+            message: $t('dashboard.campaigns.delete_message'),
             onConfirm: () => {
                 // Unpublish implicit by deletion (stops heartbeat), but we can also handle any other cleanup if needed
                 campaignsMap.delete(id);
@@ -181,8 +182,8 @@
     
     function deleteCharacter(id: string) {
         confirmConfig = {
-            title: 'Excluir Personagem',
-            message: 'Tem certeza que deseja apagar este personagem permanentemente?',
+            title: $t('dashboard.characters.delete_title'),
+            message: $t('dashboard.characters.delete_message'),
             onConfirm: () => {
                 // REMOVE FROM LOCAL CAMPAIGNS
                 // Check if this character is a member of any local campaign and remove them
@@ -257,13 +258,13 @@
                    onclick={() => activeTab = 'characters'} 
                    class="relative z-10 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 flex items-center gap-2 {activeTab === 'characters' ? 'text-white' : 'text-slate-400 hover:text-white'}"
                >
-                   <Users size={18}/> Personagens
+                   <Users size={18}/> {$t('dashboard.tabs.characters')}
                </button>
                <button 
                    onclick={() => activeTab = 'campaigns'} 
                    class="relative z-10 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 flex items-center gap-2 {activeTab === 'campaigns' ? 'text-white' : 'text-slate-400 hover:text-white'}"
                >
-                   <Scroll size={18}/> Campanhas
+                   <Scroll size={18}/> {$t('dashboard.tabs.campaigns')}
                </button>
            </div>
        </div>
@@ -288,7 +289,7 @@
                 class="relative flex-1 py-3 rounded-xl text-xs font-bold transition-all duration-300 flex flex-col items-center justify-center gap-1 z-10 {activeTab === 'characters' ? 'text-indigo-400' : 'text-slate-500'}"
             >
                 <Users size={20} strokeWidth={activeTab === 'characters' ? 2.5 : 2} class="transition-all duration-300"/>
-                <span class="transition-all duration-300">Personagens</span>
+                <span class="transition-all duration-300">{$t('dashboard.tabs.characters')}</span>
             </button>
             
             <button 
@@ -296,7 +297,7 @@
                 class="relative flex-1 py-3 rounded-xl text-xs font-bold transition-all duration-300 flex flex-col items-center justify-center gap-1 z-10 {activeTab === 'campaigns' ? 'text-indigo-400' : 'text-slate-500'}"
             >
                 <Scroll size={20} strokeWidth={activeTab === 'campaigns' ? 2.5 : 2} class="transition-all duration-300"/>
-                <span class="transition-all duration-300">Campanhas</span>
+                <span class="transition-all duration-300">{$t('dashboard.tabs.campaigns')}</span>
             </button>
         </div>
     </div>
@@ -309,13 +310,13 @@
             class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 absolute inset-0"
          >
             {#each $liveCharacters as char (char.id)}
-               <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 hover:border-indigo-500/40 transition-all relative group flex flex-col justify-between shadow-lg hover:shadow-indigo-500/10 border-t-white/5">
+               <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 hover:border-indigo-500/40 transition-all relative group flex flex-col shadow-lg hover:shadow-indigo-500/10 border-t-white/5">
                   <div class="flex justify-between items-start mb-4">
                      <div class="flex-1">
                         <h3 class="font-black text-xl text-white group-hover:text-indigo-400 transition-colors uppercase tracking-tight truncate pr-16">{char.name}</h3>
                         <div class="flex items-center gap-2 mt-1 flex-wrap">
                             <span class="text-[10px] bg-indigo-500/10 text-indigo-400 font-black px-2 py-0.5 rounded uppercase tracking-wider">{char.ancestry || 'Humano'}</span>
-                            <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Nível {char.level}</span>
+                            <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{$t('common.labels.level')} {char.level}</span>
                             {#if char.playerName}
                                 <span class="text-[10px] text-slate-400 font-medium">• {char.playerName}</span>
                             {/if}
@@ -325,14 +326,14 @@
                         <button 
                             onclick={() => openCharSettings(char)}
                             class="text-slate-700 hover:text-indigo-400 p-2 rounded-xl hover:bg-indigo-400/5 transition-all opacity-40 group-hover:opacity-100"
-                            title="Configurações"
+                            title={$t('common.buttons.settings')}
                         >
                             <Settings size={16}/>
                         </button>
                         <button 
                             onclick={() => deleteCharacter(char.id)} 
                             class="text-slate-700 hover:text-red-400 p-2 rounded-xl hover:bg-red-400/5 transition-all opacity-40 group-hover:opacity-100"
-                            title="Excluir"
+                            title={$t('common.buttons.delete')}
                         >
                             <Trash2 size={16}/>
                         </button>
@@ -341,7 +342,7 @@
 
                   <div class="space-y-3 mb-6">
                       <div class="flex items-center justify-between text-xs text-slate-400">
-                          <span class="flex items-center gap-1.5 opacity-60"><Scroll size={12}/> Trilhas</span>
+                          <span class="flex items-center gap-1.5 opacity-60"><Scroll size={12}/> {$t('dashboard.characters.paths')}</span>
                           <span class="font-bold text-slate-300 truncate max-w-[150px]">{char.paths?.novice || "-"}</span>
                       </div>
                   </div>
@@ -350,7 +351,7 @@
                     onclick={() => goto(resolve('/characters/[id]', { id: char.id }))}
                     class="w-full bg-slate-800 hover:bg-indigo-600 text-white py-3 rounded-2xl font-bold transition-all active:scale-[0.98] border border-slate-700 hover:border-indigo-400/30 flex items-center justify-center gap-2"
                   >
-                    Abrir Ficha <Play size={14} fill="currentColor" />
+                    {$t('dashboard.characters.open_sheet')} <Play size={14} fill="currentColor" />
                   </button>
                </div>
             {/each}
@@ -362,7 +363,7 @@
                 <div class="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-indigo-500/10 group-hover:scale-110 transition-all">
                     <Plus size={32} />
                 </div>
-                <span class="font-bold">Novo Personagem</span>
+                <span class="font-bold">{$t('dashboard.characters.new_character')}</span>
             </button>
          </div>
 
@@ -382,34 +383,34 @@
                               <div class="flex items-center gap-1">
                                   {#if camp.isPublished}
                                       <span class="text-[9px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20 font-black uppercase tracking-widest flex items-center gap-1">
-                                          <Globe size={10}/> Publicada
+                                          <Globe size={10}/> {$t('dashboard.campaigns.published')}
                                       </span>
                                   {/if}
                                   <button 
                                       onclick={() => openCampModal(camp)}
                                       class="text-slate-700 hover:text-indigo-400 p-2 rounded-xl hover:bg-indigo-400/5 transition-all opacity-40 group-hover:opacity-100"
-                                      title="Editar"
+                                      title={$t('common.buttons.edit')}
                                   >
                                       <Edit size={16}/>
                                   </button>
                                   <button 
                                       onclick={() => deleteCampaign(camp.id)} 
                                       class="text-slate-700 hover:text-red-400 p-2 rounded-xl hover:bg-red-400/5 transition-all opacity-40 group-hover:opacity-100"
-                                      title="Excluir"
+                                      title={$t('common.buttons.delete')}
                                   >
                                       <Trash2 size={16}/>
                                   </button>
                               </div>
                           </div>
-                           <p class="text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em] mb-3">{camp.gmName || 'Mestre'}</p>
-                           <p class="text-sm text-slate-400 line-clamp-2 leading-relaxed h-10">{camp.description || 'Uma jornada sem descrição ainda.'}</p>
+                           <p class="text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em] mb-3">{camp.gmName || $t('common.labels.master')}</p>
+                           <p class="text-sm text-slate-400 line-clamp-2 leading-relaxed h-10">{camp.description || $t('dashboard.campaigns.no_description')}</p>
                        </div>
                        
                        <button 
                            onclick={() => goto(resolve('/campaigns/[id]', { id: camp.id }))} 
                            class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2 border border-indigo-400/20 shadow-lg shadow-indigo-900/20 transition-all active:scale-[0.98]"
                        >
-                           <Play size={18} fill="currentColor"/> Iniciar Sessão
+                           <Play size={18} fill="currentColor"/> {$t('dashboard.campaigns.start_session')}
                        </button>
                     </div>
                  {/each}
@@ -421,7 +422,7 @@
                     <div class="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-indigo-500/10 group-hover:scale-110 transition-all">
                         <Plus size={32} />
                     </div>
-                    <span class="font-bold">Nova Campanha</span>
+                    <span class="font-bold">{$t('dashboard.campaigns.new_campaign')}</span>
                 </button>
              </div>
              
@@ -430,7 +431,7 @@
                  <div class="flex items-center gap-3 mb-4">
                      <div class="h-px flex-1 bg-slate-800"></div>
                      <h3 class="text-xs font-black uppercase tracking-widest text-emerald-400 flex items-center gap-2">
-                         <Globe size={14}/> Campanhas Públicas
+                         <Globe size={14}/> {$t('dashboard.campaigns.public_campaigns')}
                      </h3>
                      <div class="h-px flex-1 bg-slate-800"></div>
                  </div>
@@ -441,19 +442,19 @@
                            <div>
                               <h3 class="font-black text-2xl text-white group-hover:text-emerald-400 mb-2 uppercase tracking-tight">{camp.name}</h3>
                               <div class="flex items-center gap-2 mb-4">
-                                   <div class="px-2 py-0.5 bg-slate-800 rounded text-[9px] text-slate-400 font-black uppercase tracking-widest">{camp.gmName || 'Mestre'}</div>
+                                   <div class="px-2 py-0.5 bg-slate-800 rounded text-[9px] text-slate-400 font-black uppercase tracking-widest">{camp.gmName || $t('common.labels.master')}</div>
                                    <div class="flex items-center gap-1 px-2 py-0.5 bg-emerald-500/10 rounded text-[9px] text-emerald-400 font-black uppercase tracking-wider">
                                         <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                                        Online
+                                        {$t('dashboard.campaigns.online')}
                                    </div>
                               </div>
-                              <p class="text-sm text-slate-400 line-clamp-3 leading-relaxed mb-6 h-15">{camp.description || 'Uma jornada por terras desconhecidas aguarada heróis.'}</p>
+                              <p class="text-sm text-slate-400 line-clamp-3 leading-relaxed mb-6 h-15">{camp.description || $t('dashboard.campaigns.public_description')}</p>
                            </div>
                            <button 
                                 onclick={() => goto(resolve('/campaigns/[id]/invite', { id: camp.id }))} 
                                 class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-2xl font-black uppercase text-xs tracking-[0.1em] flex items-center justify-center gap-2 border border-emerald-400/20 transition-all active:scale-[0.98] group"
                             >
-                                Participar da Aventura <Plus size={18} class="group-hover:rotate-90 transition-transform"/>
+                                {$t('dashboard.campaigns.join_adventure')} <Plus size={18} class="group-hover:rotate-90 transition-transform"/>
                             </button>
                         </div>
                      {/each}
@@ -463,8 +464,8 @@
                              <div class="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center text-slate-600 mb-3 border border-slate-700 border-dashed">
                                   <Wifi size={32} />
                              </div>
-                             <h3 class="text-lg font-black uppercase tracking-widest text-slate-500">Nenhuma Campanha Online</h3>
-                             <p class="text-slate-600 max-w-sm mt-2 text-sm">Os Mestres precisam publicar suas sessões para aparecerem aqui.</p>
+                             <h3 class="text-lg font-black uppercase tracking-widest text-slate-500">{$t('dashboard.campaigns.no_online_campaigns')}</h3>
+                             <p class="text-slate-600 max-w-sm mt-2 text-sm">{$t('dashboard.campaigns.no_online_description')}</p>
                         </div>
                      {/if}
                  </div>

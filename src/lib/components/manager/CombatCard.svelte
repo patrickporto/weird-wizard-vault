@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from 'svelte-i18n';
     import { charactersMap } from '$lib/db';
     import { Swords, CheckCircle, Skull, X, Plus, Flame, ChevronUp, ChevronDown } from 'lucide-svelte';
     import { slide } from 'svelte/transition';
@@ -126,7 +127,7 @@
 <div class="group relative overflow-hidden transition-all duration-300 rounded-2xl border {isPlayer ? 'bg-slate-900/80 border-indigo-500/30 hover:border-indigo-500/50 hover:shadow-indigo-900/20' : 'bg-slate-950/80 border-red-900/30 hover:border-red-800/50 hover:shadow-red-900/10'} shadow-lg backdrop-blur-sm">
     {#if isPlayer && entity.initiative}
         <div class="absolute top-0 right-0 bg-gradient-to-l from-yellow-600/20 to-transparent border-l border-b border-yellow-500/30 text-yellow-500 text-[9px] font-black tracking-widest px-3 py-1 rounded-bl-xl z-20 uppercase shadow-[0_0_10px_rgba(234,179,8,0.2)]">
-            Iniciativa
+            {$t('session.combat_card.initiative')}
         </div>
     {/if}
 
@@ -150,7 +151,7 @@
                  <button 
                     onclick={toggleActed}
                     class="absolute -bottom-2 -right-2 w-7 h-7 rounded-lg flex items-center justify-center border shadow-lg transition-all hover:scale-110 z-20 {entity.acted ? 'bg-slate-800 border-slate-600 text-slate-500' : isPlayer ? 'bg-indigo-600 border-indigo-400 text-white' : 'bg-red-600 border-red-400 text-white'}"
-                    title={entity.acted ? "Já agiu" : "Agir"}
+                    title={entity.acted ? $t('session.combat_card.acted') : $t('session.combat_card.act')}
                  >
                     {#if isIncapacitated}
                         <Skull size={14} class=""/>
@@ -182,7 +183,7 @@
                         </button>
                         
                         {#if isPlayer}
-                            <button onclick={toggleInitiative} class="w-7 h-7 flex items-center justify-center rounded transition-all {entity.initiative ? 'bg-yellow-500 text-yellow-950 shadow-lg shadow-yellow-500/20' : 'bg-slate-800 text-slate-500 hover:text-white hover:bg-slate-700'}" title="Iniciativa">
+                            <button onclick={toggleInitiative} class="w-7 h-7 flex items-center justify-center rounded transition-all {entity.initiative ? 'bg-yellow-500 text-yellow-950 shadow-lg shadow-yellow-500/20' : 'bg-slate-800 text-slate-500 hover:text-white hover:bg-slate-700'}" title={$t('session.combat_card.initiative')}>
                                 <Flame size={14}/>
                             </button>
                         {:else}
@@ -224,11 +225,11 @@
                     <!-- Status Label Overlay -->
                     {#if isIncapacitated}
                         <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                            <span class="text-[9px] font-black uppercase text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] tracking-widest leading-none mt-0.5">INCAPACITADO</span>
+                            <span class="text-[9px] font-black uppercase text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] tracking-widest leading-none mt-0.5">{$t('session.combat_card.incapacitated')}</span>
                         </div>
                     {:else if isInjured}
                         <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                            <span class="text-[9px] font-black uppercase text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] tracking-widest leading-none mt-0.5">FERIDO</span>
+                            <span class="text-[9px] font-black uppercase text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] tracking-widest leading-none mt-0.5">{$t('session.combat_card.injured')}</span>
                         </div>
                     {/if}
                 </div>
@@ -241,13 +242,13 @@
                     <div class="flex items-start gap-1.5">
                         <!-- Defense -->
                         <div class="flex flex-col items-center justify-between bg-slate-900 border border-slate-700 rounded-lg p-1.5 w-[4.5rem] h-[3.75rem] shadow-sm">
-                             <span class="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">Def</span>
+                             <span class="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">{$t('session.combat_card.defense')}</span>
                              <span class="text-xl font-bold text-white font-mono leading-none">{entity.defense || 10}</span>
                         </div>
 
                         <!-- Damage -->
                         <div class="flex flex-col items-center justify-between bg-red-950/30 border border-red-900/50 rounded-lg p-1.5 w-[4.5rem] h-[3.75rem] shadow-sm relative group/dmg">
-                             <span class="text-[9px] font-black text-red-400 uppercase tracking-wider mb-0.5">Dano</span>
+                             <span class="text-[9px] font-black text-red-400 uppercase tracking-wider mb-0.5">{$t('session.combat_card.damage')}</span>
                              <input type="number" class="w-full bg-transparent text-center text-white font-mono font-bold text-xl focus:outline-none p-0 leading-none placeholder-red-800" value={damage} oninput={handleDamageInput} />
                              <!-- Hover indicator -->
                              <span class="absolute -top-1 -right-1 flex h-2 w-2 opacity-0 group-hover/dmg:opacity-100 transition-opacity">
@@ -259,7 +260,7 @@
                         <!-- Health -->
                         <div class="flex flex-col items-center justify-between border rounded-lg p-1.5 w-[5.5rem] h-[3.75rem] shadow-sm relative transition-colors {isIncapacitated ? 'bg-red-950/50 border-red-500' : isInjured ? 'bg-orange-950/30 border-orange-500' : 'bg-emerald-950/30 border-emerald-900/50'}">
                              <span class="text-[9px] font-black uppercase tracking-wider mb-0.5 {isIncapacitated ? 'text-red-400' : isInjured ? 'text-orange-400' : 'text-emerald-400'}">
-                                 Vida
+                                 {$t('session.combat_card.health')}
                              </span>
                              <div class="flex items-baseline gap-0.5 justify-center w-full">
                                 <input type="number" class="w-full bg-transparent text-right text-white font-mono font-bold text-xl focus:outline-none p-0 leading-none" value={currentHealth} oninput={handleHealthInput} />
@@ -277,7 +278,7 @@
                         {/each}
                         
                         <button onclick={() => showAfflictionModal = true} class="text-[10px] sm:text-[9px] font-bold text-slate-500 hover:text-indigo-400 px-1.5 py-0.5 rounded border border-transparent hover:border-indigo-500/30 hover:bg-indigo-500/10 transition-all flex items-center gap-1 whitespace-nowrap">
-                               <Plus size={10}/> Aflição
+                               <Plus size={10}/> {$t('session.combat_card.add_affliction')}
                         </button>
                    </div>
 
@@ -302,7 +303,7 @@
             <!-- Attributes Section (New) -->
             <div class="mb-4">
                 <div class="text-slate-500 font-bold uppercase text-[10px] mb-2 flex items-center gap-2">
-                    <span>Atributos</span>
+                    <span>{$t('session.combat_card.attributes')}</span>
                     <div class="h-px flex-1 bg-slate-800"></div>
                 </div>
                 <div class="grid grid-cols-4 gap-2">
@@ -323,16 +324,16 @@
             <!-- Details view -->
             <div class="grid grid-cols-3 gap-4 mb-4">
                 <div class="p-2 rounded bg-slate-900/50 border border-slate-800/50 flex flex-col items-center">
-                    <span class="text-[9px] text-slate-500 uppercase font-black">Tamanho</span>
+                    <span class="text-[9px] text-slate-500 uppercase font-black">{$t('session.combat_card.size')}</span>
                     <span class="text-white font-bold">{entity.size || 1}</span>
                 </div>
                 <div class="p-2 rounded bg-slate-900/50 border border-slate-800/50 flex flex-col items-center">
-                   <span class="text-[9px] text-slate-500 uppercase font-black">Deslocamento</span>
+                   <span class="text-[9px] text-slate-500 uppercase font-black">{$t('session.combat_card.speed')}</span>
                    <span class="text-white font-bold">{entity.speed || 10}</span>
                 </div>
 
                  <div class="p-2 rounded bg-slate-900/50 border border-slate-800/50 flex flex-col items-center">
-                     <span class="text-[9px] text-slate-500 uppercase font-black">Defesa</span>
+                     <span class="text-[9px] text-slate-500 uppercase font-black">{$t('session.combat_card.defense')}</span>
                      <span class="text-white font-bold">{entity.defense || 10}</span>
                  </div>
             </div>

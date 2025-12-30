@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from 'svelte-i18n';
     import { character, modalState, derivedStats } from '$lib/stores/characterStore';
     import { Edit } from 'lucide-svelte';
 
@@ -24,10 +25,10 @@
            class="bg-slate-900 overflow-hidden rounded-2xl border border-slate-800 text-center transition-all hover:bg-slate-800 active:scale-[0.98] group relative shadow-lg shadow-black/20 cursor-pointer"
            role="button"
            tabindex="0"
-           aria-label={`Rolar teste de ${attr.name}`}
+           aria-label={`${$t(`sofww.attributes.${attr.key}`)} roll`}
        >
           <div class="py-2.5 px-2">
-            <div class="text-[9px] uppercase text-slate-500 font-black tracking-widest group-hover:text-indigo-400 transition-colors mb-1">{attr.name}</div>
+            <div class="text-[9px] uppercase text-slate-500 font-black tracking-widest group-hover:text-indigo-400 transition-colors mb-1">{$t(`sofww.attributes.${attr.key}`)}</div>
             
             <div class="flex items-center justify-center gap-1.5 mb-1.5">
                 <div class="text-2xl font-black text-white leading-none">
@@ -48,7 +49,7 @@
           <button 
               onclick={(e) => handleEditClick(e, attr)} 
               class="absolute top-1.5 right-1.5 p-1 text-slate-700 hover:text-white hover:bg-white/5 rounded-md transition-all"
-              aria-label="Editar {attr.name}"
+              aria-label={`${$t('common.buttons.edit')} ${$t(`sofww.attributes.${attr.key}`)}`}
           >
               <Edit size={12} />
           </button>

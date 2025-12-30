@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from 'svelte-i18n';
     import { character, modalState, characterActions } from '$lib/stores/characterStore';
     import { Plus, Edit, Zap, Infinity as InfinityIcon } from 'lucide-svelte';
 
@@ -12,15 +13,15 @@
 <div class="space-y-6">
     <div class="flex justify-between items-center mb-2">
         <div>
-            <h3 class="text-lg font-bold text-white tracking-tight">Talentos & Habilidades</h3>
-            <p class="text-xs text-slate-500">Suas capacidades especiais e passivas.</p>
+            <h3 class="text-lg font-bold text-white tracking-tight">{$t('character.talents.title')}</h3>
+            <p class="text-xs text-slate-500">{$t('character.talents.subtitle')}</p>
         </div>
         <button 
             onclick={() => openModal('talent')} 
             class="text-xs bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-white font-bold flex items-center gap-2 shadow-lg shadow-indigo-900/20 transition-all active:scale-95"
-            aria-label="Adicionar Novo Talento"
+            aria-label={$t('character.talents.add')}
         >
-            <Plus size={16} /> Novo Talento
+            <Plus size={16} /> {$t('character.talents.new')}
         </button>
     </div>
     
@@ -47,12 +48,12 @@
                 <div class="shrink-0 flex items-center gap-4 bg-slate-950/50 p-3 rounded-xl border border-slate-800 shadow-inner">
                    <div class="text-center px-2 border-r border-slate-800 pr-4 min-w-[80px]">
                       {#if talent.isPassive}
-                          <span class="block text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Tipo</span>
+                          <span class="block text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">{$t('character.talents.type')}</span>
                           <span class="font-bold text-slate-300 text-xs flex items-center justify-center gap-1.5 bg-slate-800 px-2 py-1 rounded-md">
-                              <InfinityIcon size={12} class="text-indigo-400"/> Passivo
+                              <InfinityIcon size={12} class="text-indigo-400"/> {$t('character.talents.passive')}
                           </span>
                       {:else}
-                          <span class="block text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Usos</span>
+                          <span class="block text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">{$t('character.talents.uses')}</span>
                           <span class="font-mono font-bold text-lg {talent.uses === 0 ? 'text-red-400' : 'text-white'}">
                               {talent.uses}<span class="text-slate-600 text-sm">/{talent.maxUses}</span>
                           </span>
@@ -64,7 +65,7 @@
                            <button 
                                 onclick={() => recoverTalent(talent.id)} 
                                 disabled={talent.uses >= talent.maxUses} 
-                                title="Recuperar Uso"
+                                title={$t('character.talents.recover')}
                                 class="bg-slate-800 disabled:opacity-20 hover:bg-green-600/20 text-green-400 p-2 rounded-lg transition-all hover:scale-110 active:scale-90 border border-slate-700 hover:border-green-500/50"
                                 aria-label="Recuperar uso de {talent.name}"
                            >
@@ -73,7 +74,7 @@
                            <button 
                                 onclick={() => openModal('confirm_talent', talent)} 
                                 disabled={talent.uses === 0} 
-                                title="Usar Talento"
+                                title={$t('character.talents.use')}
                                 class="bg-slate-800 disabled:opacity-20 hover:bg-indigo-600/20 text-white p-2 rounded-lg transition-all hover:scale-110 active:scale-90 border border-slate-700 hover:border-indigo-500/50"
                                 aria-label="Usar {talent.name}"
                            >
@@ -87,12 +88,12 @@
         {#if $character.talents.length === 0}
             <div class="text-center py-12 bg-slate-900/20 border-2 border-dashed border-slate-800 rounded-2xl">
                 <Zap size={48} class="mx-auto text-slate-800 mb-3" />
-                <p class="text-slate-500 font-medium">Você ainda não possui talentos cadastrados.</p>
+                <p class="text-slate-500 font-medium">{$t('character.talents.empty')}</p>
                 <button 
                     onclick={() => openModal('talent')} 
                     class="mt-4 text-indigo-400 hover:text-indigo-300 text-sm font-bold flex items-center gap-1 mx-auto"
                 >
-                    <Plus size={14}/> Adicionar Primeiro Talento
+                    <Plus size={14}/> {$t('character.talents.add_first')}
                 </button>
             </div>
         {/if}

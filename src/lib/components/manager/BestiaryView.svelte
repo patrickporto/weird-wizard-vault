@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from 'svelte-i18n';
     import { liveEnemies, liveEncounters } from '$lib/stores/live';
     import { Ghost, Layers, Plus, Edit, Trash2, GripVertical, Play } from 'lucide-svelte';
     import { enemiesMap, encountersMap, campaignsMap } from '$lib/db';
@@ -150,7 +151,7 @@
     <div class="mb-12">
         <div class="flex justify-between items-center mb-6">
             <h3 class="text-sm font-black text-indigo-400 uppercase tracking-widest flex items-center gap-2">
-                <Layers size={16}/> Encontros Prontos
+                <Layers size={16}/> {$t('session.bestiary.encounters_title')}
             </h3>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -160,7 +161,7 @@
                 class="min-h-[120px] border-2 border-dashed border-slate-800 rounded-2xl flex flex-col items-center justify-center text-slate-500 hover:border-indigo-500 hover:text-indigo-400 transition-all hover:bg-indigo-500/5 gap-2 group"
              >
                 <Plus size={28} class="group-hover:scale-110 transition-transform"/>
-                <span class="font-bold text-sm">Novo Encontro</span>
+                <span class="font-bold text-sm">{$t('session.bestiary.new_encounter')}</span>
              </button>
 
              {#each $liveEncounters as enc (enc.id)}
@@ -182,11 +183,11 @@
                                     <span class="font-medium truncate max-w-[80px]">{enemy ? enemy.name : '...'}</span>
                                 </div>
                             {/each}
-                            {#if !enc.enemies?.length}<div class="text-[10px] text-slate-600 italic">Vazio</div>{/if}
+                            {#if !enc.enemies?.length}<div class="text-[10px] text-slate-600 italic">{$t('session.bestiary.empty_encounter')}</div>{/if}
                         </div>
                     </div>
                     <div class="flex gap-2 mt-3 pt-3 border-t border-slate-800/50">
-                        <button onclick={() => runEncounter(enc)} class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-indigo-900/20"><Play size={12} fill="currentColor"/> Iniciar</button>
+                        <button onclick={() => runEncounter(enc)} class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-indigo-900/20"><Play size={12} fill="currentColor"/> {$t('session.bestiary.start')}</button>
                         <button onclick={() => openEncounterModal(enc)} class="p-1.5 text-slate-400 hover:text-white bg-slate-800/50 rounded-lg border border-slate-800 transition-all" title="Editar"><Edit size={14}/></button>
                         <button onclick={() => deleteEncounter(enc.id)} class="p-1.5 text-slate-400 hover:text-red-400 bg-slate-800/50 rounded-lg border border-slate-800 hover:border-red-900/30 transition-all"><Trash2 size={14}/></button>
                     </div>
@@ -197,7 +198,7 @@
     
     <div class="mb-6">
         <h3 class="text-sm font-black text-indigo-400 uppercase tracking-widest flex items-center gap-2 mb-6">
-            <Ghost size={16}/> Biblioteca de Inimigos
+            <Ghost size={16}/> {$t('session.bestiary.title')}
         </h3>
     </div>
     
@@ -208,7 +209,7 @@
             class="min-h-[180px] border-2 border-dashed border-slate-800 rounded-2xl flex flex-col items-center justify-center text-slate-500 hover:border-indigo-500 hover:text-indigo-400 transition-all hover:bg-indigo-500/5 gap-2 group"
         >
             <Plus size={32} class="group-hover:scale-110 transition-transform"/>
-            <span class="font-bold text-sm">Novo Inimigo</span>
+            <span class="font-bold text-sm">{$t('session.bestiary.new_enemy')}</span>
         </button>
 
         {#each $liveEnemies as enemy (enemy.id)}
@@ -221,7 +222,7 @@
              >
                   <div class="flex justify-between items-start mb-3">
                       <h3 class="font-bold text-lg text-white group-hover:text-indigo-400 transition-colors">{enemy.name}</h3>
-                      <span class="text-[10px] font-black bg-indigo-500/10 text-indigo-400 border border-indigo-400/20 px-2 py-1 rounded-lg uppercase">Nível {enemy.difficulty}</span>
+                      <span class="text-[10px] font-black bg-indigo-500/10 text-indigo-400 border border-indigo-400/20 px-2 py-1 rounded-lg uppercase">{$t('session.bestiary.level')} {enemy.difficulty}</span>
                   </div>
 
                   {#if enemy.description}
@@ -234,22 +235,22 @@
                                 onclick={() => toggleExpandEnemy(enemy.id)}
                                 class="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 mt-1 uppercase tracking-wider"
                             >
-                                {expandedEnemyIds.has(enemy.id) ? 'Ver menos' : 'Ver mais...'}
+                                {expandedEnemyIds.has(enemy.id) ? $t('session.bestiary.see_less') : $t('session.bestiary.see_more')}
                             </button>
                         {/if}
                     </div>
                   {:else}
-                    <div class="mb-4 flex-1 text-[10px] text-slate-600 italic">Sem descrição.</div>
+                    <div class="mb-4 flex-1 text-[10px] text-slate-600 italic">{$t('session.bestiary.no_description')}</div>
                   {/if}
 
                   <div class="mt-auto flex gap-2 pt-4 border-t border-slate-800/50">
-                      <button onclick={() => openEnemyModal(enemy)} class="flex-1 bg-slate-800/50 hover:bg-slate-800 text-white py-2 rounded-xl text-xs font-bold border border-slate-800 transition-all">Editar</button>
+                      <button onclick={() => openEnemyModal(enemy)} class="flex-1 bg-slate-800/50 hover:bg-slate-800 text-white py-2 rounded-xl text-xs font-bold border border-slate-800 transition-all">{$t('common.buttons.edit')}</button>
                       <button onclick={() => deleteEnemy(enemy.id)} class="bg-slate-800/50 hover:bg-red-900/20 text-slate-500 hover:text-red-400 px-3 rounded-xl border border-slate-800 hover:border-red-900/30 transition-all"><Trash2 size={14}/></button>
                   </div>
              </div>
         {/each}
         {#if $liveEnemies.length === 0}
-            <div class="text-center text-slate-500 italic col-span-3">Nenhum inimigo cadastrado.</div>
+            <div class="text-center text-slate-500 italic col-span-3">{$t('session.bestiary.no_enemies')}</div>
         {/if}
     </div>
 

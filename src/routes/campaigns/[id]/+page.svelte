@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from 'svelte-i18n';
     import { page } from '$app/stores';
     import { campaignsMap } from '$lib/db';
     import { liveCampaigns } from '$lib/stores/live';
@@ -60,11 +61,11 @@
                 <!-- Using Ghost icon for consistency if available, or just keeping consistent style -->
                 <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ghost"><path d="M9 10h.01"/><path d="M15 10h.01"/><path d="M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8z"/></svg>
             </div>
-            <h1 class="text-2xl font-black text-white mb-2 uppercase tracking-tight">Campanha Não Encontrada</h1>
-            <p class="text-slate-400 mb-8 max-w-md">Esta campanha não existe na sua base local ou foi removida. Crie uma nova campanha através da página inicial.</p>
+            <h1 class="text-2xl font-black text-white mb-2 uppercase tracking-tight">{$t('campaign.not_found.title')}</h1>
+            <p class="text-slate-400 mb-8 max-w-md">{$t('campaign.not_found.message')}</p>
             <button onclick={() => window.history.back()} class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="19 12H5"/></svg>
-                Voltar
+                {$t('common.buttons.back')}
             </button>
         </div>
     {:else}
