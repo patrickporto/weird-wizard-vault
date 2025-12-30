@@ -16,25 +16,25 @@
     <div class="space-y-6 p-1">
         <div class="grid grid-cols-2 gap-2">
             {#each Object.keys(AFFLICTIONS_DATA) as aff}
-                <button 
+                <button
                     onclick={() => characterActions.toggleAffliction(aff)}
                     class="p-3 rounded-lg border text-sm font-bold transition-all text-left flex justify-between items-center {$character.afflictions.includes(aff) ? 'bg-red-900/40 border-red-500 text-red-200 shadow-lg shadow-red-900/20' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500 hover:bg-slate-850'}"
                 >
-                    {aff}
+                    {$t(`character.afflictions.${aff}`)}
                     {#if $character.afflictions.includes(aff)}
                         <Check size={14} />
                     {/if}
                 </button>
             {/each}
         </div>
-        
+
         <div class="p-4 bg-slate-900/50 rounded-lg border border-slate-700">
             <p class="text-[10px] text-slate-500 uppercase font-bold mb-2">{$t('character.modals.effects_summary')}</p>
             <div class="space-y-2">
                 {#each $character.afflictions as aff}
                     <div class="text-xs">
-                        <span class="text-red-400 font-bold">{aff}:</span> 
-                        <span class="text-slate-400">{(AFFLICTIONS_DATA as any)[aff]?.effect || ''}</span>
+                        <span class="text-red-400 font-bold">{$t(`character.afflictions.${aff}`)}:</span>
+                        <span class="text-slate-400">{$t(`sofww.afflictions.${aff.toLowerCase().replace(' ', '_')}.effect`)}</span>
                     </div>
                 {/each}
                 {#if $character.afflictions.length === 0}

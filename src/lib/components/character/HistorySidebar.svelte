@@ -42,6 +42,7 @@
     </div>
   {/if}
   {#each $rollHistory as roll (roll.id)}
+    {@const sourceKey = roll.source?.toLowerCase().replace('ação', 'attribute').replace('consumível', 'item').replace('magia', 'spell').replace('dano', 'damage').replace('ataque', 'attack').replace('sorte', 'luck').replace('talento', 'talent')}
     <div class="relative bg-slate-800/40 hover:bg-slate-800/60 transition-colors rounded-2xl border border-white/5 p-4 shadow-xl overflow-hidden group animate-in slide-in-from-right-8 duration-300">
         <!-- Accent border based on source -->
         <div class="absolute left-0 top-0 bottom-0 w-1 {roll.source === 'GM' ? 'bg-indigo-500' : 'bg-emerald-500'}"></div>
@@ -50,7 +51,7 @@
            <div class="flex flex-col">
               <div class="flex items-center gap-2">
                 <span class="text-[10px] px-1.5 py-0.5 rounded {roll.source === 'GM' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-emerald-500/20 text-emerald-400'} uppercase font-black tracking-widest leading-none border border-current opacity-70">
-                    {roll.source}
+                    {$t(`character.history.source.${sourceKey}`, { default: roll.source })}
                 </span>
                 {#if roll.charName && roll.charName !== roll.source}
                   <span class="text-[10px] text-white/50 font-black uppercase tracking-tighter">{roll.charName}</span>

@@ -20,8 +20,8 @@
        <h4 class="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1">
            <Activity size={12}/> {$t('character.afflictions.title')}
        </h4>
-       <button 
-           onclick={openModal} 
+       <button
+           onclick={openModal}
            class="text-slate-500 hover:text-white"
            aria-label={$t('character.afflictions.add')}
        >
@@ -35,11 +35,11 @@
        {#each $character.afflictions as aff}
            <div class="group relative">
                 <div class="text-xs bg-red-900/30 border border-red-700 text-red-200 px-2 py-1 rounded flex items-center gap-1 cursor-help" title={$t('character.afflictions.active')}>
-                   {aff}
-                   <button 
-                       onclick={(e) => handleRemove(e, aff)} 
+                   {$t(`character.afflictions.${aff}`)}
+                   <button
+                       onclick={(e) => handleRemove(e, aff)}
                        class="ml-1 text-red-400 hover:text-white"
-                       aria-label="Remover aflição {aff}"
+                       aria-label="{$t('common.buttons.remove')} {$t(`character.afflictions.${aff}`)}"
                    >
                        <X size={10}/>
                    </button>
