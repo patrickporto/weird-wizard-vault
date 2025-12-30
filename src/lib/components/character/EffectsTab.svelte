@@ -1,10 +1,13 @@
 <script lang="ts">
     import { t } from 'svelte-i18n';
-    import { character, modalState, characterActions } from '$lib/stores/characterStore';
-    import { Rewind, FastForward, Eraser, Plus, Edit, Trash2, Clock, Clover } from 'lucide-svelte';
+    import { character, modalState, characterActions, activeEffects } from '$lib/stores/characterStore';
+    import { Rewind, FastForward, Eraser, Plus, Edit, Trash2, Clock, Clover, Zap } from 'lucide-svelte';
     import { MOD_TYPES, MOD_TARGETS, DURATION_TYPES } from '../../../routes/sofww';
 
     const { advanceRound, deleteEffect, checkLuckEnds } = characterActions;
+
+    // Derived state for talent effects
+    let talentEffects = $derived($activeEffects.filter((e: any) => e.sourceType === 'talent'));
 
     function openModal(type: string, data: any = null) {
         modalState.update(m => ({ ...m, type, isOpen: true, data }));
@@ -56,66 +59,111 @@
             </button>
         </div>
     </div>
+    
     <div class="space-y-2">
-        {#if $character.effects.length === 0}
-            <div class="text-center text-slate-500 italic py-4">{$t('character.effects.none')}</div>
-        {/if}
-        {#each $character.effects as eff}
-            <div class="p-3 rounded border flex flex-col gap-2 transition-all {eff.isActive ? 'bg-slate-900 border-indigo-900 shadow-lg shadow-indigo-950/20' : 'bg-slate-950 border-slate-800 opacity-60'}">
-                <div class="flex justify-between items-start">
-                    <div class="flex items-center gap-2">
-                        <!-- svelte-ignore a11y_click_events_have_key_events -->
-                        <!-- svelte-ignore a11y_no_static_element_interactions -->
-                        <button 
-                            onclick={() => characterActions.toggleEffect(eff.id)} 
-                            class="w-8 h-4 rounded-full relative transition-colors {eff.isActive ? 'bg-green-500' : 'bg-slate-600'}"
-                            aria-label={eff.isActive ? 'Desativar efeito {eff.name}' : 'Ativar efeito {eff.name}'}
-                            aria-pressed={eff.isActive}
-                        >
-                            <div class="absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all {eff.isActive ? 'left-4.5' : 'left-0.5'}"></div>
-                        </button>
-                        <span class="font-bold text-white tracking-tight">{eff.name}</span>
+        <!-- Manual/Character Effects -->
+        {#if $character.effects.length > 0}
+            <h4 class="text-xs font-bold text-slate-500 uppercase px-1 mt-4 mb-2">{$t('character.effects.active')}</h4>
+            {#each $character.effects as eff (eff.id)}
+                <div class="p-3 rounded border flex flex-col gap-2 transition-all {eff.isActive ? 'bg-slate-900 border-indigo-900 shadow-lg shadow-indigo-950/20' : 'bg-slate-950 border-slate-800 opacity-60'}">
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center gap-2">
+                            <!-- svelte-ignore a11y_click_events_have_key_events -->
+                            <!-- svelte-ignore a11y_no_static_element_interactions -->
+                            <button 
+                                onclick={() => characterActions.toggleEffect(eff.id)} 
+                                class="w-8 h-4 rounded-full relative transition-colors {eff.isActive ? 'bg-green-500' : 'bg-slate-600'}"
+                                aria-label={eff.isActive ? 'Desativar efeito {eff.name}' : 'Ativar efeito {eff.name}'}
+                                aria-pressed={eff.isActive}
+                            >
+                                <div class="absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all {eff.isActive ? 'left-4.5' : 'left-0.5'}"></div>
+                            </button>
+                            <span class="font-bold text-white tracking-tight">{eff.name}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button 
+                                onclick={() => openModal('effect', eff)} 
+                                class="text-slate-500 hover:text-white p-1 hover:bg-slate-800 rounded transition-colors"
+                                aria-label="Editar {eff.name}"
+                            >
+                                <Edit size={14}/>
+                            </button>
+                            <button 
+                                onclick={() => deleteEffect(eff.id)} 
+                                class="text-slate-500 hover:text-red-400 p-1 hover:bg-slate-800 rounded transition-colors"
+                                aria-label="Excluir {eff.name}"
+                            >
+                                <Trash2 size={14}/>
+                            </button>
+                        </div>
                     </div>
-                    <div class="flex gap-2">
-                        <button 
-                            onclick={() => openModal('effect', eff)} 
-                            class="text-slate-500 hover:text-white p-1 hover:bg-slate-800 rounded transition-colors"
-                            aria-label="Editar {eff.name}"
-                        >
-                            <Edit size={14}/>
-                        </button>
-                        <button 
-                            onclick={() => deleteEffect(eff.id)} 
-                            class="text-slate-500 hover:text-red-400 p-1 hover:bg-slate-800 rounded transition-colors"
-                            aria-label="Excluir {eff.name}"
-                        >
-                            <Trash2 size={14}/>
-                        </button>
+                    <div class="text-xs text-slate-400 leading-relaxed">{eff.description}</div>
+                    {#if eff.isActive && Array.isArray(eff.modifiers) && eff.modifiers.length > 0}
+                        <div class="flex flex-wrap gap-1 mt-1">
+                            {#each eff.modifiers as mod}
+                                <span class="text-[9px] px-1.5 py-0.5 rounded border {mod.type === MOD_TYPES.SET ? 'bg-yellow-900/30 text-yellow-200 border-yellow-800' : 'bg-slate-800 text-slate-300 border-slate-700'} font-medium">
+                                    {MOD_TARGETS[mod.target] || mod.target}: {mod.type === MOD_TYPES.SET ? '=' : mod.type === MOD_TYPES.MULT ? 'x' : (mod.value > 0 ? '+' : '')}{mod.value}
+                                </span>
+                            {/each}
+                        </div>
+                    {/if}
+                    <div class="flex justify-between items-center text-[10px] text-slate-500 font-mono mt-1 border-t border-slate-800/50 pt-2">
+                        <span class="flex items-center gap-1"><Clock size={10} class="text-indigo-400"/> {DURATION_TYPES[eff.duration]} {eff.duration === 'ROUNDS' ? `(${eff.roundsLeft})` : ''}</span>
+                        {#if eff.duration === 'LUCK_ENDS' && eff.isActive}
+                            <button 
+                                onclick={() => checkLuckEnds(eff.id)} 
+                                class="bg-yellow-900/40 hover:bg-yellow-800/40 text-yellow-500 border border-yellow-800 px-2 py-0.5 rounded flex items-center gap-1 transition-colors"
+                                aria-label="Sortear encerramento do efeito"
+                            >
+                                <Clover size={10}/> {$t('character.effects.luck_ends')}
+                            </button>
+                        {/if}
                     </div>
                 </div>
-                <div class="text-xs text-slate-400 leading-relaxed">{eff.description}</div>
-                {#if eff.isActive && Array.isArray(eff.modifiers) && eff.modifiers.length > 0}
-                    <div class="flex flex-wrap gap-1 mt-1">
-                        {#each eff.modifiers as mod}
-                            <span class="text-[9px] px-1.5 py-0.5 rounded border {mod.type === MOD_TYPES.SET ? 'bg-yellow-900/30 text-yellow-200 border-yellow-800' : 'bg-slate-800 text-slate-300 border-slate-700'} font-medium">
-                                {MOD_TARGETS[mod.target] || mod.target}: {mod.type === MOD_TYPES.SET ? '=' : mod.type === MOD_TYPES.MULT ? 'x' : (mod.value > 0 ? '+' : '')}{mod.value}
-                            </span>
-                        {/each}
+            {/each}
+        {/if}
+
+        <!-- Passive/Active Talent Effects -->
+        {#if talentEffects.length > 0}
+            <h4 class="text-xs font-bold text-slate-500 uppercase px-1 mt-4 mb-2">{$t('character.talents.passive')}</h4>
+            {#each talentEffects as eff (eff.id)}
+                <div class="p-3 rounded border flex flex-col gap-2 transition-all bg-slate-900/50 border-indigo-900/50 shadow-lg shadow-indigo-950/10">
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-4 flex items-center justify-center">
+                                <Zap size={14} class="text-yellow-500" />
+                            </div>
+                            <span class="font-bold text-slate-300 tracking-tight">{eff.name}</span>
+                        </div>
+                        <div class="flex gap-2">
+                             <a 
+                                href="#talents" 
+                                onclick={(e) => {
+                                    e.preventDefault();
+                                    // Hacky way to switch tab, ideally we should use a method from parent
+                                    document.getElementById('tab-talents')?.click();
+                                }}
+                                class="text-[10px] uppercase font-bold text-slate-500 hover:text-indigo-400 flex items-center gap-1"
+                             >
+                                {$t('character.talents.source')}
+                             </a>
+                        </div>
                     </div>
-                {/if}
-                <div class="flex justify-between items-center text-[10px] text-slate-500 font-mono mt-1 border-t border-slate-800/50 pt-2">
-                    <span class="flex items-center gap-1"><Clock size={10} class="text-indigo-400"/> {DURATION_TYPES[eff.duration]} {eff.duration === 'ROUNDS' ? `(${eff.roundsLeft})` : ''}</span>
-                    {#if eff.duration === 'LUCK_ENDS' && eff.isActive}
-                        <button 
-                            onclick={() => checkLuckEnds(eff.id)} 
-                            class="bg-yellow-900/40 hover:bg-yellow-800/40 text-yellow-500 border border-yellow-800 px-2 py-0.5 rounded flex items-center gap-1 transition-colors"
-                            aria-label="Sortear encerramento do efeito"
-                        >
-                            <Clover size={10}/> {$t('character.effects.luck_ends')}
-                        </button>
+                    {#if Array.isArray(eff.modifiers) && eff.modifiers.length > 0}
+                        <div class="flex flex-wrap gap-1 mt-1 pl-10">
+                            {#each eff.modifiers as mod}
+                                <span class="text-[9px] px-1.5 py-0.5 rounded border {mod.type === MOD_TYPES.SET ? 'bg-yellow-900/30 text-yellow-200 border-yellow-800' : 'bg-slate-800 text-slate-300 border-slate-700'} font-medium">
+                                    {MOD_TARGETS[mod.target] || mod.target}: {mod.type === MOD_TYPES.SET ? '=' : mod.type === MOD_TYPES.MULT ? 'x' : (mod.value > 0 ? '+' : '')}{mod.value}
+                                </span>
+                            {/each}
+                        </div>
                     {/if}
                 </div>
-            </div>
-        {/each}
+            {/each}
+        {/if}
+
+        {#if $character.effects.length === 0 && talentEffects.length === 0}
+            <div class="text-center text-slate-500 italic py-4">{$t('character.effects.none')}</div>
+        {/if}
     </div>
- </div>
+</div>

@@ -81,7 +81,19 @@ export const isHistoryOpen = writable(false);
 
 // --- DERIVED STORES & HELPERS ---
 
-export const activeEffects = derived(character, $char => $char.effects.filter(e => e.isActive));
+export const activeEffects = derived(character, $char => {
+    const standardEffects = $char.effects.filter(e => e.isActive);
+    const talentEffects = $char.talents
+        .filter(t => (t.isPassive || t.activityType === 'Passive') && t.effect)
+        .map(t => ({
+            ...t.effect,
+            id: `talent-effect-${t.id}`, // Ensure unique ID for these virtual effects
+            name: t.name, // Use talent name for clarity
+            sourceType: 'talent',
+            sourceId: t.id
+        }));
+    return [...standardEffects, ...talentEffects];
+});
 
 // Helper for generic stat calculation (non-store, purely functional logic used inside derived)
 function calculateDerivedStat(key, baseValue, effects) {
