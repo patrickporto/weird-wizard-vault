@@ -2,7 +2,6 @@
 trigger: always_on
 ---
 
-
 You are an expert in Svelte 5, SvelteKit, TypeScript, and modern web development.
 
 Key Principles
@@ -181,16 +180,14 @@ Forms and Actions
 - Use progressive enhancement for JavaScript-optional form submissions.
 
 Internationalization (i18n) with Paraglide.js
-- Use Paraglide.js for internationalization: https://inlang.com/m/gerre34r/library-inlang-paraglideJs
-- Install Paraglide.js: `npm install @inlang/paraglide-js`
-- Set up language files in the `languages` directory.
-- Use the `t` function to translate strings:
+- Use svelte-i18nfor internationalization: https://github.com/kaisermann/svelte-i18n/blob/main/docs/Getting%20Started.md
+- Use the `$_` function to translate strings:
 ```svelte
 <script>
-import { t } from '@inlang/paraglide-js';
+import { _ } from 'svelte-i18n';
 </script>
 
-<h1>{t('welcome_message')}</h1>
+<h1>{$_('welcome_message')}</h1>
 ```
 - Support multiple languages and RTL layouts.
 - Ensure text scaling and font adjustments for accessibility.
