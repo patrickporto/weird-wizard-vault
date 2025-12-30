@@ -307,7 +307,7 @@
          <div 
             in:fly={{ x: -100, duration: 300, easing: quintOut }}
             out:fly={{ x: -100, duration: 300, easing: quintOut }}
-            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 absolute inset-0"
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 absolute inset-0 content-start"
          >
             {#each $liveCharacters as char (char.id)}
                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 hover:border-indigo-500/40 transition-all relative group flex flex-col shadow-lg hover:shadow-indigo-500/10 border-t-white/5">
