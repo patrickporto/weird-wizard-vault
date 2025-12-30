@@ -41,7 +41,16 @@ const lobbyConfig = { appId: 'weird-wizard-vault-lobby' };
 export const publicCampaigns = writable<any[]>([]);
 
 export function joinLobby() {
-    if (lobby) return;
+    // If lobby already exists, leave it first to prevent peer connection leaks
+    if (lobby) {
+        try {
+            lobby.leave();
+        } catch (e) {
+            console.warn('Failed to leave existing lobby:', e);
+        }
+        lobby = null;
+    }
+
     lobby = joinRoom(lobbyConfig, 'public-discovery');
     const [sendDiscovery, getDiscovery] = lobby.makeAction('discovery');
 
@@ -68,18 +77,42 @@ export function joinLobby() {
 
 
 let sendDiscovery: any;
-let lobbyInitialized = false;
 
 function initLobby() {
-    if (typeof window !== 'undefined' && !lobbyInitialized) {
-        lobbyInitialized = true;
-        sendDiscovery = joinLobby();
+    if (typeof window !== 'undefined') {
+        // Use sessionStorage to track initialization across HMR reloads
+        const alreadyInitialized = sessionStorage.getItem('lobby-initialized');
+        if (!alreadyInitialized) {
+            sessionStorage.setItem('lobby-initialized', 'true');
+            sendDiscovery = joinLobby();
+        } else if (!lobby) {
+            // Lobby was initialized before but lost (e.g., due to HMR), rejoin
+            sendDiscovery = joinLobby();
+        }
     }
 }
 
 // Only initialize once on first module load
 if (typeof window !== 'undefined') {
     initLobby();
+
+    // Cleanup on page unload to prevent dangling peer connections
+    window.addEventListener('beforeunload', () => {
+        if (lobby) {
+            try {
+                lobby.leave();
+            } catch (e) {
+                // Ignore errors during cleanup
+            }
+        }
+        if (room) {
+            try {
+                room.leave();
+            } catch (e) {
+                // Ignore errors during cleanup
+            }
+        }
+    });
 }
 
 
@@ -311,9 +344,18 @@ export function leaveCampaignRoom() {
 }
 
 export function resetSyncStateForTesting() {
+    if (lobby) {
+        try {
+            lobby.leave();
+        } catch (e) {
+            console.warn('Failed to leave lobby during test reset:', e);
+        }
+    }
     lobby = null;
     room = null;
     currentRoomId = null;
-    lobbyInitialized = false;
+    if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('lobby-initialized');
+    }
 }
 
