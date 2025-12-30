@@ -350,12 +350,12 @@
         </div>
     </div>
 
-   <div class="min-h-[500px] relative">
+   <div class="min-h-[500px] grid items-start relative">
        {#if activeTab === 'characters'}
          <div 
             in:fly={{ x: -100, duration: 300, easing: quintOut }}
             out:fly={{ x: -100, duration: 300, easing: quintOut }}
-            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 absolute inset-0 content-start"
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 col-start-1 row-start-1 w-full"
          >
             {#each $liveCharacters as char (char.id)}
                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 hover:border-indigo-500/40 transition-all relative group flex flex-col shadow-lg hover:shadow-indigo-500/10 border-t-white/5">
@@ -424,7 +424,7 @@
          <div 
             in:fly={{ x: 100, duration: 300, easing: quintOut }}
             out:fly={{ x: 100, duration: 300, easing: quintOut }}
-            class="space-y-8 absolute inset-0"
+            class="space-y-8 col-start-1 row-start-1 w-full"
          >
              <!-- Minhas Campanhas -->
              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
