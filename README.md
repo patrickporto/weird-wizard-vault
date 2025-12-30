@@ -1,5 +1,5 @@
+# Schwalb Vault
 <div align="center">
-  # 🔮 Schwalb Vault
 
   **A premium, digital companion for your Shadow of the Weird Wizard™ adventures.**
 
@@ -8,7 +8,7 @@
 
 ---
 
-## ✨ Features
+## Features
 
 - **🛡️ Full Character Management**: Track health, attributes, talents, and spells with a beautiful, responsive UI.
 - **🎲 Real-time Combat**: Seamless synchronization between GM and Players.
