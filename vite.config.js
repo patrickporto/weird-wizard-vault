@@ -26,8 +26,8 @@ export default {
         type: 'module'
       },
       manifest: {
-        name: 'Weird Wizard Vault',
-        short_name: 'WW Vault',
+        name: 'Schwalb Vault',
+        short_name: 'Schwalb Vault',
         description: 'Gerenciador de Fichas para Shadow of the Weird Wizard',
         theme_color: '#0f172a',
         background_color: '#0f172a',
