@@ -6,8 +6,9 @@ const CLIENT_ID = '701898444454-7ml9onnv529k99rkvgh1slhdj4a1arrm.apps.googleuser
 const API_KEY = ''; // Optional if using OAuth2 only for personal data, but usually needed for discovery docs. Drive API often works without separate API Key if using OAuth token.
 
 // Imports for Sync
-import { charactersMap, campaignsMap } from '$lib/db';
+import { charactersMap, campaignsMap, deletedIdsMap } from '$lib/db';
 import { liveCharacters, liveCampaigns } from '$lib/stores/live';
+import { syncStatus, lastSyncTime } from '$lib/stores/syncStatus';
 
 // Scopes: App Data for backup, User Info for avatar/name
 const SCOPES = 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.profile';
@@ -412,9 +413,11 @@ export async function syncFromCloud() {
 
     try {
         console.log('Syncing from cloud...');
+        syncStatus.set('syncing');
         const files = await listBackups();
         if (files.length === 0) {
             console.log('No backups found in cloud.');
+            syncStatus.set('success');
             return;
         }
 
@@ -424,34 +427,108 @@ export async function syncFromCloud() {
 
         // Bi-directional merge: Add cloud items that don't exist locally
         // This preserves local data while enriching with cloud data
-        if (cloudData.characters && Array.isArray(cloudData.characters)) {
-            for (const cloudChar of cloudData.characters) {
-                const localChar = charactersMap.get(cloudChar.id);
-                if (!localChar) {
-                    // Cloud item doesn't exist locally, add it
-                    charactersMap.set(cloudChar.id, cloudChar);
-                    console.log('Added character from cloud:', cloudChar.name);
+        // But respects local deletions
+
+        // Build set of deleted IDs from local deletedIdsMap
+        const deletedIds = new Set<string>();
+        deletedIdsMap.forEach((value: any, key: string) => {
+            deletedIds.add(String(key));
+            console.log('[DEBUG] Local deleted ID entry:', { key, type: typeof key, val: value });
+        });
+        console.log('[DEBUG] Total locally deleted IDs:', deletedIds.size);
+
+        // Also check if cloud has deletedIds we don't have locally (sync deletions from other devices)
+        if (cloudData.deletedIds && Array.isArray(cloudData.deletedIds)) {
+            console.log('[DEBUG] Cloud data deletedIds count:', cloudData.deletedIds.length);
+            for (const deletedEntry of cloudData.deletedIds) {
+                const entryId = String(deletedEntry.id);
+                if (!deletedIdsMap.has(entryId)) {
+                    deletedIdsMap.set(entryId, deletedEntry);
+                    console.log('[DEBUG] New deletion synced from cloud:', entryId);
                 }
-        // If local exists, keep local version (local wins for existing items)
+                deletedIds.add(entryId);
+
+                // Remove locally if exists (was deleted on another device)
+                if (deletedEntry.type === 'character' && charactersMap.has(entryId)) {
+                    charactersMap.delete(entryId);
+                    console.log('[DEBUG] Removed char locally based on cloud deletion:', entryId);
+                }
+                if (deletedEntry.type === 'campaign' && campaignsMap.has(entryId)) {
+                    campaignsMap.delete(entryId);
+                    console.log('[DEBUG] Removed camp locally based on cloud deletion:', entryId);
+                }
+            }
+        }
+
+        if (cloudData.characters && Array.isArray(cloudData.characters)) {
+            console.log('[DEBUG] Syncing', cloudData.characters.length, 'characters from cloud');
+            for (const cloudChar of cloudData.characters) {
+                const charId = String(cloudChar.id);
+                // Double check using both the Set and the Map for maximum certainty
+                if (deletedIds.has(charId) || deletedIdsMap.has(charId)) {
+                    console.log('[DEBUG] Skipping character because it is marked as deleted:', { id: charId, name: cloudChar.name });
+
+                    // ACTIVE REMOVAL: If it somehow exists locally but is marked deleted, remove it now correctly
+                    if (charactersMap.has(charId)) {
+                        console.log('[DEBUG] Character found locally but marked deleted. Removing now:', charId);
+                        charactersMap.delete(charId);
+                    }
+                    // Also check for mismatch entries
+                    for (const key of charactersMap.keys()) {
+                        const localVal = charactersMap.get(key);
+                        if (localVal && localVal.id === charId) {
+                            console.log('[DEBUG] Mismatched key entry found for deleted char. Removing:', key);
+                            charactersMap.delete(key);
+                        }
+                    }
+                    continue;
+                }
+
+                const localChar = charactersMap.get(charId);
+                if (!localChar) {
+                    console.log('[DEBUG] ADDING character from cloud (missing locally):', { id: charId, name: cloudChar.name });
+                    charactersMap.set(charId, cloudChar);
+                }
             }
         }
 
         if (cloudData.campaigns && Array.isArray(cloudData.campaigns)) {
+            console.log('[DEBUG] Syncing', cloudData.campaigns.length, 'campaigns from cloud');
             for (const cloudCamp of cloudData.campaigns) {
-                const localCamp = campaignsMap.get(cloudCamp.id);
-                if (!localCamp) {
-                    // Cloud item doesn't exist locally, add it
-                    campaignsMap.set(cloudCamp.id, cloudCamp);
-                    console.log('Added campaign from cloud:', cloudCamp.name);
+                const campId = String(cloudCamp.id);
+                if (deletedIds.has(campId) || deletedIdsMap.has(campId)) {
+                    console.log('[DEBUG] Skipping campaign because it is marked as deleted:', { id: campId, name: cloudCamp.name });
+
+                    // ACTIVE REMOVAL
+                    if (campaignsMap.has(campId)) {
+                        console.log('[DEBUG] Campaign found locally but marked deleted. Removing now:', campId);
+                        campaignsMap.delete(campId);
+                    }
+                    for (const key of campaignsMap.keys()) {
+                        const localVal = campaignsMap.get(key);
+                        if (localVal && localVal.id === campId) {
+                            console.log('[DEBUG] Mismatched key entry found for deleted camp. Removing:', key);
+                            campaignsMap.delete(key);
+                        }
+                    }
+                    continue;
                 }
-        // If local exists, keep local version
+
+                const localCamp = campaignsMap.get(campId);
+                if (!localCamp) {
+                    console.log('[DEBUG] ADDING campaign from cloud (missing locally):', { id: campId, name: cloudCamp.name });
+                    campaignsMap.set(campId, cloudCamp);
+                }
             }
         }
 
-        console.log('Sync from cloud complete.');
+        console.log('[DEBUG] Sync from cloud complete.');
+        syncStatus.set('success');
+        lastSyncTime.set(Date.now());
 
     } catch (err) {
         console.error('Failed to sync from cloud:', err);
+        syncStatus.set('error');
     }
 }
 
@@ -464,18 +541,46 @@ export async function syncToCloud() {
     syncDebounceTimer = setTimeout(async () => {
         try {
             console.log('Syncing to cloud...');
+            syncStatus.set('syncing');
+
+            // Build deletedIds array from map and Create Filter Set
+            const deletedIdsArray: any[] = [];
+            const deletedIdsSet = new Set<string>();
+
+            deletedIdsMap.forEach((value: any, key: string) => {
+                deletedIdsArray.push({ id: key, ...value });
+                deletedIdsSet.add(String(key));
+            });
+
+            // CRITICAL: Filter out any items that are marked as deleted
+            // This ensures local deletions allow propagate correctly even if there's a race condition
+            const cleanCharacters = get(liveCharacters).filter((c: any) => !deletedIdsSet.has(String(c.id)));
+            const cleanCampaigns = get(liveCampaigns).filter((c: any) => !deletedIdsSet.has(String(c.id)));
+
             const data = {
-                characters: get(liveCharacters),
-                campaigns: get(liveCampaigns),
+                characters: cleanCharacters,
+                campaigns: cleanCampaigns,
+                deletedIds: deletedIdsArray,
                 timestamp: Date.now(),
                 version: 1,
                 appName: 'WeirdWizardVault'
             };
 
+            console.log('[DEBUG] Uploading to cloud:', {
+                charactersCount: data.characters.length,
+                campaignsCount: data.campaigns.length,
+                deletedIdsCount: deletedIdsArray.length
+            });
+
             await uploadBackup(data);
             console.log('Sync to cloud complete.');
+
+            syncStatus.set('success');
+            lastSyncTime.set(Date.now());
+
         } catch (err) {
             console.error('Failed to sync to cloud:', err);
+            syncStatus.set('error');
         }
     }, 2000); // 2 second debounce
 }

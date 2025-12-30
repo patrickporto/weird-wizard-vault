@@ -18,6 +18,7 @@ export const campaignsMap = doc.getMap('campaigns');
 export const enemiesMap = doc.getMap('enemies');
 export const encountersMap = doc.getMap('encounters');
 export const imagesMap = doc.getMap('images');
+export const deletedIdsMap = doc.getMap('deletedIds'); // Tracks deleted character/campaign IDs for sync
 
 // Helper to wait for sync
 export const waitForSync = () => {

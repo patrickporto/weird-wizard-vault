@@ -3,10 +3,10 @@
     import { get } from 'svelte/store';
     import { liveCharacters, liveCampaigns } from '$lib/stores/live';
     import { uuidv7 } from 'uuidv7';
-    import { charactersMap, campaignsMap } from '$lib/db';
+    import { charactersMap, campaignsMap, deletedIdsMap } from '$lib/db';
     import { goto } from '$app/navigation';
     import { resolve } from '$app/paths';
-    import { Skull, Users, Scroll, Plus, Edit, Play, Trash2, Globe, Wifi, Settings } from 'lucide-svelte';
+    import { Skull, Users, Scroll, Plus, Edit, Play, Trash2, Globe, Wifi, Settings, Gamepad2, Loader2 } from 'lucide-svelte';
     import { publicCampaigns } from '$lib/logic/sync';
     import ConfirmationModal from './ConfirmationModal.svelte';
     import CampaignModal from './CampaignModal.svelte';
@@ -18,8 +18,60 @@
     import { onMount } from 'svelte';
     import { slide, fly } from 'svelte/transition';
     import { quintOut } from 'svelte/easing';
-    import { CloudUpload, Cloud, Gamepad2 } from 'lucide-svelte';
+    import SyncStatus from '$lib/components/common/SyncStatus.svelte';
     import { DEFAULT_SYSTEM, getSystem } from '$lib/systems';
+
+    // Pull to Refresh State
+    let pullStartY = $state(0);
+    let pullDistance = $state(0);
+    let isPulling = $state(false);
+    let isRefreshing = $state(false);
+    const PULL_THRESHOLD = 80;
+
+    function handleTouchStart(e: TouchEvent) {
+        if (window.scrollY === 0) {
+            pullStartY = e.touches[0].clientY;
+            isPulling = true;
+        }
+    }
+
+    // Use passive: false to allow preventDefault
+    function handleTouchMove(e: TouchEvent) {
+        if (!isPulling) return;
+        const currentY = e.touches[0].clientY;
+        const diff = currentY - pullStartY;
+        
+        if (diff > 0 && window.scrollY <= 0) {
+            pullDistance = Math.min(diff * 0.4, 120); // Resistance
+            if (diff > 10) {
+                 // Try to prevent native scroll if we are strictly pulling down from top
+            }
+        } else {
+            isPulling = false;
+            pullDistance = 0;
+        }
+    }
+
+    async function handleTouchEnd() {
+        if (!isPulling) return;
+        isPulling = false;
+        
+        if (pullDistance > PULL_THRESHOLD) {
+            isRefreshing = true;
+            pullDistance = 60; // Snap
+            try {
+                if (navigator && navigator.vibrate) navigator.vibrate(50);
+                await syncFromCloud();
+            } finally {
+                setTimeout(() => {
+                    isRefreshing = false;
+                    pullDistance = 0;
+                }, 1000);
+            }
+        } else {
+            pullDistance = 0;
+        }
+    }
 
     onMount(() => {
         initializeGoogleAuth();
@@ -27,6 +79,11 @@
         if (storedLocale) {
             locale.set(storedLocale);
         }
+
+        document.addEventListener('touchmove', handleTouchMove as any, { passive: false });
+        return () => {
+             document.removeEventListener('touchmove', handleTouchMove as any);
+        };
     });
 
     let showLangMenu = $state(false);
@@ -188,7 +245,23 @@
             message: $t('dashboard.campaigns.delete_message'),
             onConfirm: () => {
                 // Unpublish implicit by deletion (stops heartbeat), but we can also handle any other cleanup if needed
-                campaignsMap.delete(id);
+                console.log('[DEBUG] Deleting campaign with ID:', id);
+                let findCount = 0;
+                // Aggressive delete: check all keys to prevent key-mismatch leaks
+                for (const key of campaignsMap.keys()) {
+                    const camp = campaignsMap.get(key);
+                    if (key === id || (camp && camp.id === id)) {
+                        console.log('[DEBUG] Found match for deletion - Key:', key, 'Camp ID:', camp?.id);
+                        campaignsMap.delete(key);
+                        findCount++;
+                    }
+                }
+                console.log('[DEBUG] Total entries deleted from map:', findCount);
+                
+                // Track deletion for sync
+                deletedIdsMap.set(id, { type: 'campaign', deletedAt: Date.now() });
+                console.log('[DEBUG] Deletion tracked in deletedIdsMap');
+                syncToCloud();
                 isConfirmOpen = false;
             }
         };
@@ -229,23 +302,46 @@
                     }
                 });
 
-                charactersMap.delete(id);
+                console.log('[DEBUG] Deleting character with ID:', id);
+                let findCount = 0;
+                // Aggressive delete: check all keys to prevent key-mismatch leaks
+                for (const key of charactersMap.keys()) {
+                    const char = charactersMap.get(key);
+                    if (key === id || (char && char.id === id)) {
+                        console.log('[DEBUG] Found match for deletion - Key:', key, 'Char ID:', char?.id);
+                        charactersMap.delete(key);
+                        findCount++;
+                    }
+                }
+                console.log('[DEBUG] Total entries deleted from map:', findCount);
+
+                // Track deletion for sync
+                deletedIdsMap.set(id, { type: 'character', deletedAt: Date.now() });
+                console.log('[DEBUG] Deletion tracked in deletedIdsMap');
+                syncToCloud();
                 isConfirmOpen = false;
             }
         };
         isConfirmOpen = true;
     }
 
-    onMount(() => {
-        // TODO: This should come from an environment variable or user setting
-        // For now we don't auto-init effectively until user provides client ID in restore modal or we hardcode it
-        // OR we can ask user via notify_user to input it.
-        // initializeGoogleAuth('YOUR_CLIENT_ID'); 
-    });
+
 
 
 
 </script>
+
+<svelte:window on:touchstart={handleTouchStart} on:touchmove={handleTouchMove} on:touchend={handleTouchEnd} />
+
+<!-- Pull to Refresh Indicator -->
+<div 
+    class="fixed top-0 left-0 w-full flex justify-center items-center pointer-events-none z-[100] transition-all duration-300"
+    style="transform: translateY({isRefreshing ? 60 : pullDistance}px); opacity: {pullDistance > 0 ? 1 : 0}"
+>
+    <div class="bg-indigo-600 rounded-full p-2.5 shadow-xl border border-indigo-500/50 text-white">
+        <Loader2 class="{isRefreshing ? 'animate-spin' : ''}" size={20} style="transform: rotate({pullDistance * 2}deg)" />
+    </div>
+</div>
 
 <div class="animate-in fade-in px-4 md:px-8 max-w-7xl mx-auto pb-32 md:pb-20">
     <!-- Header -->
@@ -286,6 +382,7 @@
 
         <!-- User Area -->
         <div class="flex items-center justify-end min-w-[40px] gap-3">
+          <SyncStatus />
           <div class="relative">
             <button 
                 class="flex items-center gap-2 text-slate-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-slate-800"

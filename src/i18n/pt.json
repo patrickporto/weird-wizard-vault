@@ -1,5 +1,11 @@
 {
     "common": {
+        "auth": {
+            "signed_in_as": "Conectado como",
+            "logout": "Sair",
+            "login": "Entrar",
+            "user": "Usuário"
+        },
         "buttons": {
             "close": "Fechar",
             "cancel": "Cancelar",
@@ -19,6 +25,15 @@
             "master": "Mestre",
             "session": "Sessão",
             "language": "Idioma"
+        },
+        "status": {
+            "syncing": "Sincronizando",
+            "saved": "Salvo",
+            "error": "Erro no Sync",
+            "synced": "Sincronizado",
+            "last_sync": "Último sync",
+            "label": "Sincronização",
+            "offline": "Desconectado"
         }
     },
     "dashboard": {

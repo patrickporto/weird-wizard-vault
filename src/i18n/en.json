@@ -1,5 +1,11 @@
 {
     "common": {
+        "auth": {
+            "signed_in_as": "Signed in as",
+            "logout": "Logout",
+            "login": "Sign In",
+            "user": "User"
+        },
         "buttons": {
             "close": "Close",
             "cancel": "Cancel",
@@ -19,6 +25,15 @@
             "master": "Game Master",
             "session": "Session",
             "language": "Language"
+        },
+        "status": {
+            "syncing": "Syncing",
+            "saved": "Saved",
+            "error": "Sync Error",
+            "synced": "Synced",
+            "last_sync": "Last sync",
+            "label": "Synchronization",
+            "offline": "Offline"
         }
     },
     "dashboard": {
