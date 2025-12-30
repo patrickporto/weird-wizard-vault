@@ -74,11 +74,11 @@
 {#if isVisible}
     <button 
         onclick={handleClick}
-        class="fixed bottom-28 md:bottom-6 right-6 z-[60] bg-indigo-600 hover:bg-indigo-500 text-white p-4 rounded-full shadow-2xl shadow-indigo-900/50 flex items-center gap-2 font-bold animate-pulse hover:animate-none transition-all active:scale-95 group"
+        class="fixed bottom-28 md:bottom-6 right-6 z-[60] bg-indigo-600 hover:bg-indigo-500 text-white h-14 px-4 rounded-full shadow-2xl shadow-indigo-900/50 flex items-center justify-center font-bold animate-pulse hover:animate-none transition-all active:scale-95 group"
         aria-label={$t('home.install.button')}
     >
         <Download size={24} />
-        <span class="text-sm uppercase tracking-wider max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 md:max-w-xs md:inline">{$t('home.install.button')}</span>
+        <span class="text-sm uppercase tracking-wider max-w-0 overflow-hidden ml-0 group-hover:max-w-xs group-hover:ml-2 transition-all duration-300 md:max-w-xs md:ml-2 md:inline">{$t('home.install.button')}</span>
     </button>
 {/if}
 
