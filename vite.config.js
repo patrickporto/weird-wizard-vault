@@ -20,7 +20,7 @@ export default {
       registerType: 'autoUpdate',
       base: process.env.NODE_ENV === 'production' ? '/schwalb-vault/' : '/',
       scope: process.env.NODE_ENV === 'production' ? '/schwalb-vault/' : '/',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
+      includeAssets: ['icon/favicon.ico', 'icon/apple-icon-180x180.png', 'icon/android-icon-192x192.png'],
       devOptions: {
         enabled: true,
         type: 'module'
@@ -37,18 +37,43 @@ export default {
         start_url: process.env.NODE_ENV === 'production' ? '/schwalb-vault/' : '/',
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: 'icon/android-icon-36x36.png',
+            sizes: '36x36',
+            type: 'image/png'
+          },
+          {
+            src: 'icon/android-icon-48x48.png',
+            sizes: '48x48',
+            type: 'image/png'
+          },
+          {
+            src: 'icon/android-icon-72x72.png',
+            sizes: '72x72',
+            type: 'image/png'
+          },
+          {
+            src: 'icon/android-icon-96x96.png',
+            sizes: '96x96',
+            type: 'image/png'
+          },
+          {
+            src: 'icon/android-icon-144x144.png',
+            sizes: '144x144',
+            type: 'image/png'
+          },
+          {
+            src: 'icon/android-icon-192x192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
+            src: 'icon/ms-icon-310x310.png',
+            sizes: '310x310',
             type: 'image/png'
           },
           {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
+            src: 'icon/android-icon-192x192.png',
+            sizes: '192x192',
             type: 'image/png',
             purpose: 'any maskable'
           }
