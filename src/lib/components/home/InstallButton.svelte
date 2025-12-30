@@ -7,6 +7,7 @@
     let isVisible = $state(false);
     let showInstructions = $state(false);
     let isIOS = $state(false);
+    let isChromeIOS = $state(false);
 
     // Initial check for standalone mode
     onMount(() => {
@@ -20,6 +21,7 @@
         // Detect iOS
         const ua = window.navigator.userAgent;
         isIOS = /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
+        isChromeIOS = /CriOS/i.test(ua); // Chrome on iOS
         
         // Detect Mobile (Android or iOS)
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
@@ -97,13 +99,18 @@
                 {#if isIOS}
                     <li class="flex items-start gap-3">
                         <span class="flex-shrink-0 w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center font-bold text-xs border border-slate-700 text-indigo-400">1</span>
-                        <div>{@html tIcon('home.install.ios_step1', shareIcon)}</div>
+                        {#if isChromeIOS}
+                            <div>{@html tIcon('home.install.ios_chrome_step1', shareIcon)}</div>
+                        {:else}
+                            <div>{@html tIcon('home.install.ios_step1', shareIcon)}</div>
+                        {/if}
                     </li>
                     <li class="flex items-start gap-3">
                          <span class="flex-shrink-0 w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center font-bold text-xs border border-slate-700 text-indigo-400">2</span>
                          <div>{@html tIcon('home.install.ios_step2', plusIcon)}</div>
                     </li>
                 {:else}
+                     <!-- Android logic -->
                      <li class="flex items-start gap-3">
                         <span class="flex-shrink-0 w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center font-bold text-xs border border-slate-700 text-indigo-400">1</span>
                         <div>{@html tIcon('home.install.android_step1', moreIcon)}</div>

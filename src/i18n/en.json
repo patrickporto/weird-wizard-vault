@@ -561,6 +561,7 @@
             "close": "Got it",
             "ios_step1": "Tap the {icon} <strong>Share</strong> button in the browser bar.",
             "ios_step2": "Scroll down and select {icon} <strong>Add to Home Screen</strong>.",
+            "ios_chrome_step1": "Tap the {icon} <strong>Share</strong> button in the address bar.",
             "android_step1": "Tap the browser menu {icon}",
             "android_step2": "Select <strong>Install app</strong> or <strong>Add to Home screen</strong>."
         }
