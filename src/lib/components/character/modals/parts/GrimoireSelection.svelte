@@ -4,7 +4,7 @@
     import { character, modalState } from '$lib/stores/characterStore';
     import Modal from '$lib/components/common/Modal.svelte';
 
-    let isOpen = $derived($modalState.isOpen && $modalState.type === 'cast_spell');
+    let isOpen = $derived($modalState.isOpen && $modalState.type === 'cast_spell' && ($modalState as any).system !== 'sofdl');
 
     function onClose() {
         modalState.update(m => ({ ...m, type: null, isOpen: false, data: null }));
@@ -19,7 +19,7 @@
 <Modal {isOpen} title={$t('character.modals.grimoire')} {onClose}>
     <div class="space-y-3 p-1">
         {#each $character.spells as spell}
-            <button 
+            <button
                 onclick={() => selectSpell(spell)}
                 class="w-full text-left p-4 rounded-xl border border-slate-800 bg-slate-900/50 hover:bg-slate-800 hover:border-indigo-500/50 transition-all flex justify-between items-center group {spell.castings <= 0 ? 'opacity-40 grayscale pointer-events-none' : ''}"
             >
@@ -30,7 +30,7 @@
                     </div>
                     <p class="text-xs text-slate-500 italic uppercase font-bold tracking-widest">{spell.tradition}</p>
                 </div>
-                
+
                 <div class="text-right shrink-0">
                     <span class="block text-[10px] text-slate-500 uppercase font-bold text-center mb-1">{$t('character.modals.casts')}</span>
                     <div class="flex gap-0.5">

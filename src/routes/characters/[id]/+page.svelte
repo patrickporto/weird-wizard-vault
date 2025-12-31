@@ -77,6 +77,7 @@
     import NotesTabSotDL from '$lib/components/character/sotdl/NotesTabSotDL.svelte';
     import SpellsTabSotDL from '$lib/components/character/sotdl/SpellsTabSotDL.svelte';
     import SpellEditorSotDL from '$lib/components/character/sotdl/SpellEditorSotDL.svelte';
+    import GrimoireSelectionSotDL from '$lib/components/character/sotdl/GrimoireSelectionSotDL.svelte';
 
 
     let loaded = $state(false);
@@ -437,6 +438,7 @@
     <CharacterInfoEditor />
     <ConfirmationModalContent />
     <GrimoireSelection />
+    <GrimoireSelectionSotDL />
     <TalentSelection />
     <AttackOptionsContent />
     <AfflictionManager />
