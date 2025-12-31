@@ -101,7 +101,7 @@
                         <div class="flex flex-wrap gap-1 mt-1">
                             {#each eff.modifiers as mod}
                                 <span class="text-[9px] px-1.5 py-0.5 rounded border {mod.type === MOD_TYPES.SET ? 'bg-yellow-900/30 text-yellow-200 border-yellow-800' : 'bg-slate-800 text-slate-300 border-slate-700'} font-medium">
-                                    {$t(`modals.mod_targets.${mod.target}`)}: {mod.type === MOD_TYPES.SET ? '=' : mod.type === MOD_TYPES.MULT ? 'x' : (Number(mod.value) > 0 ? '+' : '')}{mod.value}
+                                    {$t(`character.modals.mod_targets.${mod.target}`)}: {mod.type === MOD_TYPES.SET ? '=' : mod.type === MOD_TYPES.MULT ? 'x' : (Number(mod.value) > 0 ? '+' : '')}{mod.value}
                                 </span>
                             {/each}
                         </div>

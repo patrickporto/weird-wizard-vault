@@ -211,6 +211,11 @@
       "duration_types": {
         "ROUNDS": "Rodadas",
         "INDEFINITE": "Indeterminado",
+        "PERMANENT": "Permanente",
+        "NEXT_ROLL": "Próxima Rolagem",
+        "MINUTES": "Minutos",
+        "HOURS": "Horas",
+        "DAYS": "Dias",
         "LUCK_ENDS": "Até a Sorte Encerrar",
         "CONCENTRATION": "Concentração",
         "SCENE": "Cena",

@@ -218,6 +218,11 @@
             "duration_types": {
               "ROUNDS": "Rounds",
               "INDEFINITE": "Indefinite",
+              "PERMANENT": "Permanent",
+              "NEXT_ROLL": "Next Roll",
+              "MINUTES": "Minutes",
+              "HOURS": "Hours",
+              "DAYS": "Days",
               "LUCK_ENDS": "Until Luck Ends",
               "CONCENTRATION": "Concentration",
               "SCENE": "Scene",

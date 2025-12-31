@@ -109,13 +109,13 @@
                     <div class="flex gap-1 items-center animate-in fade-in slide-in-from-left-1 duration-200">
                         <select class="bg-slate-900 border border-slate-700 rounded text-[10px] text-white p-1 w-1/3" bind:value={mod.target}>
                             {#each SOTDL_MOD_TARGETS as target}
-                                <option value={target}>{$t(`modals.mod_targets.${target}`)}</option>
+                                <option value={target}>{$t(`character.modals.mod_targets.${target}`)}</option>
                             {/each}
                         </select>
                         <select class="bg-slate-900 border border-slate-700 rounded text-[10px] text-white p-1 w-1/4" bind:value={mod.type}>
-                            <option value={MOD_TYPES.ADD}>{$t('modals.mod_types.add')}</option>
-                            <option value={MOD_TYPES.SET}>{$t('modals.mod_types.set')}</option>
-                            <option value={MOD_TYPES.MULT}>{$t('modals.mod_types.mult')}</option>
+                            <option value={MOD_TYPES.ADD}>{$t('character.modals.mod_types.add')}</option>
+                            <option value={MOD_TYPES.SET}>{$t('character.modals.mod_types.set')}</option>
+                            <option value={MOD_TYPES.MULT}>{$t('character.modals.mod_types.mult')}</option>
                         </select>
                         <input type="text" class="bg-slate-900 border border-slate-700 rounded text-[10px] text-white p-1 w-1/4 text-center" bind:value={mod.value} />
                         <button onclick={() => removeModifier(idx)} class="text-slate-600 hover:text-red-400 p-1" aria-label={$t('character.modals.remove_modifier')}><Trash2 size={12}/></button>
