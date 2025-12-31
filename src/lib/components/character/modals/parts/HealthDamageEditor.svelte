@@ -27,12 +27,14 @@
 
     function saveHealth() {
         if (isSotDL) {
-            // SotDL: Save Damage directly
+            // SotDL: Save Damage and Health independently
             const newDamage = Math.max(0, parseInt(formData.d as any));
+            const newHealth = Math.max(1, parseInt(formData.nh as any));
 
             sotdlCharacter.update(c => ({
                 ...c,
-                damage: newDamage
+                damage: newDamage,
+                health: newHealth
             }));
         } else {
             damage.set(Math.max(0, parseInt(formData.d as any)));
@@ -41,45 +43,34 @@
         }
         onClose();
     }
-
-    // Reactivity for SotDL inputs to sync Damage <-> Current Health
-    function handleDamageChange() {
-        if (isSotDL) {
-             const d = parseInt(formData.d as any) || 0;
-             formData.ch = Math.max(0, formData.nh - d);
-        }
-    }
-
-    function handleCurrentHealthChange() {
-        if (isSotDL) {
-             const ch = parseInt(formData.ch as any) || 0;
-             formData.d = Math.max(0, formData.nh - ch);
-        }
-    }
 </script>
 
 <Modal {isOpen} title={$t('character.modals.health_damage')} {onClose}>
     <div class="space-y-4 p-1">
         <div class="grid grid-cols-2 gap-4">
-            {#if !isSotDL}
-            <div>
-                <label class="text-xs text-slate-400 uppercase font-bold">
-                    {$t('character.modals.normal_health')}
-                    <input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formData.nh} />
-                </label>
-            </div>
+            {#if isSotDL}
+                <!-- SotDL: Just Health (Total) and Damage -->
+                <div class="col-span-2">
+                    <label class="text-xs text-slate-400 uppercase font-bold">
+                        {$t('enemy_modal.health')}
+                        <input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formData.nh} />
+                    </label>
+                </div>
+            {:else}
+                <!-- Normal WW Inputs -->
+                <div>
+                     <label class="text-xs text-slate-400 uppercase font-bold">
+                         {$t('character.modals.normal_health')}
+                         <input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formData.nh} />
+                     </label>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 uppercase font-bold">
+                        {$t('character.modals.current_health')}
+                        <input type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={formData.ch} />
+                    </label>
+                </div>
             {/if}
-            <div class={isSotDL ? "col-span-2" : ""}>
-                <label class="text-xs text-slate-400 uppercase font-bold">
-                    {$t('character.modals.current_health')}
-                    <input
-                        type="number"
-                        class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white"
-                        bind:value={formData.ch}
-                        oninput={handleCurrentHealthChange}
-                    />
-                </label>
-            </div>
         </div>
 
         <div>
@@ -89,7 +80,6 @@
                     type="number"
                     class="w-full bg-slate-900 border border-red-900/50 rounded p-2 text-white"
                     bind:value={formData.d}
-                    oninput={handleDamageChange}
                 />
             </label>
         </div>

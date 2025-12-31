@@ -11,8 +11,10 @@
     import ImageCropperModal from '$lib/components/common/ImageCropperModal.svelte';
     import { saveImage } from '$lib/logic/image';
     import { Camera, UserCog } from 'lucide-svelte';
+    import HealthBarDesktop from '$lib/components/common/HealthBarDesktop.svelte';
+    import HealthBarMobile from '$lib/components/common/HealthBarMobile.svelte';
 
-    let currentHealthPercentage = $derived(($sotdlCharacter.health > 0) ? (($sotdlCurrentHealth / $sotdlCharacter.health) * 100) : 0);
+    let healthPercentage = $derived(($sotdlCharacter.health > 0) ? (($sotdlCharacter.damage / $sotdlCharacter.health) * 100) : 0);
 
     let isMenuOpen = $state(false);
     let isCropperOpen = $state(false);
@@ -103,52 +105,36 @@
             <!-- Center: Health Bar & Stats -->
             <div class="hidden md:flex flex-1 max-w-lg gap-6 items-center justify-center">
                  <!-- Stats Trackers -->
-                 <div class="flex gap-4">
-                     <button onclick={() => openModal('stat', { system: 'sofdl', key: 'insanity' })} class="flex flex-col items-center hover:opacity-80 transition-opacity">
-                         <span class="text-[10px] uppercase font-black tracking-wider text-purple-400 flex items-center gap-1"><Brain size={12}/> {$t('sofdl.attributes.insanity')}</span>
-                         <span class="text-lg font-black text-white">{$sotdlCharacter.insanity}</span>
+                 <div class="flex gap-3">
+                     <!-- Insanity -->
+                     <button onclick={() => openModal('stat', { system: 'sofdl', key: 'insanity' })} class="bg-slate-900/50 hover:bg-slate-900 border border-slate-700/50 rounded-xl px-3 py-1.5 flex flex-col items-center justify-center min-w-[70px] shadow-sm transition-all hover:scale-105 active:scale-95 group">
+                         <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5 group-hover:text-purple-400 transition-colors">{$t('sofdl.attributes.insanity')}</span>
+                         <div class="flex items-center gap-1.5">
+                             <Brain size={14} class="text-purple-500 opacity-70 group-hover:opacity-100 transition-opacity"/>
+                             <span class="text-lg font-black text-white leading-none">{$sotdlCharacter.insanity}</span>
+                         </div>
                      </button>
-                     <button onclick={() => openModal('stat', { system: 'sofdl', key: 'corruption' })} class="flex flex-col items-center hover:opacity-80 transition-opacity">
-                         <span class="text-[10px] uppercase font-black tracking-wider text-red-500 flex items-center gap-1"><Skull size={12}/> {$t('sofdl.attributes.corruption')}</span>
-                         <span class="text-lg font-black text-white">{$sotdlCharacter.corruption}</span>
+
+                     <!-- Corruption -->
+                     <button onclick={() => openModal('stat', { system: 'sofdl', key: 'corruption' })} class="bg-slate-900/50 hover:bg-slate-900 border border-slate-700/50 rounded-xl px-3 py-1.5 flex flex-col items-center justify-center min-w-[70px] shadow-sm transition-all hover:scale-105 active:scale-95 group">
+                         <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5 group-hover:text-red-500 transition-colors">{$t('sofdl.attributes.corruption')}</span>
+                         <div class="flex items-center gap-1.5">
+                             <Skull size={14} class="text-red-600 opacity-70 group-hover:opacity-100 transition-opacity"/>
+                             <span class="text-lg font-black text-white leading-none">{$sotdlCharacter.corruption}</span>
+                         </div>
                      </button>
                  </div>
 
-                 <!-- Health (WW Style) -->
-                 <button
-                    class="flex-1 max-w-md cursor-pointer group px-2 text-left"
-                    onclick={() => openModal('health_damage')}
-                 >
-                    <div class="flex justify-between text-xs sm:text-sm mb-1.5 px-1">
-                        <span class="font-black uppercase tracking-wider {$sotdlIsIncapacitated ? 'text-red-500 animate-pulse' : $sotdlIsInjured ? 'text-amber-500' : 'text-emerald-500'}">
-                            {#if $sotdlIsIncapacitated}
-                                {$t('character.health.incapacitated')}
-                            {:else if $sotdlIsInjured}
-                                {$t('character.health.injured')}
-                            {:else}
-                                {$t('character.health.healthy')}
-                            {/if}
-                        </span>
-                        <span class="text-slate-400 font-mono flex items-center gap-1 group-hover:text-white transition-colors">
-                            <span class="{$sotdlIsIncapacitated ? 'text-red-400' : $sotdlIsInjured ? 'text-amber-400' : 'text-emerald-400'} font-black">{$sotdlCurrentHealth}</span>
-                        </span>
-                    </div>
-
-                    <!-- Health Bar: h-4 mobile, h-6 desktop -->
-                    <div class="h-4 sm:h-6 w-full bg-slate-950 rounded-full border border-white/5 relative overflow-hidden group-hover:border-white/20 transition-all shadow-inner">
-                        <!-- Background -->
-                         <div class="absolute top-0 left-0 h-full w-full bg-slate-900/50"></div>
-
-                         <!-- Fill Bar (Shrinking logic for Current Health) -->
-                         <div
-                            class="absolute top-0 left-0 h-full transition-all duration-500 ease-out z-10 {$sotdlIsIncapacitated ? 'bg-gradient-to-r from-red-600 to-rose-500 animate-pulse' : $sotdlIsInjured ? 'bg-gradient-to-r from-amber-600 to-orange-500' : 'bg-gradient-to-r from-emerald-600 to-green-500'}"
-                            style="width: {currentHealthPercentage}%"
-                         >
-                            <!-- Shine effect -->
-                            <div class="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent"></div>
-                         </div>
-                    </div>
-                 </button>
+                <!-- Health Bar (WW Style - Growing Damage) -->
+                 <HealthBarDesktop
+                    currentHealth={$sotdlCharacter.health}
+                    damage={$sotdlCharacter.damage}
+                    tempHealth={0}
+                    isInjured={$sotdlIsInjured}
+                    isIncapacitated={$sotdlIsIncapacitated}
+                    damagePercentage={healthPercentage}
+                    onClick={() => openModal('health_damage')}
+                 />
             </div>
 
             <!-- Right: Actions -->
@@ -164,29 +150,41 @@
        </div>
     </div>
 
-    <!-- Mobile Stats (Below) -->
-    <div class="md:hidden border-t border-white/5 bg-slate-950/20 px-4 py-2 flex justify-between gap-4">
-        <button onclick={() => openModal('health_damage')} class="flex-1 text-left">
-             <div class="h-2 bg-slate-950 rounded-full border border-white/5 overflow-hidden relative shadow-inner">
-                 <div class="absolute top-0 left-0 h-full bg-slate-900/50 w-full"></div>
-                 <div
-                    class="absolute top-0 left-0 h-full transition-all duration-500 ease-out z-10 {$sotdlIsIncapacitated ? 'bg-gradient-to-r from-red-600 to-rose-500 animate-pulse' : $sotdlIsInjured ? 'bg-gradient-to-r from-amber-600 to-orange-500' : 'bg-gradient-to-r from-emerald-600 to-green-500'}"
-                    style="width: {currentHealthPercentage}%"
-                 ></div>
-             </div>
-             <div class="flex justify-between text-[10px] mt-1 text-slate-500 font-bold uppercase">
-                 <span>HP</span>
-                 <span class="text-slate-300 font-mono font-black">{$sotdlCurrentHealth}</span>
-             </div>
-        </button>
-        <div class="flex gap-4">
-             <button onclick={() => openModal('stat', { system: 'sofdl', key: 'insanity' })} class="flex items-center gap-1 text-xs font-black text-purple-400">
-                 <Brain size={12}/> <span>{$sotdlCharacter.insanity}</span>
+      <!-- Health Bar -->
+      <HealthBarMobile
+          currentHealth={$sotdlCharacter.health}
+          damage={$sotdlCharacter.damage}
+          tempHealth={0}
+          isInjured={$sotdlIsInjured}
+          isIncapacitated={$sotdlIsIncapacitated}
+          damagePercentage={healthPercentage}
+          onClick={() => openModal('health_damage')}
+      />
+    <!-- Mobile Header Stats Row (Insanity/Corruption) -->
+    <div class="md:hidden border-t border-white/5 bg-slate-950/20 px-4 py-3 flex flex-col gap-4">
+        <!-- Stats Row -->
+        <div class="flex gap-3">
+             <button onclick={() => openModal('stat', { system: 'sofdl', key: 'insanity' })} class="flex-1 bg-slate-900 rounded-xl border border-slate-800 p-2 flex items-center justify-between shadow-sm active:scale-95 transition-transform">
+                 <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                        <Brain size={14} class="text-purple-400"/>
+                    </div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase">{$t('sofdl.attributes.insanity')}</span>
+                 </div>
+                 <span class="text-lg font-black text-white">{$sotdlCharacter.insanity}</span>
              </button>
-             <button onclick={() => openModal('stat', { system: 'sofdl', key: 'corruption' })} class="flex items-center gap-1 text-xs font-black text-red-900">
-                 <Skull size={12}/> <span>{$sotdlCharacter.corruption}</span>
+
+             <button onclick={() => openModal('stat', { system: 'sofdl', key: 'corruption' })} class="flex-1 bg-slate-900 rounded-xl border border-slate-800 p-2 flex items-center justify-between shadow-sm active:scale-95 transition-transform">
+                 <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-lg bg-red-900/30 flex items-center justify-center">
+                        <Skull size={14} class="text-red-500"/>
+                    </div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase">{$t('sofdl.attributes.corruption')}</span>
+                 </div>
+                 <span class="text-lg font-black text-white">{$sotdlCharacter.corruption}</span>
              </button>
         </div>
+
     </div>
 </header>
 
