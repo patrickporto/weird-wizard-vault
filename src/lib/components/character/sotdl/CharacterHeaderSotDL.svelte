@@ -1,7 +1,7 @@
 <script lang="ts">
     import { t } from 'svelte-i18n';
     import { sotdlCharacter, sotdlCurrentHealth, sotdlIsInjured, sotdlIsIncapacitated } from '$lib/stores/characterStoreSotDL';
-    import { Settings, ChevronLeft, LayoutDashboard, Brain, Skull, History } from 'lucide-svelte';
+    import { ChevronLeft, LayoutDashboard, Brain, Skull, History } from 'lucide-svelte';
     import { goto } from '$app/navigation';
     import { resolve } from '$app/paths';
     import Avatar from '$lib/components/common/Avatar.svelte';
@@ -155,13 +155,6 @@
                      {/if}
                  </button>
 
-                 <button
-                    onclick={() => openModal('character_info_sotdl')}
-                    class="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full"
-                    title={$t('character.header.settings')}
-                >
-                     <Settings size={20}/>
-                 </button>
             </div>
        </div>
     </div>

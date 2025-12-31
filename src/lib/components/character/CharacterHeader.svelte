@@ -1,7 +1,7 @@
 <script lang="ts">
   import { t } from 'svelte-i18n';
   import { character, modalState, damage, effectiveMaxHealth, tempHealth, isInjured, isIncapacitated, damagePercentage, isHistoryOpen, hasUnreadRolls } from '$lib/stores/characterStore';
-  import { Settings, Moon, History, ChevronLeft, LayoutDashboard } from 'lucide-svelte';
+  import { Moon, History, ChevronLeft, LayoutDashboard } from 'lucide-svelte';
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import HealthBarDesktop from '../common/HealthBarDesktop.svelte';
@@ -149,13 +149,6 @@
                  {/if}
              </button>
 
-             <button
-                onclick={() => openModal('character_info')}
-                class="hidden sm:flex p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition-all"
-                title={$t('common.buttons.settings')}
-             >
-                <Settings size={18}/>
-             </button>
           </div>
        </div>
     </div>
