@@ -100,9 +100,38 @@
         if (!loaded || notFound || !currentId) return;
 
         if (currentSystem === 'sofdl') {
-             // SOTDL Sync Logic (Simplified for now - can be expanded)
+             // SOTDL Sync Logic
              const charData = $sotdlCharacter;
+
+             // Sync to local Yjs
              charactersMap.set(currentId, charData);
+
+             // Sync to GM/Peers if in campaign
+             if (charData.campaignId) {
+                syncCharacter({
+                    id: currentId,
+                    type: 'player',
+                    name: charData.name,
+                    level: charData.level,
+                    ancestry: charData.ancestry,
+                    damage: charData.damage,
+                    health: charData.health,
+                    healingRate: charData.healingRate,
+                    insanity: charData.insanity,
+                    corruption: charData.corruption,
+                    defense: charData.defense,
+                    speed: charData.speed,
+                    power: charData.power,
+                    attributes: charData.attributes, // Object!
+                    initiative: charData.initiative,
+                    acted: charData.acted,
+                    afflictions: charData.afflictions || [],
+                    senses: charData.senses || [],
+                    campaignApproval: charData.campaignApproval,
+                    imageUrl: charData.imageUrl,
+                    notes: charData.notes
+                });
+             }
              return;
         }
 

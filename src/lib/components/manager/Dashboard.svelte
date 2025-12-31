@@ -179,6 +179,11 @@
                 corruption: 0,
                 description: '',
                 notes: '',
+                paths: {
+                    novice: '',
+                    expert: '',
+                    master: ''
+                },
                 professions: [],
                 languages: ['Comum'],
                 talents: [],

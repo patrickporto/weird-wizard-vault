@@ -124,6 +124,8 @@ export interface SotDLCharacter {
   // Combat
   combatActive: boolean;
   currentRound: number;
+  initiative: boolean;
+  acted: boolean;
   magicSystem: 'standard' | 'forbidden_rules' | 'uncanny_arcana';
 }
 
@@ -172,6 +174,8 @@ export const defaultSotDLCharacter: SotDLCharacter = {
   campaignApproval: null,
   combatActive: false,
   currentRound: 1,
+  initiative: false,
+  acted: false,
   magicSystem: 'standard'
 };
 
@@ -520,28 +524,22 @@ export const sotdlCharacterActions = {
       }
     } else {
       // Damage roll for SotDL
-      // Support formats: "0", "1", "1d3", "1d6", "2d6", etc.
       const rawDamage = data.source?.damage ?? data.source?.damageDice ?? '1d6';
-      const damageStr = String(rawDamage); // Ensure it's a string
+      const damageStr = String(rawDamage);
       const damageMod = Number(data.source?.damageMod) || 0;
-
-      console.log('[SotDL Damage Roll] source:', data.source, 'damageStr:', damageStr, 'damageMod:', damageMod);
 
       let sum = 0;
       let results: number[] = [];
       let formula = '';
 
       if (damageStr === '0') {
-        // No damage
         sum = 0;
         formula = '0';
       } else if (!damageStr.includes('d')) {
-        // Flat number like "1" or "2"
         sum = parseInt(damageStr) || 0;
         formula = `${sum}`;
         results = [sum];
       } else {
-        // Dice format like "1d3", "1d6", "2d6"
         const match = damageStr.match(/(\d+)d(\d+)/);
         if (match) {
           const count = parseInt(match[1]) || 1;
@@ -553,7 +551,6 @@ export const sotdlCharacterActions = {
           }
           formula = `${damageStr} [${results.join(', ')}]`;
         } else {
-          // Fallback
           sum = 1;
           formula = '1';
         }
@@ -571,14 +568,6 @@ export const sotdlCharacterActions = {
       });
     }
   },
-  // Item Actions
-  useConsumable: (item: any) => {
-    console.log('Use consumable', item);
-  },
-  reloadWeapon: (item: any) => {
-    console.log('Reload weapon', item);
-  },
-
   // Rest action
   rest: () => {
     sotdlCharacter.update(c => {

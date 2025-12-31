@@ -1,16 +1,15 @@
 <script lang="ts">
     import { t } from 'svelte-i18n';
     import { sotdlCharacter, sotdlCurrentHealth, sotdlIsInjured, sotdlIsIncapacitated } from '$lib/stores/characterStoreSotDL';
-    import { ChevronLeft, LayoutDashboard, Brain, Skull, History, Moon } from 'lucide-svelte';
+    import { ChevronLeft, LayoutDashboard, Brain, Skull, History, Moon, Camera, UserCog, Settings, Share2 } from 'lucide-svelte';
+    import { saveImage } from '$lib/logic/image';
+    import ImageCropperModal from '$lib/components/common/ImageCropperModal.svelte';
     import { goto } from '$app/navigation';
     import { resolve } from '$app/paths';
     import Avatar from '$lib/components/common/Avatar.svelte';
     import { fade } from 'svelte/transition';
 
     import { modalState, isHistoryOpen, hasUnreadRolls } from '$lib/stores/characterStore';
-    import ImageCropperModal from '$lib/components/common/ImageCropperModal.svelte';
-    import { saveImage } from '$lib/logic/image';
-    import { Camera, UserCog } from 'lucide-svelte';
     import HealthBarDesktop from '$lib/components/common/HealthBarDesktop.svelte';
     import HealthBarMobile from '$lib/components/common/HealthBarMobile.svelte';
 

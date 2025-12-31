@@ -1,6 +1,7 @@
 import { joinRoom, selfId } from 'trystero/torrent';
 import { writable, get, derived } from 'svelte/store';
 import { characterActions, character, isHistoryOpen, damage, currentHealth, normalHealth } from '$lib/stores/characterStore';
+import { sotdlCharacter, sotdlCharacterActions } from '$lib/stores/characterStoreSotDL';
 import { campaignsMap } from '$lib/db';
 import { appId } from '../../app';
 
@@ -322,32 +323,60 @@ export function joinCampaignRoom(campaignId: string, isGM: boolean = false, char
                 const myCharId = state.currentCharacterId || charStoreData?.id;
 
                 if (myCharId && myCharId === charData.id) {
+                    const isSotDL = charData.system === 'sofdl';
+
                     // If GM sent a rejection or removal (campaignId null)
                     if (charData.campaignApproval === 'rejected' || charData.campaignId === null) {
-                        character.update(c => ({
-                            ...c,
-                            campaignId: null,
-                            campaignName: null,
-                            gmName: null,
-                            campaignApproval: null
-                        }));
+                        if (isSotDL) {
+                            sotdlCharacterActions.leaveCampaign();
+                        } else {
+                            character.update(c => ({
+                                ...c,
+                                campaignId: null,
+                                campaignName: null,
+                                gmName: null,
+                                campaignApproval: null
+                            }));
+                        }
                         return;
                     }
 
-                    character.update(c => ({
-                        ...c,
-                        name: charData.name || c.name,
-                        afflictions: charData.afflictions || c.afflictions,
-                        senses: charData.senses || c.senses,
-                        initiative: charData.initiative !== undefined ? charData.initiative : (c.initiative ?? false),
-                        acted: charData.acted !== undefined ? charData.acted : (c.acted ?? false),
-                        campaignApproval: charData.campaignApproval || c.campaignApproval,
-                        imageUrl: charData.imageUrl || c.imageUrl,
-                        notes: charData.notes !== undefined ? charData.notes : c.notes
-                    }));
-                    if (charData.damage !== undefined) damage.set(charData.damage);
-                    if (charData.currentHealth !== undefined) currentHealth.set(charData.currentHealth);
-                    if (charData.normalHealth !== undefined) normalHealth.set(charData.normalHealth);
+                    if (isSotDL) {
+                        sotdlCharacterActions.set({
+                            name: charData.name,
+                            afflictions: charData.afflictions,
+                            senses: charData.senses,
+                            initiative: charData.initiative,
+                            acted: charData.acted,
+                            campaignApproval: charData.campaignApproval,
+                            imageUrl: charData.imageUrl,
+                            notes: charData.notes,
+                            damage: charData.damage,
+                            health: charData.health,
+                            healingRate: charData.healingRate,
+                            insanity: charData.insanity,
+                            corruption: charData.corruption,
+                            defense: charData.defense,
+                            speed: charData.speed,
+                            power: charData.power,
+                            attributes: charData.attributes
+                        });
+                    } else {
+                        character.update(c => ({
+                            ...c,
+                            name: charData.name || c.name,
+                            afflictions: charData.afflictions || c.afflictions,
+                            senses: charData.senses || c.senses,
+                            initiative: charData.initiative !== undefined ? charData.initiative : (c.initiative ?? false),
+                            acted: charData.acted !== undefined ? charData.acted : (c.acted ?? false),
+                            campaignApproval: charData.campaignApproval || c.campaignApproval,
+                            imageUrl: charData.imageUrl || c.imageUrl,
+                            notes: charData.notes !== undefined ? charData.notes : c.notes
+                        }));
+                        if (charData.damage !== undefined) damage.set(charData.damage);
+                        if (charData.currentHealth !== undefined) currentHealth.set(charData.currentHealth);
+                        if (charData.normalHealth !== undefined) normalHealth.set(charData.normalHealth);
+                    }
                 }
             }
         });
