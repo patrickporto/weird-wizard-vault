@@ -82,6 +82,9 @@
     import TalentEditorSotDL from '$lib/components/character/sotdl/TalentEditorSotDL.svelte';
     import TalentSelectionSotDL from '$lib/components/character/sotdl/TalentSelectionSotDL.svelte';
     import CharacterInfoEditorSotDL from '$lib/components/character/sotdl/CharacterInfoEditorSotDL.svelte';
+    import ItemEditorSotDL from '$lib/components/character/sotdl/ItemEditorSotDL.svelte';
+    import InventoryTabSotDL from '$lib/components/character/sotdl/InventoryTabSotDL.svelte';
+    import AttackOptionsContentSotDL from '$lib/components/character/sotdl/AttackOptionsContentSotDL.svelte';
 
 
     let loaded = $state(false);
@@ -301,6 +304,8 @@
                            <SpellsTabSotDL />
                         {:else if $activeTab === 'talentos'}
                            <TalentsTabSotDL />
+                        {:else if $activeTab === 'equipamento'}
+                           <InventoryTabSotDL />
                         {:else}
                            <div class="p-8 text-center text-slate-500 italic">
                                {$t('common.labels.coming_soon')}
@@ -449,7 +454,9 @@
     <TalentSelection />
     <TalentSelectionSotDL />
     <TalentEditorSotDL />
+    <ItemEditorSotDL />
     <AttackOptionsContent />
+    <AttackOptionsContentSotDL />
     <AfflictionManager />
     <RestConfirmationContent />
 </div>

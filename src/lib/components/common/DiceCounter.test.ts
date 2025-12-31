@@ -117,4 +117,47 @@ describe('DiceCounter', () => {
         rerender({ value: 10, onUpdate: vi.fn() });
         expect(screen.getByText('10d6')).toBeInTheDocument();
     });
+
+    it('should handle custom steps correctly', async () => {
+        const user = userEvent.setup();
+        const onUpdate = vi.fn();
+        const customSteps = ['1', '1d3'];
+
+        // Initial 0 -> click plus -> should go to '1' (first custom step)
+        const { rerender } = render(DiceCounter, { value: 0, customSteps, onUpdate });
+        const plusButton = screen.getByLabelText('Aumentar');
+        await user.click(plusButton);
+        expect(onUpdate).toHaveBeenCalledWith('1');
+
+        // From '1' -> click plus -> should go to '1d3'
+        rerender({ value: '1', customSteps, onUpdate });
+        await user.click(plusButton);
+        expect(onUpdate).toHaveBeenCalledWith('1d3');
+
+        // From '1d3' -> click plus -> should go to 1 (which means 1d6)
+        rerender({ value: '1d3', customSteps, onUpdate });
+        await user.click(plusButton);
+        expect(onUpdate).toHaveBeenCalledWith(1);
+
+        // From 1 (1d6) -> click minus -> should go to '1d3' (last custom step)
+        const minusButton = screen.getByLabelText('Diminuir');
+        rerender({ value: 1, customSteps, onUpdate });
+        await user.click(minusButton);
+        expect(onUpdate).toHaveBeenCalledWith('1d3');
+
+        // From '1d3' -> click minus -> should go to '1'
+        rerender({ value: '1d3', customSteps, onUpdate });
+        await user.click(minusButton);
+        expect(onUpdate).toHaveBeenCalledWith('1');
+
+        // From '1' -> click minus -> should go to 0
+        rerender({ value: '1', customSteps, onUpdate });
+        await user.click(minusButton);
+        expect(onUpdate).toHaveBeenCalledWith(0);
+    });
+
+    it('should format string values correctly', () => {
+        render(DiceCounter, { value: '1d3', onUpdate: vi.fn() });
+        expect(screen.getByText('1d3')).toBeInTheDocument();
+    });
 });

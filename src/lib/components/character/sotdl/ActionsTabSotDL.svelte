@@ -19,6 +19,10 @@
         modalState.update(m => ({ ...m, type, isOpen: true, data, system: 'sofdl' }));
     }
 
+    function openWeaponMenu(item: any) {
+        modalState.update(m => ({ ...m, type: 'weapon_menu_sotdl', isOpen: true, data: item, system: 'sofdl' }));
+    }
+
     function handleUseConsumable(e: MouseEvent, item: any) {
         e.stopPropagation();
         useConsumable(item);
@@ -30,7 +34,7 @@
         <!-- svelte-ignore a11y_click_events_have_key_events -->
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div
-            onclick={() => (item.traits || '').toLowerCase().includes('reload') && item.isLoaded === false ? sotdlCharacterActions.reloadWeapon(item) : openModal('weapon_menu', item)}
+            onclick={() => (item.traits || '').toLowerCase().includes('reload') && item.isLoaded === false ? sotdlCharacterActions.reloadWeapon(item) : openWeaponMenu(item)}
             class="flex flex-col sm:flex-row justify-between p-4 bg-slate-950 rounded-lg border border-slate-800 hover:border-indigo-900 cursor-pointer transition-colors gap-4 active:scale-[0.99] relative overflow-hidden"
             role="button"
             tabindex="0"
@@ -73,7 +77,14 @@
                 <div class="flex items-center gap-4 bg-slate-900 p-2 rounded-lg border border-slate-800">
                     <div class="text-center px-2">
                         <span class="block text-[10px] font-bold text-slate-500 uppercase">{$t('character.actions.damage')}</span>
-                        <span class="text-xl font-mono text-white font-bold">{item.damageDice || 0}d6</span>
+                        <span class="text-xl font-mono text-white font-bold">
+                             {#if !isNaN(Number(item.damage))}
+                                {item.damage}d6
+                             {:else}
+                                {item.damage}
+                             {/if}
+                             {#if item.damageMod} <span class="text-green-400">+{item.damageMod}</span>{/if}
+                        </span>
                     </div>
                 </div>
                 {#if item.type === ITEM_TYPES.EXPLOSIVE}

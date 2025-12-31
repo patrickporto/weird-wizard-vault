@@ -32,6 +32,39 @@ export interface SotDLTalent {
   effect?: any;
 }
 
+export interface SotDLCurrency {
+  gc: number;
+  ss: number;
+  cp: number;
+  bits: number;
+}
+
+export interface SotDLEquipment {
+  id: string;
+  name: string;
+  description: string;
+  type: string;
+  quantity: number;
+  hands?: string;
+  properties?: string;
+  damage?: string; // e.g., "1d3", "1d6+1"
+  damageDice?: string; // Legacy support or just alias
+  range?: string;
+  maxUses?: number; // Consumables
+  damageMod?: number; // Integer modifier for damage
+
+  // State
+  equippedState?: 'equipped' | 'off' | 'main' | 'two' | '';
+  isLoaded?: boolean;
+  traits?: string;
+
+  armorType?: string;
+  defenseFixed?: number;
+  defenseMod?: number;
+  availability?: string;
+  value?: number;
+}
+
 export interface SotDLCharacter {
     id: string;
     system: 'sofdl';
@@ -78,8 +111,9 @@ export interface SotDLCharacter {
     // Collections
   talents: SotDLTalent[];
   spells: SotDLSpell[];
-    equipment: any[];
-    effects: any[];
+  equipment: SotDLEquipment[];
+  currency: SotDLCurrency;
+  effects: any[];
 
     // Campaign
   campaignId: string | null;
@@ -130,7 +164,8 @@ export const defaultSotDLCharacter: SotDLCharacter = {
     talents: [],
     spells: [],
     equipment: [],
-    effects: [],
+  currency: { gc: 0, ss: 0, cp: 0, bits: 0 },
+  effects: [],
   campaignId: null,
   campaignName: null,
   gmName: null,
@@ -393,6 +428,38 @@ export const sotdlCharacterActions = {
   addProfession: (prof: string) => sotdlCharacter.update(c => ({ ...c, professions: [...c.professions, prof] })),
   removeProfession: (index: number) => sotdlCharacter.update(c => ({ ...c, professions: c.professions.filter((_, i) => i !== index) })),
 
+  // Currency Actions
+  updateCurrency: (type: 'gc' | 'ss' | 'cp' | 'bits', amount: number) => {
+    sotdlCharacter.update(c => {
+      const newVal = Math.max(0, (c.currency[type] || 0) + amount);
+      return { ...c, currency: { ...c.currency, [type]: newVal } };
+    });
+  },
+
+  // Inventory / Equipment Actions
+  addItem: (item: SotDLEquipment) => sotdlCharacter.update(c => ({ ...c, equipment: [...c.equipment, item] })),
+  updateItem: (item: SotDLEquipment) => sotdlCharacter.update(c => ({
+    ...c,
+    equipment: c.equipment.map(i => i.id === item.id ? item : i)
+  })),
+  deleteItem: (itemId: string) => sotdlCharacter.update(c => ({
+    ...c,
+    equipment: c.equipment.filter(i => i.id !== itemId)
+  })),
+
+  useConsumable: (item: SotDLEquipment) => {
+    sotdlCharacter.update(c => ({
+      ...c,
+      equipment: c.equipment.map(i => i.id === item.id ? { ...i, quantity: Math.max(0, i.quantity - 1) } : i)
+    }));
+    // Optional: Add to history that item was used
+  },
+
+  reloadWeapon: (item: SotDLEquipment) => sotdlCharacter.update(c => ({
+    ...c,
+    equipment: c.equipment.map(i => i.id === item.id ? { ...i, isLoaded: true } : i)
+  })),
+
   // Roll Logic
   finalizeRoll: (data: any, modifier: number, selectedEffects: string[] = []) => {
     const char = get(sotdlCharacter);
@@ -452,23 +519,54 @@ export const sotdlCharacterActions = {
         }));
       }
     } else {
-      // Damage roll placeholder for SotDL
-      const dice = data.source?.damageDice || '1d6';
-      const [count, sides] = dice.split('d').map(Number);
+      // Damage roll for SotDL
+      // Support formats: "0", "1", "1d3", "1d6", "2d6", etc.
+      const rawDamage = data.source?.damage ?? data.source?.damageDice ?? '1d6';
+      const damageStr = String(rawDamage); // Ensure it's a string
+      const damageMod = Number(data.source?.damageMod) || 0;
+
+      console.log('[SotDL Damage Roll] source:', data.source, 'damageStr:', damageStr, 'damageMod:', damageMod);
+
       let sum = 0;
-      let results = [];
-      for (let i = 0; i < (count || 1); i++) {
-        const r = Math.floor(Math.random() * (sides || 6)) + 1;
-        sum += r;
-        results.push(r);
+      let results: number[] = [];
+      let formula = '';
+
+      if (damageStr === '0') {
+        // No damage
+        sum = 0;
+        formula = '0';
+      } else if (!damageStr.includes('d')) {
+        // Flat number like "1" or "2"
+        sum = parseInt(damageStr) || 0;
+        formula = `${sum}`;
+        results = [sum];
+      } else {
+        // Dice format like "1d3", "1d6", "2d6"
+        const match = damageStr.match(/(\d+)d(\d+)/);
+        if (match) {
+          const count = parseInt(match[1]) || 1;
+          const sides = parseInt(match[2]) || 6;
+          for (let i = 0; i < count; i++) {
+            const r = Math.floor(Math.random() * sides) + 1;
+            sum += r;
+            results.push(r);
+          }
+          formula = `${damageStr} [${results.join(', ')}]`;
+        } else {
+          // Fallback
+          sum = 1;
+          formula = '1';
+        }
       }
-      const total = sum + modifier;
+
+      const total = sum + modifier + damageMod;
+      const modStr = (modifier + damageMod) !== 0 ? `${(modifier + damageMod) > 0 ? '+' : ''}${modifier + damageMod}` : '';
 
       sotdlCharacterActions.addToHistory({
         source: 'Dano',
         name: sourceName,
         description: `Dano de ${sourceName}`,
-        formula: `${dice} [${results.join(', ')}] ${modifier !== 0 ? (modifier > 0 ? '+' : '') + modifier : ''}`,
+        formula: `${formula}${modStr}`,
         total: total
       });
     }

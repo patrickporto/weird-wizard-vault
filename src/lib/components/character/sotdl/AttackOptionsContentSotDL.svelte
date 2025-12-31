@@ -1,32 +1,42 @@
 <script lang="ts">
     import { t } from 'svelte-i18n';
     import { Dices, Wand2, Sword, ArrowLeft, Plus, Minus } from 'lucide-svelte';
-    import { modalState, characterActions, character, activeEffects } from '$lib/stores/characterStore';
+    import { modalState } from '$lib/stores/characterStore';
     import { sotdlCharacter, sotdlActiveEffects, sotdlCharacterActions } from '$lib/stores/characterStoreSotDL';
     import Modal from '$lib/components/common/Modal.svelte';
 
-    let isOpen = $derived($modalState.isOpen && $modalState.type === 'weapon_menu');
+    let isOpen = $derived($modalState.isOpen && $modalState.type === 'weapon_menu_sotdl');
     let data = $derived($modalState.data);
 
     let view = $state<'selection' | 'roll'>('selection');
-    let rollType = $state<'attack' | 'damage' | 'attribute' | 'luck'>('attack');
+    let rollType = $state<'attack' | 'damage'>('attack');
     let modifier = $state(0);
     let selectedEffectsIds = $state<string[]>([]);
 
-    // System detection
-    let currentSystem = $derived(data?.system || $character.system || 'sofww');
-    let displayEffects = $derived(currentSystem === 'sofdl' ? $sotdlActiveEffects : $activeEffects);
+    let displayEffects = $derived($sotdlActiveEffects);
+
+    // Format damage display
+    let damageDisplay = $derived(() => {
+        if (!data) return '1d6';
+        const dmg = data.damage || '0';
+        const mod = data.damageMod || 0;
+
+        // If it's a number, append d6
+        if (dmg !== '0' && !dmg.includes('d') && !isNaN(Number(dmg))) {
+            return mod > 0 ? `${dmg}d6+${mod}` : `${dmg}d6`;
+        }
+        // If it includes 'd' or special
+        return mod > 0 ? `${dmg}+${mod}` : dmg;
+    });
 
     // Reset state when modal opens OR closes
     $effect(() => {
         if (isOpen) {
             modifier = 0;
-            // SEMPRE pegar os efeitos do personagem ATUAL quando o modal abre
             selectedEffectsIds = displayEffects.map(e => e.id);
             view = 'selection';
             rollType = 'attack';
         } else {
-            // Limpar completamente quando o modal fecha para evitar "vazamento" entre personagens
             selectedEffectsIds = [];
             modifier = 0;
         }
@@ -53,27 +63,15 @@
     function confirmRoll() {
         if (!data) return;
 
-        let rollDataType = '';
-        if (rollType === 'attack') rollDataType = 'weapon_attack';
-        else if (rollType === 'damage') rollDataType = 'weapon_damage';
-        else rollDataType = rollType; // 'attribute' or 'luck'
-
-        // Use data directly as source if data.source doesn't exist (when item is passed directly)
-        const source = data.source || data;
+        const rollDataType = rollType === 'attack' ? 'weapon_attack' : 'weapon_damage';
 
         const rollData = {
             type: rollDataType,
-            source: source,
-            key: data.key // Ensure key is passed for attributes
+            source: data // Pass the item directly as source
         };
 
         const selectedEffects = displayEffects.filter(e => selectedEffectsIds.includes(e.id));
-
-        if (currentSystem === 'sofdl') {
-            sotdlCharacterActions.finalizeRoll(rollData, modifier, selectedEffects.map(e => e.name));
-        } else {
-            characterActions.finalizeRoll(rollData, modifier, selectedEffects);
-        }
+        sotdlCharacterActions.finalizeRoll(rollData, modifier, selectedEffects.map(e => e.name));
         onClose();
     }
 </script>
@@ -92,15 +90,15 @@
 
                     <div class="flex flex-wrap gap-2 mb-4 relative z-10">
                         <span class="text-[10px] bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 px-2 py-1 rounded-lg font-bold uppercase tracking-widest shadow-sm">
-                            {data.grip}
+                            {data.hands || 'One-handed'}
                         </span>
                         <span class="text-[10px] bg-slate-800 text-slate-400 border border-slate-700 px-2 py-1 rounded-lg font-bold uppercase">
                             {data.range || 'Melee'}
                         </span>
-                        {#if data.traits}
-                            {#each data.traits.split(',').map(t => t.trim()).filter(t => t) as trait}
+                        {#if data.properties}
+                            {#each data.properties.split(',').map((t: string) => t.trim()).filter((t: string) => t) as trait}
                                 <span class="text-[10px] bg-slate-800 text-slate-300 border border-slate-700 px-2 py-1 rounded-lg font-bold uppercase">
-                                    {$t(`character.traits.${trait}`)}
+                                    {trait}
                                 </span>
                             {/each}
                         {/if}
@@ -140,15 +138,7 @@
                                 <span class="block text-[10px] font-black uppercase tracking-widest text-red-200 mb-1">
                                     {$t('character.modals.damage')}
                                 </span>
-                                <span class="text-xl font-bold font-mono text-white">
-                                    {#if currentSystem === 'sofdl' && data.damage}
-                                       {data.damage}
-                                       {#if data.damage !== '0' && !data.damage.includes('d')}d6{/if}
-                                       {#if data.damageMod} <span class="text-xs text-red-200">+{data.damageMod}</span>{/if}
-                                    {:else}
-                                       {data.damageDice || '1d6'}
-                                    {/if}
-                                </span>
+                                <span class="text-xl font-bold font-mono text-white">{damageDisplay()}</span>
                             </div>
                         </div>
                     </button>
@@ -210,18 +200,8 @@
                                                 <div class="w-2 h-2 bg-white rounded-sm"></div>
                                             {/if}
                                         </div>
-                                        <div>
-                                            <span class="text-sm font-bold text-slate-200 block leading-tight">{eff.name}</span>
-                                            {#if eff.modifiers && eff.modifiers.length > 0}
-                                                <div class="flex flex-wrap gap-1 mt-1">
-                                                    {#each eff.modifiers as mod}
-                                                        <span class="text-[9px] text-slate-400 bg-slate-800 px-1 rounded">{mod.target}: {mod.value}</span>
-                                                    {/each}
-                                                </div>
-                                            {/if}
-                                        </div>
+                                        <span class="text-sm font-bold text-slate-200 block leading-tight">{eff.name}</span>
                                     </div>
-                                    <!-- Optional: Icon or visual indicator of the source -->
                                 </button>
                             {/each}
                          </div>
@@ -233,12 +213,8 @@
                      <span class="font-bold text-white">
                         {#if rollType === 'attack'}
                            Ataque (1d20)
-                        {:else if rollType === 'damage'}
-                           Dano ({currentSystem === 'sofdl' && data.damage ? data.damage : data.damageDice})
-                        {:else if rollType === 'luck'}
-                            Sorte (1d20)
                         {:else}
-                            Teste ({data.label || '1d20'})
+                           Dano ({damageDisplay()})
                         {/if}
                      </span>
                 </div>
