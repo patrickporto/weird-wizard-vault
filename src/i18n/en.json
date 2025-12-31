@@ -756,6 +756,33 @@
             "none": "No professions.",
             "add_placeholder": "Add new profession..."
         },
+        "spells": {
+          "title": "Grimoire",
+          "subtitle": "Known spells and available castings",
+          "editor_title": "Spell Editor",
+          "rank": "Rank",
+          "tradition": "Tradition",
+          "type": "Type",
+          "target": "Target",
+          "area": "Area",
+          "duration": "Duration",
+          "castings": "Castings",
+          "power_level": "Power Level",
+          "cast": "Cast",
+          "new_spell": "New Spell",
+          "empty": "No spells learned",
+          "add_first": "Add first spell",
+          "reset_castings": "Reset Castings",
+          "types": {
+            "attack": "Attack",
+            "utility": "Utility"
+          }
+        },
+        "effects": {
+          "end_of_round": "End of Round",
+          "concentration": "Concentration",
+          "maintain_concentration": "Maintain"
+        },
         "afflictions": {
             "asleep": {
                 "name": "Asleep",

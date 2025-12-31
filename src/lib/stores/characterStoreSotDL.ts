@@ -5,6 +5,20 @@ import { uuidv7 } from 'uuidv7';
 // @ts-ignore
 import { rollHistory, appSettings, isHistoryOpen, hasUnreadRolls, modalState } from './characterStore';
 
+export interface SotDLSpell {
+  id: string;
+  name: string;
+  tradition: string;
+  rank: number; // 0-10
+  type: string; // Attack, Utility, etc.
+  target: string;
+  area: string;
+  duration: string;
+  description: string;
+  castingsUsed: number; // Track how many times cast this session
+  effect?: any;
+}
+
 export interface SotDLCharacter {
     id: string;
     system: 'sofdl';
@@ -45,7 +59,7 @@ export interface SotDLCharacter {
 
     // Collections
     talents: any[];
-    spells: any[];
+  spells: SotDLSpell[];
     equipment: any[];
     effects: any[];
 
@@ -187,8 +201,18 @@ export const sotdlCharacterActions = {
         }));
     },
     advanceRound: (direction: 'next' | 'prev') => {
-        // Simple placeholder for round advancement logic, similar to WW
-        console.log('Advance round', direction);
+      sotdlCharacter.update(c => {
+        if (direction === 'next') {
+          // Auto-deactivate END_OF_ROUND effects
+          const newEffects = c.effects.map(e =>
+            e.isActive && e.duration === 'END_OF_ROUND'
+              ? { ...e, isActive: false }
+              : e
+          );
+          return { ...c, currentRound: c.currentRound + 1, effects: newEffects };
+        }
+        return { ...c, currentRound: Math.max(1, c.currentRound - 1) };
+      });
     },
     checkLuckEnds: (id: string) => {
       const char = get(sotdlCharacter);
@@ -204,6 +228,52 @@ export const sotdlCharacterActions = {
         }
       });
     },
+  checkConcentration: (effectId: string) => {
+    const char = get(sotdlCharacter);
+    const effect = char.effects.find(e => e.id === effectId);
+    modalState.set({
+      type: 'pre_roll',
+      isOpen: true,
+      data: {
+        type: 'concentration',
+        system: 'sofdl',
+        effectId,
+        key: 'will',
+        source: { name: effect?.name || 'Concentração' }
+      }
+    });
+  },
+  // Spell Actions
+  addSpell: (spell: SotDLSpell) => {
+    sotdlCharacter.update(c => ({
+      ...c,
+      spells: [...c.spells, { ...spell, id: spell.id || uuidv7() }]
+    }));
+  },
+  updateSpell: (spell: SotDLSpell) => {
+    sotdlCharacter.update(c => ({
+      ...c,
+      spells: c.spells.map(s => s.id === spell.id ? spell : s)
+    }));
+  },
+  deleteSpell: (id: string) => {
+    sotdlCharacter.update(c => ({
+      ...c,
+      spells: c.spells.filter(s => s.id !== id)
+    }));
+  },
+  castSpell: (id: string) => {
+    sotdlCharacter.update(c => ({
+      ...c,
+      spells: c.spells.map(s => s.id === id ? { ...s, castingsUsed: (s.castingsUsed || 0) + 1 } : s)
+    }));
+  },
+  resetSpellCastings: () => {
+    sotdlCharacter.update(c => ({
+      ...c,
+      spells: c.spells.map(s => ({ ...s, castingsUsed: 0 }))
+    }));
+  },
   // Senses Actions
   addSense: (sense: string) => {
     sotdlCharacter.update(c => ({

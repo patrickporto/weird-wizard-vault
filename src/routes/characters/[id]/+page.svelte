@@ -75,6 +75,8 @@
     import ActionsTabSotDL from '$lib/components/character/sotdl/ActionsTabSotDL.svelte';
     import EffectsTabSotDL from '$lib/components/character/sotdl/EffectsTabSotDL.svelte';
     import NotesTabSotDL from '$lib/components/character/sotdl/NotesTabSotDL.svelte';
+    import SpellsTabSotDL from '$lib/components/character/sotdl/SpellsTabSotDL.svelte';
+    import SpellEditorSotDL from '$lib/components/character/sotdl/SpellEditorSotDL.svelte';
 
 
     let loaded = $state(false);
@@ -290,6 +292,8 @@
                            <EffectsTabSotDL />
                         {:else if $activeTab === 'notas'}
                            <NotesTabSotDL />
+                        {:else if $activeTab === 'magias'}
+                           <SpellsTabSotDL />
                         {:else}
                            <div class="p-8 text-center text-slate-500 italic">
                                {$t('common.labels.coming_soon')}
@@ -424,6 +428,7 @@
 
     <ItemEditor />
     <SpellEditor />
+    <SpellEditorSotDL />
     <TalentEditor />
     <EffectEditor />
     <AttributeEditor />

@@ -5,7 +5,7 @@
     import { Rewind, FastForward, Eraser, Plus, Edit, Trash2, Clock, Clover, Zap } from 'lucide-svelte';
     import { MOD_TYPES, DURATION_TYPES, MOD_TARGETS } from '$lib/constants';
 
-    const { advanceRound, deleteEffect, checkLuckEnds, cleanInactiveEffects, toggleEffect } = sotdlCharacterActions;
+    const { advanceRound, deleteEffect, checkLuckEnds, cleanInactiveEffects, toggleEffect, checkConcentration } = sotdlCharacterActions;
 
     // Derived state for talent effects (if we add talents later, for now just active effects)
     let talentEffects = $derived($sotdlActiveEffects.filter((e: any) => e.sourceType === 'talent'));
@@ -107,16 +107,36 @@
                         </div>
                     {/if}
                     <div class="flex justify-between items-center text-[10px] text-slate-500 font-mono mt-1 border-t border-slate-800/50 pt-2">
-                        <span class="flex items-center gap-1"><Clock size={10} class="text-indigo-400"/> {DURATION_TYPES[eff.duration]} {eff.duration === 'ROUNDS' ? `(${eff.roundsLeft})` : ''}</span>
-                        {#if eff.duration === 'LUCK_ENDS' && eff.isActive}
-                            <button
-                                onclick={() => checkLuckEnds(eff.id)}
-                                class="bg-yellow-900/40 hover:bg-yellow-800/40 text-yellow-500 border border-yellow-800 px-2 py-0.5 rounded flex items-center gap-1 transition-colors"
-                                aria-label="Sortear encerramento do efeito"
-                            >
-                                <Clover size={10}/> {$t('character.effects.luck_ends')}
-                            </button>
-                        {/if}
+                        <span class="flex items-center gap-1">
+                            <Clock size={10} class="text-indigo-400"/>
+                            {DURATION_TYPES[eff.duration] || eff.duration}
+                            {eff.duration === 'ROUNDS' ? `(${eff.roundsLeft})` : ''}
+                        </span>
+                        <div class="flex gap-1">
+                            {#if eff.duration === 'LUCK_ENDS' && eff.isActive}
+                                <button
+                                    onclick={() => checkLuckEnds(eff.id)}
+                                    class="bg-yellow-900/40 hover:bg-yellow-800/40 text-yellow-500 border border-yellow-800 px-2 py-0.5 rounded flex items-center gap-1 transition-colors"
+                                    aria-label="Sortear encerramento do efeito"
+                                >
+                                    <Clover size={10}/> {$t('character.effects.luck_ends')}
+                                </button>
+                            {/if}
+                            {#if eff.duration === 'CONCENTRATION' && eff.isActive}
+                                <button
+                                    onclick={() => checkConcentration(eff.id)}
+                                    class="bg-purple-900/40 hover:bg-purple-800/40 text-purple-400 border border-purple-800 px-2 py-0.5 rounded flex items-center gap-1 transition-colors"
+                                    aria-label="Manter concentração"
+                                >
+                                    <Zap size={10}/> {$t('sofdl.effects.maintain_concentration')}
+                                </button>
+                            {/if}
+                            {#if eff.duration === 'END_OF_ROUND' && eff.isActive}
+                                <span class="bg-orange-900/40 text-orange-400 border border-orange-800 px-2 py-0.5 rounded flex items-center gap-1">
+                                    <Clock size={10}/> {$t('sofdl.effects.end_of_round')}
+                                </span>
+                            {/if}
+                        </div>
                     </div>
                 </div>
             {/each}

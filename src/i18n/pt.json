@@ -752,6 +752,33 @@
       "speed": "Deslocamento",
       "size": "Tamanho"
     },
+    "spells": {
+      "title": "Grimório",
+      "subtitle": "Magias conhecidas e conjurações disponíveis",
+      "editor_title": "Editor de Magia",
+      "rank": "Rank",
+      "tradition": "Tradição",
+      "type": "Tipo",
+      "target": "Alvo",
+      "area": "Área",
+      "duration": "Duração",
+      "castings": "Conjurações",
+      "power_level": "Nível de Poder",
+      "cast": "Conjurar",
+      "new_spell": "Nova Magia",
+      "empty": "Nenhuma magia aprendida",
+      "add_first": "Adicionar primeira magia",
+      "reset_castings": "Restaurar Conjurações",
+      "types": {
+        "attack": "Ataque",
+        "utility": "Utilidade"
+      }
+    },
+    "effects": {
+      "end_of_round": "Fim da Rodada",
+      "concentration": "Concentração",
+      "maintain_concentration": "Manter"
+    },
     "afflictions": {
       "asleep": {
         "name": "Adormecido",
