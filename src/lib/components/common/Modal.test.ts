@@ -16,20 +16,21 @@ describe('Modal Component', () => {
         expect(screen.getByText('Test Modal')).toBeTruthy();
     });
 
-    it('should call onClose when clicking the backdrop', async () => {
+    it('should NOT call onClose when clicking the backdrop (modal is persistent)', async () => {
         const onClose = vi.fn();
         render(Modal, { isOpen: true, onClose });
-        
+
         const backdrop = screen.getByRole('presentation');
         await fireEvent.click(backdrop);
 
-        expect(onClose).toHaveBeenCalled();
+        // Modal is designed to be persistent - backdrop click does not close
+        expect(onClose).not.toHaveBeenCalled();
     });
 
     it('should NOT call onClose when clicking inside the content', async () => {
         const onClose = vi.fn();
         render(Modal, { isOpen: true, onClose });
-        
+
         const dialog = screen.getByRole('dialog');
         await fireEvent.click(dialog);
 

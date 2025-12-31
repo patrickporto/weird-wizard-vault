@@ -1,19 +1,15 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { waitLocale, locale, isLoading, _ } from 'svelte-i18n';
 import { get } from 'svelte/store';
-import './index';
+
+// i18n is initialized in src/test/setup.ts
 
 describe('i18n Initialization', () => {
-    beforeAll(async () => {
-        // Wait for locale to be ready
-        await waitLocale();
-    });
-
     it('should initialize locale without errors', async () => {
         await waitLocale();
         const currentLocale = get(locale);
         expect(currentLocale).toBeTruthy();
-        expect(['en', 'pt']).toContain(currentLocale);
+        expect(currentLocale).toBe('en');
     });
 
     it('should not be loading after initialization', async () => {
@@ -27,20 +23,29 @@ describe('i18n Initialization', () => {
         const t = get(_);
         const translation = t('common.labels.level');
         expect(translation).toBeTruthy();
-        expect(translation).not.toBe('common.labels.level');
+        expect(translation).toBe('Level');
     });
 
-    it('should handle locale changes', async () => {
+    it('should handle locale changes and load translations', async () => {
         await waitLocale();
 
-        // Switch to PT
+        let t = get(_);
+        const enTranslation = t('common.labels.level');
+        expect(enTranslation).toBe('Level');
+
+        // Switch to Portuguese
         locale.set('pt');
         await waitLocale();
-        expect(get(locale)).toBe('pt');
 
-        // Switch to EN
+        t = get(_);
+        const ptTranslation = t('common.labels.level');
+        expect(ptTranslation).toBe('Nível');
+
+        // Translations should differ
+        expect(enTranslation).not.toBe(ptTranslation);
+
+        // Cleanup - switch back to English for other tests
         locale.set('en');
         await waitLocale();
-        expect(get(locale)).toBe('en');
     });
 });

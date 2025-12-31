@@ -72,9 +72,8 @@ describe('ActionsTab Component', () => {
 
         render(ActionsTab);
 
-        expect(screen.getByText(/Pronto para o Combate\?/i)).toBeTruthy();
-        expect(screen.getByText(/Sua lista de ações rápidas está vazia/i)).toBeTruthy();
+        // Using English translations (en.json character.actions.empty_title/empty_desc)
+        expect(screen.getByText(/Ready for Combat\?/i)).toBeTruthy();
+        expect(screen.getByText(/Your quick actions list is empty/i)).toBeTruthy();
     });
 });
-
-
