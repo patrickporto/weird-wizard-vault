@@ -156,7 +156,11 @@
                 "keen_hearing": "Keen Hearing",
                 "keen_scent": "Keen Scent",
                 "keen_vision": "Keen Vision",
-                "true_vision": "True Vision"
+                "true_vision": "True Vision",
+                "shadowsight": "Shadowsight",
+                "darksight": "Darksight",
+                "sightless": "Sightless",
+                "truesight": "Truesight"
             },
             "descriptions": {
                 "awareness": "The creature is always aware of everything around it within the listed number of yards. This awareness ignores concealment and lighting effects.",
@@ -164,7 +168,11 @@
                 "keen_hearing": "The creature hears twice the normal distance.",
                 "keen_scent": "The creature knows the location of every living or dead creature within 10 yards.",
                 "keen_vision": "The creature can see twice as far as other creatures in natural light and doubles the normal range of artificial light sources. Reduces concealment by one step.",
-                "true_vision": "The creature does not need light to see and treats everything as illuminated. Sees invisible, disguises, and illusions."
+                "true_vision": "The creature does not need light to see and treats everything as illuminated. Sees invisible, disguises, and illusions.",
+                "shadowsight": "The creature can see in areas obscured by shadows as if those areas were lit.",
+                "darksight": "The creature can see in areas obscured by shadows and darkness within medium range of it as if those areas were lit. Beyond this distance, treats darkness as shadows and shadows as lit.",
+                "sightless": "Relies on senses other than sight. Can pinpoint creatures/objects within long range. Creatures within area cannot hide from it. Ignores banes from obscurement. Never subject to blinded.",
+                "truesight": "Can see in shadows and darkness as if lit. Can see invisible creatures and objects. Automatically recognizes illusions."
             }
         },
         "afflictions": {
@@ -304,7 +312,9 @@
             "roll_d20": "Roll d20",
             "roll_d6": "Roll d6",
             "roll_2d6": "Roll 2d6",
-            "roll_3d6": "Roll 3d6"
+            "roll_3d6": "Roll 3d6",
+            "luck_success": "Roll: {total}. Success!",
+            "luck_failure": "Roll: {total}. Failure."
         },
         "modals": {
             "rolling": "Rolling",

@@ -354,7 +354,7 @@
             {/if}
 
             <!-- Details view -->
-            <div class="grid grid-cols-3 gap-4 mb-4">
+            <div class="grid grid-cols-2 gap-4 mb-4">
                 <div class="p-2 rounded bg-slate-900/50 border border-slate-800/50 flex flex-col items-center">
                     <span class="text-[9px] text-slate-500 uppercase font-black">{$t('session.combat_card.size')}</span>
                     <span class="text-white font-bold">{entity.size || 1}</span>
@@ -363,11 +363,6 @@
                    <span class="text-[9px] text-slate-500 uppercase font-black">{$t('session.combat_card.speed')}</span>
                    <span class="text-white font-bold">{entity.speed || 10}</span>
                 </div>
-
-                 <div class="p-2 rounded bg-slate-900/50 border border-slate-800/50 flex flex-col items-center">
-                     <span class="text-[9px] text-slate-500 uppercase font-black">{$t('session.combat_card.defense')}</span>
-                     <span class="text-white font-bold">{entity.defense || 10}</span>
-                 </div>
             </div>
 
             <!-- Sections: Senses, Traits, Actions, Reactions -->
@@ -391,14 +386,6 @@
                                  </Tooltip>
                              {/each}
                          </div>
-
-                         {#if isSotDL}
-                             <!-- Perception -->
-                             <div class="flex flex-col items-center justify-between bg-cyan-950/20 border border-cyan-500/30 rounded-lg p-1.5 w-[4.5rem] h-[3.75rem] shadow-sm">
-                                  <span class="text-[9px] font-black text-cyan-400 uppercase tracking-wider mb-0.5">{$t('sofdl.attributes.perception')}</span>
-                                  <span class="text-xl font-bold text-white font-mono leading-none">{entity.perception || 10}</span>
-                             </div>
-                         {/if}
                     </div>
                  {/if}
 

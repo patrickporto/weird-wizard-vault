@@ -44,7 +44,7 @@
     </div>
   {/if}
   {#each $rollHistory as roll (roll.id)}
-    {@const sourceKey = roll.source?.toLowerCase().replace('ação', 'attribute').replace('consumível', 'item').replace('magia', 'spell').replace('dano', 'damage').replace('ataque', 'attack').replace('sorte', 'luck').replace('talento', 'talent')}
+    {@const sourceKey = roll.source?.toLowerCase()}
     <div class="relative bg-slate-800/40 hover:bg-slate-800/60 transition-colors rounded-2xl border border-white/5 p-4 shadow-xl overflow-hidden group animate-in slide-in-from-right-8 duration-300">
         <!-- Accent border based on source -->
         <div class="absolute left-0 top-0 bottom-0 w-1 {roll.source === 'GM' ? 'bg-indigo-500' : 'bg-emerald-500'}"></div>

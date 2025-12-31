@@ -305,7 +305,9 @@
       "roll_d20": "Rolar d20",
       "roll_d6": "Rolar d6",
       "roll_2d6": "Rolar 2d6",
-      "roll_3d6": "Rolar 3d6"
+      "roll_3d6": "Rolar 3d6",
+      "luck_success": "Rolagem: {total}. Sucesso!",
+      "luck_failure": "Rolagem: {total}. Falha."
     },
     "modals": {
       "rolling": "Rolando",

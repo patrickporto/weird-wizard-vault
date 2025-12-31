@@ -1,35 +1,159 @@
 
 import { writable, derived, get } from 'svelte/store';
+import { _ as t } from 'svelte-i18n';
 import { uuidv7 } from 'uuidv7';
 import {
     ITEM_TYPES,
     MOD_TYPES,
-    QUALITY,
-  GRIPS
+    GRIPS
 } from "../../routes/sofww";
 import { Parser } from 'expr-eval';
 
 const parser = new Parser();
 
+// --- TYPES ---
+
+export interface WWModifier {
+    target: string;
+    type: string;
+    value: number | string;
+}
+
+export interface WWEffect {
+    id: string;
+    name: string;
+    duration: string;
+    roundsLeft: number;
+    initialRounds?: number;
+    description: string;
+    isActive: boolean;
+    modifiers: WWModifier[];
+    sourceType?: string;
+    sourceId?: string | number;
+}
+
+export interface WWSpell {
+    id: string | number;
+    name: string;
+    tier: string;
+    type: string;
+    tradition: string;
+    description: string;
+    castings: number;
+    maxCastings: number;
+    effect: WWEffect | null;
+}
+
+export interface WWTalent {
+    id: string | number;
+    name: string;
+    description: string;
+    uses: number;
+    maxUses: number;
+    isPassive: boolean;
+    activityType?: 'Passive' | 'Uses' | 'Duration';
+    duration?: string;
+    effect: WWEffect | null;
+}
+
+export interface WWItem {
+    id: string | number;
+    name: string;
+    type: string;
+    quantity: number;
+    price?: number;
+    availability?: string;
+    quality?: string;
+    grip?: string;
+    range?: string;
+    damageDice?: number | string;
+    boonsBanes?: number;
+    traits?: string;
+    equipped: boolean;
+    equippedState?: string | null;
+    notes?: string;
+    description?: string;
+    defenseType?: 'fixed' | 'mod';
+    defenseFixed?: number;
+    defenseMod?: number;
+    armorWeight?: 'Light' | 'Medium' | 'Heavy';
+    isLoaded?: boolean;
+}
+
+export interface WWCharacter {
+    id?: string;
+    name: string;
+    level: number;
+    ancestry: string;
+    paths: {
+        novice: string;
+        expert: string;
+        master: string;
+    };
+    attributes: { name: string; value: number; key: string }[];
+    currency: { gp: number; sp: number; cp: number };
+    naturalDefense: number;
+    bonusDamage: number;
+    speed: number;
+    currentRound: number;
+    languages: string[];
+    senses: string[];
+    afflictions: string[];
+    effects: WWEffect[];
+    notes: string;
+    campaignId: string | null;
+    campaignName: string | null;
+    gmName: string | null;
+    combatActive: boolean;
+    initiative: boolean;
+    acted: boolean;
+    spells: WWSpell[];
+    talents: WWTalent[];
+    equipment: WWItem[];
+    imageUrl?: string;
+    system?: string;
+    campaignApproval?: 'pending' | 'approved' | 'rejected' | null;
+}
+
+export interface RollHistoryEntry {
+    id: string;
+    timestamp: Date;
+    charName: string;
+    source: string;
+    name: string;
+    description?: string;
+    formula?: string;
+    total?: number;
+    crit?: boolean;
+    effectsApplied?: string[];
+    system?: string;
+}
+
+export interface AppSettings {
+    autoOpenHistory: boolean;
+    stickyHistory: boolean;
+    theme: string;
+}
+
 // --- STATE ---
 
-export const defaultCharacter = {
-    name: "Alaric, o Errante",
-    level: 3,
-    ancestry: "Humano",
-    paths: { novice: "Mago", expert: "Alquimista", master: "-" },
+export const defaultCharacter: WWCharacter = {
+    name: "",
+    level: 1,
+    ancestry: "",
+    paths: { novice: "", expert: "", master: "" },
     attributes: [
-        { name: "Força", value: 10, key: "str" },
-        { name: "Agilidade", value: 12, key: "agi" },
-        { name: "Intelecto", value: 15, key: "int" },
-        { name: "Vontade", value: 11, key: "wil" }
+        { name: "Strength", value: 10, key: "str" },
+        { name: "Agility", value: 10, key: "agi" },
+        { name: "Intellect", value: 10, key: "int" },
+        { name: "Will", value: 10, key: "wil" }
     ],
     currency: { gp: 0, sp: 0, cp: 0 },
     naturalDefense: 10,
     bonusDamage: 0,
     speed: 10,
     currentRound: 1,
-    languages: ["Comum", "Élfico"],
+    languages: [],
     senses: [],
     afflictions: [],
     effects: [],
@@ -40,43 +164,14 @@ export const defaultCharacter = {
     combatActive: false,
     initiative: false,
     acted: false,
-    spells: [
-        { id: 1, name: "Seta de Energia", tier: "Novice", type: "Ataque", tradition: "Destruction", description: "Causa 1d6 de dano a um alvo em alcance curto.", castings: 3, maxCastings: 3, effect: null },
-        {
-            id: 2, name: "Escudo Mágico", tier: "Novice", type: "Utilidade", tradition: "Protection", description: "+2 em Defesa por 1 minuto.", castings: 2, maxCastings: 2, effect: {
-                id: 999, name: "Escudo Mágico", duration: "MINUTES", roundsLeft: 10, initialRounds: 10, description: "+2 Defesa", isActive: true,
-                modifiers: [{ target: 'defense', type: MOD_TYPES.ADD, value: 2 }]
-            }
-        }
-    ],
-    talents: [
-        { id: 1, name: "Sentido Arcano", description: "Você detecta magia a curto alcance.", uses: 0, maxUses: 0, isPassive: true, effect: null },
-        { id: 2, name: "Sorte do Principiante", description: "Pode refazer um teste falho.", uses: 1, maxUses: 1, isPassive: false, effect: null }
-    ],
-    equipment: [
-        {
-            id: 1, name: "Cajado", type: ITEM_TYPES.WEAPON, quantity: 1, price: 5, availability: 'Common', quality: 'Standard',
-            grip: GRIPS.TWO, range: 'Melee', damageDice: 1, boonsBanes: 0, traits: "Finesse, Versatile",
-            equippedState: null, equipped: false
-        },
-        {
-            id: 2, name: "Poção de Cura", type: ITEM_TYPES.CONSUMABLE, quantity: 3, price: 10, availability: 'Common', quality: 'Standard',
-            notes: "Recupera Healing Rate", equippedState: null, equipped: false
-        },
-        {
-            id: 3, name: "Granada Alquímica", type: ITEM_TYPES.EXPLOSIVE, quantity: 2, price: 15, availability: 'Uncommon', quality: 'Standard',
-            damageDice: 2, range: 'Short', traits: 'Blast', description: "Explode em área curta causando 2d6 de dano.", equippedState: null, equipped: false
-        },
-        {
-            id: 4, name: "Couro Batido", type: ITEM_TYPES.ARMOR, quantity: 1, price: 20, availability: 'Common', quality: 'Standard',
-            defenseType: 'fixed', defenseFixed: 12, armorWeight: 'Light', equipped: false, equippedState: null
-        }
-    ]
+    spells: [],
+    talents: [],
+    equipment: []
 };
 
-export const character = writable(defaultCharacter);
-export const rollHistory = writable([]);
-export const modalState = writable({ type: null, isOpen: false, data: null });
+export const character = writable<WWCharacter>(JSON.parse(JSON.stringify(defaultCharacter)));
+export const rollHistory = writable<RollHistoryEntry[]>([]);
+export const modalState = writable<{ type: string | null; isOpen: boolean; data: any }>({ type: null, isOpen: false, data: null });
 export const activeTab = writable('acoes');
 export const normalHealth = writable(24);
 export const currentHealth = writable(24);
@@ -86,37 +181,37 @@ export const hasUnreadRolls = writable(false);
 
 // --- APP SETTINGS ---
 
-const initialSettings = {
-  autoOpenHistory: false,
-  stickyHistory: false,
-  theme: 'dark'
+const initialSettings: AppSettings = {
+    autoOpenHistory: false,
+    stickyHistory: false,
+    theme: 'dark'
 };
 
 function createAppSettings() {
-  const saved = typeof localStorage !== 'undefined' ? localStorage.getItem('wwv_app_settings') : null;
-  const { subscribe, set, update } = writable(saved ? { ...initialSettings, ...JSON.parse(saved) } : initialSettings);
+    const saved = typeof localStorage !== 'undefined' ? localStorage.getItem('wwv_app_settings') : null;
+    const { subscribe, set, update } = writable<AppSettings>(saved ? { ...initialSettings, ...JSON.parse(saved) } : initialSettings);
 
-  return {
-    subscribe,
-    set: (value) => {
-      if (typeof localStorage !== 'undefined') localStorage.setItem('wwv_app_settings', JSON.stringify(value));
-      set(value);
-    },
-    update: (fn) => {
-      update(old => {
-        const newValue = fn(old);
-        if (typeof localStorage !== 'undefined') localStorage.setItem('wwv_app_settings', JSON.stringify(newValue));
-        return newValue;
-      });
-    }
-  };
+    return {
+        subscribe,
+        set: (value: AppSettings) => {
+            if (typeof localStorage !== 'undefined') localStorage.setItem('wwv_app_settings', JSON.stringify(value));
+            set(value);
+        },
+        update: (fn: (old: AppSettings) => AppSettings) => {
+            update(old => {
+                const newValue = fn(old);
+                if (typeof localStorage !== 'undefined') localStorage.setItem('wwv_app_settings', JSON.stringify(newValue));
+                return newValue;
+            });
+        }
+    };
 }
 
 export const appSettings = createAppSettings();
 
 // Clear unread on open
 isHistoryOpen.subscribe(open => {
-  if (open) hasUnreadRolls.set(false);
+    if (open) hasUnreadRolls.set(false);
 });
 
 // --- DERIVED STORES & HELPERS ---
@@ -126,100 +221,85 @@ export const activeEffects = derived(character, $char => {
     const talentEffects = $char.talents
         .filter(t => (t.isPassive || t.activityType === 'Passive') && t.effect)
         .map(t => ({
-            ...t.effect,
-            id: `talent-effect-${t.id}`, // Ensure unique ID for these virtual effects
-            name: t.name, // Use talent name for clarity
+            ...(t.effect as WWEffect),
+            id: `talent-effect-${t.id}`,
+            name: t.name,
             sourceType: 'talent',
             sourceId: t.id
         }));
     return [...standardEffects, ...talentEffects];
 });
 
-// Helper for evaluation of modifier values (number or expression)
-function evaluateModifierValue(value, character) {
-  if (typeof value === 'number') return value;
-  if (!value) return 0;
-  // Attempt parse if string
-  const sValue = String(value).trim();
-  if (!isNaN(Number(sValue))) return Number(sValue);
+function evaluateModifierValue(value: number | string, characterObj: WWCharacter): number {
+    if (typeof value === 'number') return value;
+    if (!value) return 0;
+    const sValue = String(value).trim();
+    if (!isNaN(Number(sValue))) return Number(sValue);
 
-  try {
-    const context = {};
-    if (Array.isArray(character.attributes)) {
-      character.attributes.forEach(attr => {
-        context[attr.key] = attr.value;
-      });
+    try {
+        const context: any = {};
+        if (Array.isArray(characterObj.attributes)) {
+            characterObj.attributes.forEach(attr => {
+                context[attr.key] = attr.value;
+            });
+        }
+        context['level'] = characterObj.level || 0;
+
+        const expression = sValue.replace(/@(\w+)/g, '$1');
+        return parser.evaluate(expression, context);
+    } catch (e) {
+        return 0;
     }
-    context['level'] = character.level || 0;
-
-    // Support @attribute syntax by removing @
-    const expression = sValue.replace(/@(\w+)/g, '$1');
-    return parser.evaluate(expression, context);
-  } catch (e) {
-    // console.warn("Failed to evaluate modifier:", value, e);
-    return 0;
-  }
 }
 
-// Helper for generic stat calculation (non-store, purely functional logic used inside derived)
-// We need to pass the FULL character object now to access attributes for context
-function calculateDerivedStat(key, baseValue, effects, characterObj) {
+function calculateDerivedStat(key: string, baseValue: number, effects: WWEffect[], characterObj: WWCharacter): number {
     let value = baseValue || 0;
     const allMods = effects.flatMap(e => Array.isArray(e.modifiers) ? e.modifiers : []);
 
     const sets = allMods.filter(m => m.target === key && m.type === MOD_TYPES.SET);
-  if (sets.length > 0) value = evaluateModifierValue(sets[sets.length - 1].value, characterObj);
+    if (sets.length > 0) value = evaluateModifierValue(sets[sets.length - 1].value, characterObj);
 
     const adds = allMods.filter(m => m.target === key && m.type === MOD_TYPES.ADD);
-  adds.forEach(m => { value += evaluateModifierValue(m.value, characterObj); });
+    adds.forEach(m => { value += evaluateModifierValue(m.value, characterObj); });
 
     const mults = allMods.filter(m => m.target === key && m.type === MOD_TYPES.MULT);
-  mults.forEach(m => { value *= evaluateModifierValue(m.value, characterObj); });
+    mults.forEach(m => { value *= evaluateModifierValue(m.value, characterObj); });
 
     return Math.floor(value);
 }
 
-// Store for checking stats easily in components
 export const derivedStats = derived([character, activeEffects], ([$char, $effects]) => {
-    const stats = {};
-  if (Array.isArray($char.attributes)) {
-    $char.attributes.forEach(attr => {
-        // Pass full $char for context
-        stats[attr.key] = calculateDerivedStat(attr.key, attr.value, $effects, $char);
-      });
-  }
+    const stats: Record<string, number> = {};
+    if (Array.isArray($char.attributes)) {
+        $char.attributes.forEach(attr => {
+            stats[attr.key] = calculateDerivedStat(attr.key, attr.value, $effects, $char);
+        });
+    }
     return stats;
 });
 
-// effectiveMaxHealth: currentHealth + active effect modifiers
-// normalHealth is just a reference, currentHealth is the actual cap that can be reduced
 export const effectiveMaxHealth = derived([character, currentHealth, activeEffects], ([$char, $ch, $effects]) => {
-  return calculateDerivedStat('health', $ch, $effects, $char);
+    return calculateDerivedStat('health', $ch, $effects, $char);
 });
 
-// tempHealth: bonus health from effects (any health above normalHealth)
 export const tempHealth = derived([effectiveMaxHealth, normalHealth], ([$emh, $nh]) => {
     return Math.max(0, $emh - $nh);
 });
 
-// damagePercentage: damage relative to currentHealth (vida atual), not effectiveMaxHealth
 export const damagePercentage = derived([damage, currentHealth], ([$dmg, $ch]) => {
     return $ch > 0 ? Math.min(100, ($dmg / $ch) * 100) : 100;
 });
 
-// isIncapacitated: damage >= currentHealth
 export const isIncapacitated = derived([damage, currentHealth], ([$dmg, $ch]) => {
     return $dmg >= $ch;
 });
 
-// isInjured: damage >= 50% of currentHealth but not incapacitated
 export const isInjured = derived([damage, currentHealth, isIncapacitated], ([$dmg, $ch, $incap]) => {
     return $dmg >= ($ch / 2) && !$incap;
 });
 
 export const effectiveSpeed = derived([character, derivedStats, activeEffects], ([$char, $stats, $effects]) => {
-    // We can use calculateDerivedStat for base modifiers
-  let s = calculateDerivedStat('speed', $char.speed, $effects, $char);
+    let s = calculateDerivedStat('speed', $char.speed, $effects, $char);
     const affs = $char.afflictions;
     if (affs.includes("Held") || affs.includes("Stunned") || affs.includes("Unconscious") || affs.includes("Incapacitated")) return 0;
     if (affs.includes("Blinded") || affs.includes("Weakened")) s = Math.floor(s / 2);
@@ -244,22 +324,20 @@ export const totalDefense = derived([character, activeEffects], ([$char, $effect
         shieldBonus += (shield.defenseMod || 0);
     });
 
-    // Explicitly use the helper logic here as we would in the component
-  return calculateDerivedStat('defense', defense + shieldBonus, $effects, $char);
+    return calculateDerivedStat('defense', defense + shieldBonus, $effects, $char);
 });
 
 export const damageBonus = derived([character, activeEffects], ([$char, $effects]) => {
     const allMods = $effects.flatMap(e => Array.isArray(e.modifiers) ? e.modifiers : []);
-  const bonus = allMods.filter(m => m.target === 'damage' && m.type === MOD_TYPES.ADD)
-    .reduce((acc, m) => acc + evaluateModifierValue(m.value, $char), 0);
+    const bonus = allMods.filter(m => m.target === 'damage' && m.type === MOD_TYPES.ADD)
+        .reduce((acc, m) => acc + evaluateModifierValue(m.value, $char), 0);
     return ($char.bonusDamage || 0) + bonus;
 });
-
 
 // --- ACTIONS ---
 
 export const characterActions = {
-    updateCurrency: (type, amount) => {
+    updateCurrency: (type: 'gp' | 'sp' | 'cp', amount: number) => {
         character.update(c => {
             let totalCp = (c.currency.gp * 100) + (c.currency.sp * 10) + c.currency.cp;
             let addCp = 0;
@@ -280,7 +358,7 @@ export const characterActions = {
         });
     },
 
-    advanceRound: (direction) => {
+    advanceRound: (direction: 'next' | 'prev') => {
         character.update(c => {
             const currentR = c.currentRound || 1;
             if (direction === 'next') {
@@ -298,32 +376,32 @@ export const characterActions = {
         });
     },
 
-    addToHistory: (rollData, shouldSync = true) => {
+    addToHistory: (rollData: Partial<RollHistoryEntry>, shouldSync = true) => {
         const char = get(character);
         const history = get(rollHistory);
 
-        // If the roll already has an ID, check if it's already in the history (prevent duplicates from sync)
         if (rollData.id && history.find(r => r.id === rollData.id)) {
             return;
         }
 
-        const entry = {
+        const entry: RollHistoryEntry = {
             id: rollData.id || uuidv7(),
             timestamp: rollData.timestamp || new Date(),
             charName: char.name,
+            source: rollData.source || 'gm',
+            name: rollData.name || 'Action',
             ...rollData
         };
 
         rollHistory.update(h => [entry, ...h]);
 
-      const settings = get(appSettings);
-      if (settings.autoOpenHistory) {
-          isHistoryOpen.set(true);
+        const settings = get(appSettings);
+        if (settings.autoOpenHistory) {
+            isHistoryOpen.set(true);
         } else if (!get(isHistoryOpen)) {
-          hasUnreadRolls.set(true);
+            hasUnreadRolls.set(true);
         }
 
-        // Sync via Trystero if in a campaign
         if (shouldSync && char.campaignId) {
             import('$lib/logic/sync').then(({ syncRoll }) => {
                 syncRoll(entry);
@@ -333,19 +411,23 @@ export const characterActions = {
 
     clearHistory: () => rollHistory.set([]),
 
-    // Generic CRUD helpers
-    addItem: (item) => character.update(c => ({ ...c, equipment: [...c.equipment, item] })),
-    updateItem: (item) => character.update(c => ({ ...c, equipment: c.equipment.map(i => i.id === item.id ? item : i) })),
-    deleteItem: (id) => character.update(c => ({ ...c, equipment: c.equipment.filter(i => i.id !== id) })),
+    addItem: (item: WWItem) => character.update(c => ({ ...c, equipment: [...c.equipment, item] })),
+    updateItem: (item: WWItem) => character.update(c => ({ ...c, equipment: c.equipment.map(i => i.id === item.id ? item : i) })),
+    deleteItem: (id: string | number) => character.update(c => ({ ...c, equipment: c.equipment.filter(i => i.id !== id) })),
 
-    useConsumable: (item) => {
+    useConsumable: (item: WWItem) => {
         if (item.quantity > 0) {
+            const _t = get(t);
             characterActions.updateItem({ ...item, quantity: item.quantity - 1 });
-            characterActions.addToHistory({ source: 'Consumível', name: item.name, description: `Usou ${item.name} ` });
+            characterActions.addToHistory({
+                source: 'item',
+                name: item.name,
+                description: _t('sofww.item_types.consumable') + `: ${item.name}`
+            });
         }
     },
 
-    equipItem: (item, state = null) => {
+    equipItem: (item: WWItem, state: string | null = null) => {
         character.update(c => {
             let newEquip = [...c.equipment];
             if (item.type === ITEM_TYPES.ARMOR) {
@@ -364,19 +446,18 @@ export const characterActions = {
         });
     },
 
-    toggleAffliction: (aff) => {
+    toggleAffliction: (aff: string) => {
         character.update(c => {
             if (c.afflictions.includes(aff)) return { ...c, afflictions: c.afflictions.filter(a => a !== aff) };
             return { ...c, afflictions: [...c.afflictions, aff] };
         });
     },
 
-    addLanguage: (lang) => character.update(c => ({ ...c, languages: [...c.languages, lang] })),
-    removeLanguage: (index) => character.update(c => ({ ...c, languages: c.languages.filter((_, i) => i !== index) })),
+    addLanguage: (lang: string) => character.update(c => ({ ...c, languages: [...c.languages, lang] })),
+    removeLanguage: (index: number) => character.update(c => ({ ...c, languages: c.languages.filter((_, i) => i !== index) })),
 
-    // Senses
-    addSense: (sense) => character.update(c => ({ ...c, senses: [...(c.senses || []), sense] })),
-    removeSense: (index) => character.update(c => ({ ...c, senses: (c.senses || []).filter((_, i) => i !== index) })),
+    addSense: (sense: string) => character.update(c => ({ ...c, senses: [...(c.senses || []), sense] })),
+    removeSense: (index: number) => character.update(c => ({ ...c, senses: (c.senses || []).filter((_, i) => i !== index) })),
 
     confirmRest: () => {
         character.update(c => {
@@ -386,54 +467,50 @@ export const characterActions = {
         });
         damage.set(0);
         const nh = get(normalHealth);
-        currentHealth.set(nh); // assuming full heal? logic in original was cur = normal.
+        currentHealth.set(nh);
         modalState.set({ type: null, isOpen: false, data: null });
     },
 
-    finalizeRoll: (data, modifier, selectedEffects = []) => {
+    finalizeRoll: (data: any, modifier: number, selectedEffects: any[] = []) => {
         const char = get(character);
-        const derivedStatsVal = get(derivedStats); // map of key -> val
+        const derivedStatsVal = get(derivedStats);
+        const _t = get(t);
 
         const isAttack = data.type === 'weapon_attack';
         const isLuck = data.type === 'luck';
         const isDamage = data.type === 'weapon_damage';
-      const item = data?.source;
-      const sourceName = item?.name || 'Ação';
-        const hasTrait = (it, trait) => it.traits && it.traits.toLowerCase().includes(trait.toLowerCase());
+        const item = data?.source;
+        const sourceName = item?.name || _t('common.labels.action');
+        const hasTrait = (it: any, trait: string) => it.traits && it.traits.toLowerCase().includes(trait.toLowerCase());
 
         if (!isDamage) {
             const d20 = Math.floor(Math.random() * 20) + 1;
             let attrMod = 0;
-            let attrUsed = 'Sorte'; // Default label
+            let attrUsed = _t('history.source.luck');
 
             if (data.type === 'attribute') {
                 const baseVal = derivedStatsVal[data.source.key] || data.source.value;
                 attrMod = baseVal - 10;
-                attrUsed = data.source.name;
+                attrUsed = _t(`sofww.attributes.${data.source.key}`);
             } else if (isAttack) {
-                // Default Weapon Attack Attribute: Strength
                 let key = 'str';
-                let attrLabel = 'Força';
+                let attrLabel = _t('sofww.attributes.str');
 
-                // Ranges: Melee vs Ranged
-                // Rule: Ranged attacks use Agility. Melee uses Strength.
                 const isRangedAttack = item.range === 'Ranged';
 
                 if (isRangedAttack) {
                     key = 'agi';
-                    attrLabel = 'Agilidade';
+                    attrLabel = _t('sofww.attributes.agi');
 
-                    // THROWN: Uses Strength unless Nimble
                     if (hasTrait(item, 'Thrown')) {
                         key = 'str';
-                        attrLabel = 'Força';
+                        attrLabel = _t('sofww.attributes.str');
                     }
                 }
 
-                // NIMBLE: Overrides all, allows Agility
                 if (hasTrait(item, 'Nimble')) {
                     key = 'agi';
-                    attrLabel = 'Agilidade';
+                    attrLabel = _t('sofww.attributes.agi');
                 }
 
                 const baseVal = derivedStatsVal[key] || 10;
@@ -441,14 +518,10 @@ export const characterActions = {
                 attrUsed = attrLabel;
             }
 
-            // Calculate Boons/Banes from Effects
-            // Target: 'boons' -> Value is added to modifier.
-            // Positive value = Boons, Negative value = Banes (handled by modifier logic below)
-          // Positive value = Boons, Negative value = Banes (handled by modifier logic below)
             const effectBoons = selectedEffects
                 .flatMap(e => Array.isArray(e.modifiers) ? e.modifiers : [])
                 .filter(m => m.target === 'boons' && m.type === MOD_TYPES.ADD)
-              .reduce((acc, m) => acc + evaluateModifierValue(m.value, char), 0);
+                .reduce((acc, m) => acc + evaluateModifierValue(m.value, char), 0);
 
             modifier += effectBoons;
 
@@ -463,27 +536,38 @@ export const characterActions = {
 
                 if (modifier > 0) {
                     boonBaneTotal = highest;
-                    boonBaneStr = ` + ${highest} [Boon]`;
+                    boonBaneStr = ` + ${highest} [${_t('sofdl.rolls.boon')}]`;
                 } else {
                     boonBaneTotal = -highest;
-                    boonBaneStr = ` - ${highest} [Bane]`;
+                    boonBaneStr = ` - ${highest} [${_t('sofdl.rolls.bane')}]`;
                 }
             }
 
             const total = d20 + attrMod + boonBaneTotal;
-            let description = isAttack ? `Ataque (${attrUsed})` : isLuck ? `Teste de Sorte` : `Teste de ${sourceName}`;
-            if (modifier !== 0) description += ` com ${modifier} boons/banes`;
+
+            let description = '';
+            if (isAttack) {
+                description = `${_t('history.source.attack')} (${attrUsed})`;
+            } else if (isLuck) {
+                description = _t('history.source.luck');
+            } else {
+                description = `${_t('history.source.attribute')}: ${sourceName}`;
+            }
+
+            if (modifier !== 0) {
+                description += ` ${_t('sofdl.rolls.attribute_test', { values: { attr: '', modifier } }).replace(/^[^ ]+ /, '')}`;
+            }
 
             if (isAttack && d20 === 20) {
                 let critEffects = [];
-                if (hasTrait(item, 'Bludgeoning')) critEffects.push("Vuln");
-                if (hasTrait(item, 'Piercing')) critEffects.push("Weakened");
+                if (hasTrait(item, 'Bludgeoning')) critEffects.push(_t('sofww.afflictions.vulnerable.name'));
+                if (hasTrait(item, 'Piercing')) critEffects.push(_t('sofww.afflictions.weakened.name'));
                 if (hasTrait(item, 'Slashing')) critEffects.push("+1d6 Dmg");
                 if (critEffects.length > 0) description += `\nCRÍTICO! ${critEffects.join(" ")} `;
             }
 
             characterActions.addToHistory({
-                source: isAttack ? 'Ataque' : isLuck ? 'Sorte' : 'Atributo',
+                source: isAttack ? 'attack' : isLuck ? 'luck' : 'attribute',
                 name: sourceName,
                 description: description,
                 formula: `d20(${d20})${attrMod !== 0 ? (attrMod >= 0 ? '+' : '') + attrMod : ''}${boonBaneStr} `,
@@ -492,13 +576,11 @@ export const characterActions = {
                 effectsApplied: selectedEffects.map(e => e.name)
             });
 
-            // Consume NEXT_ROLL effects
             character.update(c => ({
                 ...c,
                 effects: c.effects.map(e => (e.isActive && e.duration === 'NEXT_ROLL') ? { ...e, isActive: false } : e)
             }));
 
-            // Handle RELOAD trait usage (set isLoaded = false)
             if (isAttack && hasTrait(item, 'Reload')) {
                 character.update(c => ({
                     ...c,
@@ -507,10 +589,8 @@ export const characterActions = {
             }
 
         } else {
-            // Damage Logic
             let baseDice = parseInt(item.damageDice) || 0;
 
-            // VERSATILE: +1d6 if two-handed (Check both static grip and equipped state)
             const isTwoHanded = (item.grip && item.grip.toLowerCase() === 'two') ||
                 (item.equippedState && item.equippedState.toLowerCase() === 'two');
 
@@ -520,17 +600,14 @@ export const characterActions = {
 
             let charBonus = (char.bonusDamage || 0);
 
-            // LIGHT: Reduce bonus damage die by 1
             if (hasTrait(item, 'Light') && charBonus > 1) {
                 charBonus -= 1;
             }
 
-          // Effect Bonus
-            // Effect Bonus
             const effectBonus = selectedEffects
                 .flatMap(e => Array.isArray(e.modifiers) ? e.modifiers : [])
                 .filter(m => m.target === 'damage' && m.type === MOD_TYPES.ADD)
-              .reduce((acc, m) => acc + evaluateModifierValue(m.value, char), 0);
+                .reduce((acc, m) => acc + evaluateModifierValue(m.value, char), 0);
 
             const totalBonus = charBonus + effectBonus;
             const totalDice = Math.max(0, baseDice + totalBonus + modifier);
@@ -541,8 +618,6 @@ export const characterActions = {
 
             for (let i = 0; i < totalDice; i++) {
                 let r = Math.floor(Math.random() * 6) + 1;
-
-                // BRUTAL: Reroll 1s
 
                 if (r === 1 && hasTrait(item, 'Brutal')) {
                     const newR = Math.floor(Math.random() * 6) + 1;
@@ -559,9 +634,9 @@ export const characterActions = {
             damage.set(sum);
 
             characterActions.addToHistory({
-                source: `Dano`,
+                source: `damage`,
                 name: item.name,
-                description: `Dano: ${totalDice}d6 ${hasTrait(item, 'Brutal') ? '(Brutal)' : ''}`,
+                description: `${_t('history.source.damage')}: ${totalDice}d6 ${hasTrait(item, 'Brutal') ? '(Brutal)' : ''}`,
                 formula: `${totalDice}d6 [${results.join(', ')}] ${originalRollsInfo.some(s => s.includes('->')) ? `(Rolagens: ${originalRollsInfo.join(', ')})` : ''}`,
                 total: sum,
                 effectsApplied: selectedEffects.map(e => e.name)
@@ -570,59 +645,65 @@ export const characterActions = {
             if (item.type === ITEM_TYPES.EXPLOSIVE) characterActions.useConsumable(item);
         }
 
-      modalState.set({ type: null, isOpen: false, data: null });
+        modalState.set({ type: null, isOpen: false, data: null });
     },
 
-    reloadWeapon: (item) => {
+    reloadWeapon: (item: WWItem) => {
+        const _t = get(t);
         character.update(c => ({
             ...c,
             equipment: c.equipment.map(i => i.id === item.id ? { ...i, isLoaded: true } : i)
         }));
-        characterActions.addToHistory({ source: 'Ação', name: 'Recarregar', description: `Recarregou ${item.name}` });
+        characterActions.addToHistory({
+            source: 'attribute', // or action? Standardized to attribute for now or action?
+            name: _t('actions.reload'),
+            description: `${_t('actions.reload')}: ${item.name}`
+        });
     },
 
-    // Spells / Talents Management
+    addSpell: (spell: WWSpell) => character.update(c => ({ ...c, spells: [...c.spells, spell] })),
+    updateSpell: (spell: WWSpell) => character.update(c => ({ ...c, spells: c.spells.map(s => s.id === spell.id ? spell : s) })),
+    deleteSpell: (id: string | number) => character.update(c => ({ ...c, spells: c.spells.filter(s => s.id !== id) })),
 
-    addSpell: (spell) => character.update(c => ({ ...c, spells: [...c.spells, spell] })),
-    updateSpell: (spell) => character.update(c => ({ ...c, spells: c.spells.map(s => s.id === spell.id ? spell : s) })),
-    deleteSpell: (id) => character.update(c => ({ ...c, spells: c.spells.filter(s => s.id !== id) })),
-
-    commitSpellCast: (spell) => {
+    commitSpellCast: (spell: WWSpell) => {
         if (spell.castings > 0) {
             character.update(c => ({ ...c, spells: c.spells.map(s => s.id === spell.id ? { ...s, castings: s.castings - 1 } : s) }));
-            characterActions.addToHistory({ source: 'Magia', name: spell.name, description: spell.description });
+            characterActions.addToHistory({ source: 'spell', name: spell.name, description: spell.description });
             modalState.set({ type: null, isOpen: false, data: null });
         }
     },
 
-    addTalent: (talent) => character.update(c => ({ ...c, talents: [...c.talents, talent] })),
-    updateTalent: (talent) => character.update(c => ({ ...c, talents: c.talents.map(t => t.id === talent.id ? talent : t) })),
-    deleteTalent: (id) => character.update(c => ({ ...c, talents: c.talents.filter(t => t.id !== id) })),
+    addTalent: (talent: WWTalent) => character.update(c => ({ ...c, talents: [...c.talents, talent] })),
+    updateTalent: (talent: WWTalent) => character.update(c => ({ ...c, talents: c.talents.map(t => t.id === talent.id ? talent : t) })),
+    deleteTalent: (id: string | number) => character.update(c => ({ ...c, talents: c.talents.filter(t => t.id !== id) })),
 
-    commitTalentUse: (talent) => {
+    commitTalentUse: (talent: WWTalent) => {
         if (talent.activityType === 'Duration' && talent.duration === 'LUCK_ENDS') {
             character.update(c => ({ ...c, talents: c.talents.map(t => t.id === talent.id ? { ...t, uses: 0 } : t) }));
         } else if (talent.maxUses) {
             character.update(c => ({ ...c, talents: c.talents.map(t => t.id === talent.id ? { ...t, uses: t.uses - 1 } : t) }));
         }
-        characterActions.addToHistory({ source: 'Talento', name: talent.name, description: talent.description });
+        characterActions.addToHistory({ source: 'talent', name: talent.name, description: talent.description });
         modalState.set({ type: null, isOpen: false, data: null });
     },
-    recoverTalent: (id) => {
-        character.update(c => ({ ...c, talents: c.talents.map(t => t.id === id && t.uses < t.maxUses ? { ...t, uses: t.uses + 1 } : t) }));
+
+    recoverTalent: (id: string | number) => {
+        character.update(c => ({ ...c, talents: c.talents.map(t => t.id === id && t.uses < t.maxUses ? { ...t, uses: (t.uses || 0) + 1 } : t) }));
     },
-    rollLuckTalent: (talentId) => {
+
+    rollLuckTalent: (talentId: string | number) => {
+        const _t = get(t);
         const d20 = Math.floor(Math.random() * 20) + 1;
         const success = d20 >= 10;
         const char = get(character);
         const talent = char.talents.find(t => t.id === talentId);
 
         characterActions.addToHistory({
-            source: 'Sorte',
-            name: `Teste de Sorte - ${talent?.name || 'Talento'}`,
+            source: 'luck',
+            name: `${_t('character.history.source.luck')} - ${talent?.name || _t('character.talents.title')}`,
             formula: `d20(${d20})`,
             total: d20,
-            description: `Rolou ${d20}. ${success ? 'Sucesso! Talento recuperado.' : 'Falha. O talento continua indisponível.'}`
+            description: success ? _t('character.dice_roll.luck_success', { values: { total: d20 } }) : _t('character.dice_roll.luck_failure', { values: { total: d20 } })
         });
 
         if (success) {
@@ -633,11 +714,10 @@ export const characterActions = {
         }
     },
 
-    // Effects
-    addEffect: (effect) => character.update(c => ({ ...c, effects: [...c.effects, effect] })),
-    updateEffect: (effect) => character.update(c => ({ ...c, effects: c.effects.map(e => e.id === effect.id ? effect : e) })),
-    deleteEffect: (id) => character.update(c => ({ ...c, effects: c.effects.filter(e => e.id !== id) })),
-    toggleEffect: (id) => character.update(c => ({
+    addEffect: (effect: WWEffect) => character.update(c => ({ ...c, effects: [...c.effects, effect] })),
+    updateEffect: (effect: WWEffect) => character.update(c => ({ ...c, effects: c.effects.map(e => e.id === effect.id ? effect : e) })),
+    deleteEffect: (id: string) => character.update(c => ({ ...c, effects: c.effects.filter(e => e.id !== id) })),
+    toggleEffect: (id: string) => character.update(c => ({
         ...c,
         effects: c.effects.map(e => {
             if (e.id === id) {
@@ -653,17 +733,20 @@ export const characterActions = {
     })),
     cleanInactiveEffects: () => character.update(c => ({ ...c, effects: c.effects.filter(e => e.isActive) })),
 
-    applyEffectToCharacter: (effect, parentItem) => {
-        const effectName = effect.name || (parentItem ? parentItem.name : "Efeito sem nome");
+    applyEffectToCharacter: (effect: Partial<WWEffect>, parentItem: any) => {
+        const effectName = effect.name || (parentItem ? parentItem.name : "Effect");
         const effectDesc = effect.description || (parentItem ? parentItem.description : "");
 
-        const newEffect = {
-            ...effect,
+        const newEffect: WWEffect = {
             id: uuidv7(),
             isActive: true,
             name: effectName,
-            description: effectDesc
-        };
+            description: effectDesc,
+            roundsLeft: 0,
+            duration: 'PERMANENT',
+            modifiers: [],
+            ...effect
+        } as WWEffect;
 
         if (newEffect.duration === 'ROUNDS' && !newEffect.initialRounds) {
             newEffect.initialRounds = newEffect.roundsLeft;
@@ -672,24 +755,28 @@ export const characterActions = {
         character.update(c => ({ ...c, effects: [...c.effects, newEffect] }));
     },
 
-    checkLuckEnds: (effId) => {
+    checkLuckEnds: (effId: string) => {
+        const _t = get(t);
         const d20 = Math.floor(Math.random() * 20) + 1;
         const success = d20 >= 10;
-        characterActions.addToHistory({ source: 'Sorte', name: 'Check Fim Efeito', description: `Rolou ${d20}. ${success ? 'Sucesso (Encerra)' : 'Falha'} ` });
+        characterActions.addToHistory({
+            source: 'luck',
+            name: _t('sofww.duration.luck_ends'),
+            description: success ? _t('character.dice_roll.luck_success', { values: { total: d20 } }) : _t('character.dice_roll.luck_failure', { values: { total: d20 } })
+        });
         if (success) {
             character.update(c => ({ ...c, effects: c.effects.map(e => e.id === effId ? { ...e, isActive: false } : e) }));
         }
     },
 
-    joinCampaign: (campaign) => {
+    joinCampaign: (campaign: any) => {
         character.update(c => ({
             ...c,
             campaignId: campaign.id,
             campaignName: campaign.name,
-            gmName: campaign.gmName || 'Mestre'
+            gmName: campaign.gmName || 'Game Master'
         }));
 
-        // Connect to Trystero
         import('$lib/logic/sync').then(({ joinCampaignRoom }) => {
             joinCampaignRoom(campaign.id, false);
         });
@@ -705,15 +792,3 @@ export const characterActions = {
         }));
     }
 };
-
-// Auto Affliction Logic (Subscription)
-// Ideally this logic runs whenever damage or maxHealth changes?
-// In Svelte store, we can use a derived or just subscribe?
-// Let's create a "subscriber" to keep consistency if we want to strictly follow the "logic outside components"
-damage.subscribe($dmg => {
-    // We also need $effectiveMaxHealth.
-    // This is hard to do cleanly inside the store definition file without creating a circular dependency loop or complex setup.
-    // For now, I will leave the "Auto Affliction" logic to be called or leave it in the main page / component that binds them?
-    // BETTER: Use a derived store that *returns* if it should be incapacitated, and let a component handle the side effect?
-    // OR: Just keep it reactive in the Vitals component.
-});
