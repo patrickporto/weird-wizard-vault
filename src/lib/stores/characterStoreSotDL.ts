@@ -1,6 +1,9 @@
 import { writable, derived, get } from 'svelte/store';
 import { _ } from 'svelte-i18n';
 import { uuidv7 } from 'uuidv7';
+import { Parser } from 'expr-eval';
+
+const parser = new Parser();
 // Use the global rollHistory from characterStore for now to have a unified history
 // We import as type any or handle the JS import properly
 // @ts-ignore
@@ -197,6 +200,38 @@ export const sotdlIsInjured = derived(sotdlCharacter, $c => $c.damage >= $c.heal
 export const sotdlIsIncapacitated = derived(sotdlCharacter, $c => $c.damage >= $c.health);
 export const sotdlActiveEffects = derived(sotdlCharacter, $c => $c.effects.filter(e => e.isActive));
 
+export function evaluateModifierValueSotDL(value: number | string, characterObj: SotDLCharacter): number {
+  if (typeof value === 'number') return value;
+  if (!value) return 0;
+  const sValue = String(value).trim();
+  if (!isNaN(Number(sValue))) return Number(sValue);
+
+  try {
+    const context: any = {};
+    if (characterObj.attributes) {
+      Object.entries(characterObj.attributes).forEach(([key, val]) => {
+        context[key] = val;
+      });
+    }
+    context['level'] = characterObj.level || 0;
+    context['perception'] = characterObj.perception || 0;
+    context['defense'] = characterObj.defense || 0;
+    context['health'] = characterObj.health || 0;
+    context['healingRate'] = characterObj.healingRate || 0;
+    context['size'] = characterObj.size || 0;
+    context['speed'] = characterObj.speed || 0;
+    context['power'] = characterObj.power || 0;
+    context['damage'] = characterObj.damage || 0;
+    context['insanity'] = characterObj.insanity || 0;
+    context['corruption'] = characterObj.corruption || 0;
+
+    const expression = sValue.replace(/@(\w+)/g, '$1');
+    return parser.evaluate(expression, context);
+  } catch (e) {
+    return 0;
+  }
+}
+
 export const sotdlTotalHealingRate = derived([sotdlCharacter, sotdlActiveEffects], ([$c, $effects]) => {
   let base = $c.healingRate;
   // Apply additions
@@ -204,7 +239,7 @@ export const sotdlTotalHealingRate = derived([sotdlCharacter, sotdlActiveEffects
     if (e.modifiers) {
       e.modifiers.forEach((m: any) => {
         if (m.target === 'healing_rate' && m.type === 'ADD') {
-          base += Number(m.value);
+          base += evaluateModifierValueSotDL(m.value, $c);
         }
       });
     }

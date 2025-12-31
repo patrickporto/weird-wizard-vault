@@ -2,14 +2,14 @@
 import { writable, derived, get } from 'svelte/store';
 import { _ as t } from 'svelte-i18n';
 import { uuidv7 } from 'uuidv7';
+import { Parser } from 'expr-eval';
+
+const parser = new Parser();
 import {
     ITEM_TYPES,
     MOD_TYPES,
     GRIPS
 } from "../../routes/sofww";
-import { Parser } from 'expr-eval';
-
-const parser = new Parser();
 
 // --- TYPES ---
 
@@ -230,7 +230,7 @@ export const activeEffects = derived(character, $char => {
     return [...standardEffects, ...talentEffects];
 });
 
-function evaluateModifierValue(value: number | string, characterObj: WWCharacter): number {
+export function evaluateModifierValue(value: number | string, characterObj: WWCharacter): number {
     if (typeof value === 'number') return value;
     if (!value) return 0;
     const sValue = String(value).trim();
@@ -244,6 +244,10 @@ function evaluateModifierValue(value: number | string, characterObj: WWCharacter
             });
         }
         context['level'] = characterObj.level || 0;
+        context['defense'] = characterObj.naturalDefense || 0;
+        context['speed'] = characterObj.speed || 0;
+        context['bonusDamage'] = characterObj.bonusDamage || 0;
+        context['currentRound'] = characterObj.currentRound || 0;
 
         const expression = sValue.replace(/@(\w+)/g, '$1');
         return parser.evaluate(expression, context);
