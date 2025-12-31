@@ -58,10 +58,10 @@
 
           <button
               onclick={(e) => handleEditClick(e, attr.key)}
-              class="absolute top-1.5 right-1.5 p-1 text-slate-700 hover:text-white hover:bg-white/5 rounded-md transition-all opacity-0 group-hover:opacity-100"
+              class="absolute top-1 right-1 w-7 h-7 flex items-center justify-center text-slate-500 hover:text-white bg-slate-800/80 hover:bg-indigo-600 rounded-lg transition-all shadow-sm border border-slate-700/50 hover:border-indigo-500/50 active:scale-90"
               aria-label={`${$t('common.buttons.edit')} ${$t(attr.label)}`}
           >
-              <Edit size={12} />
+              <Edit size={14} />
           </button>
        </div>
     {/each}

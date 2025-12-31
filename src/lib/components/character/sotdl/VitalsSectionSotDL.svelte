@@ -1,6 +1,6 @@
 <script lang="ts">
     import { t } from 'svelte-i18n';
-    import { Shield, Zap, Activity, Eye, HeartPulse, Sparkles, Maximize2 } from 'lucide-svelte';
+    import { Shield, Zap, Activity, Eye, HeartPulse, Sparkles, Maximize2, Edit } from 'lucide-svelte';
     import { sotdlCharacter, sotdlTotalHealingRate, sotdlDerivedStats } from '$lib/stores/characterStoreSotDL';
     import { modalState } from '$lib/stores/characterStore';
 

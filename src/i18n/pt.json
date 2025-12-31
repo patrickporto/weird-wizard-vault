@@ -18,7 +18,8 @@
       "edit": "Editar",
       "settings": "Configurações",
       "copied": "Copiado!",
-      "cancel_cap": "CANCELAR"
+      "cancel_cap": "CANCELAR",
+      "locked": "Travado"
     },
     "labels": {
       "level": "Nível",
@@ -391,6 +392,10 @@
         "power": "Poder"
       },
       "base_value": "Valor Base",
+      "calculated_value": "Valor Calculado",
+      "locked_by_effect": "Travado por Efeito",
+      "active_modifiers": "Modificadores Ativos",
+      "set_warning": "Um efeito ativo está sobrescrevendo o valor base. Remova ou desative o efeito para editar este atributo.",
       "normal_health": "Vida Normal",
       "current_health": "Vida Atual",
       "update": "Atualizar",

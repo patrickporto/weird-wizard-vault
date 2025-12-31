@@ -18,7 +18,8 @@
             "edit": "Edit",
             "settings": "Settings",
             "copied": "Copied!",
-            "cancel_cap": "CANCEL"
+            "cancel_cap": "CANCEL",
+            "locked": "Locked"
         },
         "labels": {
             "level": "Level",
@@ -398,6 +399,10 @@
             },
             "save_effect": "Save Effect",
             "base_value": "Base Value",
+            "calculated_value": "Calculated Value",
+            "locked_by_effect": "Locked by Effect",
+            "active_modifiers": "Active Modifiers",
+            "set_warning": "An active effect is overriding the base value. Remove or deactivate the effect to edit this attribute.",
             "normal_health": "Normal Health",
             "current_health": "Current Health",
             "update": "Update",
