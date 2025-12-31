@@ -392,10 +392,6 @@
                          {/if}
                       {/if}
 
-                      {#if $activeTab === 'efeitos'}
-                         <EffectsTab />
-                      {/if}
-
                       {#if $activeTab === 'magias'}
                          <SpellsTab />
                       {/if}
@@ -406,10 +402,6 @@
 
                       {#if $activeTab === 'equipamento'}
                          <InventoryTab />
-                      {/if}
-
-                      {#if $activeTab === 'notas'}
-                         <NotesTab />
                       {/if}
                    </div>
                 </div>

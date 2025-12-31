@@ -83,6 +83,8 @@
                      {/each}
                  </div>
             </div>
+
+
         {:else}
             <div class="p-8 text-center text-slate-500 bg-slate-900/50 rounded-xl border border-dashed border-slate-800">
                 <p>Nenhuma configuração específica disponível para este sistema.</p>

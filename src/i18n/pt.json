@@ -26,7 +26,8 @@
       "session": "Sessão",
       "bestiary": "Bestiário",
       "language": "Idioma",
-      "health_label": "Vida"
+      "health_label": "Vida",
+      "coming_soon": "Em breve"
     },
     "status": {
       "syncing": "Sincronizando",
@@ -78,7 +79,8 @@
         "standard": "Padrão (Rápido/Lento)",
         "team": "Iniciativa de Time",
         "individual": "Individual (d20 + Agi)"
-      }
+      },
+      "magic_system": "Sistema de Magia"
     },
     "active": "Campanha Ativa",
     "waiting_approval": "Aguardando Aprovação",
@@ -92,6 +94,11 @@
     }
   },
   "character": {
+    "settings": {
+      "title_label": "Configurações do Personagem",
+      "player_name": "Nome do Jogador",
+      "magic_system": "Sistema de Magia"
+    },
     "not_found": {
       "title": "Personagem Não Encontrado",
       "message": "Este personagem não existe na sua base local. Crie um novo personagem através da página inicial."

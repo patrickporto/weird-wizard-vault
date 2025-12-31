@@ -26,8 +26,8 @@
     let { campId }: Props = $props();
 
     function createDefaultEnemy() {
-        return { 
-            name: '', difficulty: 1, defense: 10, health: 10, damage: 0, size: 1, speed: 10, 
+        return {
+            name: '', difficulty: 1, defense: 10, health: 10, damage: 0, size: 1, speed: 10,
             description: '', senses: '', languages: '', immune: '',
             stats: { str: 10, agi: 10, int: 10, wil: 10 },
             traits: [], actions: [], reactions: [], endOfRound: []
@@ -51,10 +51,16 @@
 
     function saveEnemy(data: any) {
         const id = editingEnemyId || uuidv7();
-        enemiesMap.set(id, { ...data, id });
+        const campaign = campaignsMap.get(campId);
+        enemiesMap.set(id, {
+            ...data,
+            id,
+            campaignId: campId,
+            system: campaign?.system || 'sofww'
+        });
         isEnemyModalOpen = false;
     }
-    
+
     function deleteEnemy(id: string) {
         const enemy = $liveEnemies.find(e => e.id === id);
         confirmState = {
@@ -97,9 +103,9 @@
     function runEncounter(enc: any) {
         const latestCamp = campaignsMap.get(campId);
         if (!latestCamp) return;
-        
+
         const activeEnemies = latestCamp.activeEnemies || [];
-        
+
         let newEnemies: any[] = [];
         enc.enemies.forEach((item: any) => {
              const template = $liveEnemies.find(e => e.id === item.enemyId);
@@ -108,7 +114,7 @@
                     newEnemies.push({
                         ...template,
                         instanceId: uuidv7(),
-                        damage: 0, 
+                        damage: 0,
                         currentHealth: template.health,
                         afflictions: [],
                         acted: false,
@@ -117,7 +123,7 @@
                 }
              }
         });
-        
+
         campaignsMap.set(campId, { ...latestCamp, activeEnemies: [...activeEnemies, ...newEnemies] });
     }
 
@@ -136,19 +142,25 @@
         e.preventDefault();
         const enemyId = e.dataTransfer.getData('text/plain');
         if (!enemyId) return;
-        
+
         const currentEnemies = enc.enemies || [];
         const existing = currentEnemies.find(x => x.enemyId === enemyId);
-        
+
         let newEnemies;
         if (existing) {
             newEnemies = currentEnemies.map(x => x.enemyId === enemyId ? { ...x, count: x.count + 1 } : x);
         } else {
             newEnemies = [...currentEnemies, { enemyId, count: 1 }];
         }
-        
+
         encountersMap.set(enc.id, { ...enc, enemies: newEnemies });
     }
+
+    let currentSystem = $derived(campaignsMap.get(campId)?.system || 'sofww');
+    let filteredEnemies = $derived($liveEnemies.filter(e => {
+        const enemySystem = e.system || 'sofww'; // Default legacy to sofww
+        return enemySystem === currentSystem;
+    }));
 </script>
 
 <div>
@@ -160,8 +172,8 @@
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
              <!-- Placeholder Card: Novo Encontro -->
-             <button 
-                onclick={() => openEncounterModal()} 
+             <button
+                onclick={() => openEncounterModal()}
                 class="min-h-[120px] border-2 border-dashed border-slate-800 rounded-2xl flex flex-col items-center justify-center text-slate-500 hover:border-indigo-500 hover:text-indigo-400 transition-all hover:bg-indigo-500/5 gap-2 group"
              >
                 <Plus size={28} class="group-hover:scale-110 transition-transform"/>
@@ -170,7 +182,7 @@
 
              {#each $liveEncounters as enc (enc.id)}
                  <!-- svelte-ignore a11y_no_static_element_interactions -->
-                 <div 
+                 <div
                     class="bg-slate-900 border border-slate-800 rounded-2xl p-4 transition-all hover:border-indigo-500/30 group relative flex flex-col justify-between shadow-lg hover:shadow-indigo-500/10"
                     ondragover={handleDragOver}
                     ondrop={(e) => handleDrop(e, enc)}
@@ -199,26 +211,26 @@
              {/each}
         </div>
     </div>
-    
+
     <div class="mb-6">
         <h3 class="text-sm font-black text-indigo-400 uppercase tracking-widest flex items-center gap-2 mb-6">
             <Ghost size={16}/> {$t('session.bestiary.title')}
         </h3>
     </div>
-    
+
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Placeholder Card: Novo Inimigo -->
-        <button 
-            onclick={() => openEnemyModal()} 
+        <button
+            onclick={() => openEnemyModal()}
             class="min-h-[180px] border-2 border-dashed border-slate-800 rounded-2xl flex flex-col items-center justify-center text-slate-500 hover:border-indigo-500 hover:text-indigo-400 transition-all hover:bg-indigo-500/5 gap-2 group"
         >
             <Plus size={32} class="group-hover:scale-110 transition-transform"/>
             <span class="font-bold text-sm">{$t('session.bestiary.new_enemy')}</span>
         </button>
 
-        {#each $liveEnemies as enemy (enemy.id)}
+        {#each filteredEnemies as enemy (enemy.id)}
              <!-- svelte-ignore a11y_no_static_element_interactions -->
-             <div 
+             <div
                 class="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-indigo-500/30 transition-all relative group cursor-move hover:shadow-lg hover:shadow-indigo-500/10 active:scale-[0.98] flex flex-col"
                 draggable="true"
                 ondragstart={(e) => handleDragStart(e, enemy)}
@@ -235,7 +247,7 @@
                             {enemy.description}
                         </p>
                         {#if enemy.description.length > 120}
-                            <button 
+                            <button
                                 onclick={() => toggleExpandEnemy(enemy.id)}
                                 class="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 mt-1 uppercase tracking-wider"
                             >
@@ -253,7 +265,7 @@
                   </div>
              </div>
         {/each}
-        {#if $liveEnemies.length === 0}
+        {#if filteredEnemies.length === 0}
             <div class="text-center text-slate-500 italic col-span-3">{$t('session.bestiary.no_enemies')}</div>
         {/if}
     </div>
@@ -261,7 +273,7 @@
     <EnemyModal isOpen={isEnemyModalOpen} initialData={enemyFormStr} onClose={() => isEnemyModalOpen = false} onSave={saveEnemy} />
     <EncounterModal isOpen={isEncounterModalOpen} initialData={encounterFormStr} onClose={() => isEncounterModalOpen = false} onSave={saveEncounter} />
 
-    <ConfirmationModal 
+    <ConfirmationModal
         isOpen={confirmState.isOpen}
         title={confirmState.title}
         message={confirmState.message}

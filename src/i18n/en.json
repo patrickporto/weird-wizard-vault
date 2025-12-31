@@ -25,7 +25,8 @@
             "master": "Game Master",
             "session": "Session",
             "bestiary": "Bestiary",
-            "language": "Language"
+            "language": "Language",
+            "coming_soon": "Coming Soon"
         },
         "status": {
             "syncing": "Syncing",
@@ -76,7 +77,8 @@
                 "standard": "Standard (Fast/Slow)",
                 "team": "Team Initiative",
                 "individual": "Individual (d20 + Agi)"
-            }
+            },
+            "magic_system": "Magic System"
         },
         "active": "Active Campaign",
         "waiting_approval": "Waiting Approval",
@@ -90,6 +92,11 @@
         }
     },
     "character": {
+        "settings": {
+            "title_label": "Character Settings",
+            "player_name": "Player Name",
+            "magic_system": "Magic System"
+        },
         "not_found": {
             "title": "Character Not Found",
             "message": "This character does not exist in your local database. Create a new character through the home page."

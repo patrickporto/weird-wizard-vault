@@ -58,6 +58,7 @@ export interface SotDLCharacter {
     // Combat
   combatActive: boolean;
   currentRound: number;
+  magicSystem: 'standard' | 'forbidden_rules' | 'uncanny_arcana';
 }
 
 export const defaultSotDLCharacter: SotDLCharacter = {
@@ -98,7 +99,8 @@ export const defaultSotDLCharacter: SotDLCharacter = {
   gmName: null,
   campaignApproval: null,
     combatActive: false,
-    currentRound: 1
+  currentRound: 1,
+  magicSystem: 'standard'
 };
 
 // Store Definition
