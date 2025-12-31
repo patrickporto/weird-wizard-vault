@@ -1,17 +1,23 @@
 <script lang="ts">
     import { t } from 'svelte-i18n';
     import { Trash2 } from 'lucide-svelte';
-    import { characterActions, modalState } from '$lib/stores/characterStore';
+    import { characterActions, modalState, character } from '$lib/stores/characterStore';
+    import { sotdlCharacterActions, sotdlCharacter } from '$lib/stores/characterStoreSotDL';
     import Modal from '$lib/components/common/Modal.svelte';
 
     let isOpen = $derived($modalState.isOpen && $modalState.type === 'rest_confirm');
+    let currentSystem = $derived($character?.system || $sotdlCharacter?.system || 'sofww');
 
     function onClose() {
         modalState.update(m => ({ ...m, type: null, isOpen: false, data: null }));
     }
 
     function handleRest() {
-        characterActions.confirmRest();
+        if (currentSystem === 'sofdl') {
+            sotdlCharacterActions.rest();
+        } else {
+            characterActions.confirmRest();
+        }
         onClose();
     }
 </script>

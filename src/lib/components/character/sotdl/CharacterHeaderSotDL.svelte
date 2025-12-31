@@ -1,7 +1,7 @@
 <script lang="ts">
     import { t } from 'svelte-i18n';
     import { sotdlCharacter, sotdlCurrentHealth, sotdlIsInjured, sotdlIsIncapacitated } from '$lib/stores/characterStoreSotDL';
-    import { ChevronLeft, LayoutDashboard, Brain, Skull, History } from 'lucide-svelte';
+    import { ChevronLeft, LayoutDashboard, Brain, Skull, History, Moon } from 'lucide-svelte';
     import { goto } from '$app/navigation';
     import { resolve } from '$app/paths';
     import Avatar from '$lib/components/common/Avatar.svelte';
@@ -139,6 +139,14 @@
 
             <!-- Right: Actions -->
             <div class="flex items-center gap-2">
+                 <button
+                    onclick={() => openModal('rest_confirm')}
+                    class="p-2 sm:p-2.5 text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 rounded-full transition-all"
+                    title={$t('character.header.rest')}
+                 >
+                    <Moon size={20}/>
+                 </button>
+
                  <button
                     onclick={() => isHistoryOpen.update(v => !v)}
                     class="p-2 bg-indigo-600/10 text-indigo-400 border border-indigo-400/20 rounded-lg hover:bg-indigo-600 hover:text-white transition-all relative"

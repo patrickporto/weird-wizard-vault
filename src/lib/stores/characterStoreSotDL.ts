@@ -66,11 +66,11 @@ export interface SotDLEquipment {
 }
 
 export interface SotDLCharacter {
-    id: string;
-    system: 'sofdl';
-    name: string;
-    level: number;
-    ancestry: string;
+  id: string;
+  system: 'sofdl';
+  name: string;
+  level: number;
+  ancestry: string;
   paths: {
     novice: string;
     expert: string;
@@ -78,60 +78,60 @@ export interface SotDLCharacter {
   };
   imageUrl?: string;
 
-    // Attributes
-    attributes: {
-        strength: number;
-        agility: number;
-        intellect: number;
-        will: number;
-    };
+  // Attributes
+  attributes: {
+    strength: number;
+    agility: number;
+    intellect: number;
+    will: number;
+  };
 
-    // Stats
-    perception: number;
-    defense: number;
-    health: number; // Max Health
-    healingRate: number;
-    size: number;
-    speed: number;
-    power: number;
+  // Stats
+  perception: number;
+  defense: number;
+  health: number; // Max Health
+  healingRate: number;
+  size: number;
+  speed: number;
+  power: number;
 
-    // Status
-    damage: number;
-    insanity: number;
-    corruption: number;
+  // Status
+  damage: number;
+  insanity: number;
+  corruption: number;
 
-    // Details
-    description: string;
-    notes: string;
-    professions: string[]; // No specific list, just strings
-    languages: string[];
+  // Details
+  description: string;
+  notes: string;
+  professions: string[]; // No specific list, just strings
+  languages: string[];
   senses: string[];
   afflictions: string[];
 
-    // Collections
+  // Collections
   talents: SotDLTalent[];
   spells: SotDLSpell[];
   equipment: SotDLEquipment[];
   currency: SotDLCurrency;
   effects: any[];
 
-    // Campaign
+  // Campaign
   campaignId: string | null;
   campaignName: string | null;
   gmName: string | null;
   campaignApproval: 'pending' | 'approved' | 'rejected' | null;
 
-    // Combat
+  // Combat
   combatActive: boolean;
   currentRound: number;
   magicSystem: 'standard' | 'forbidden_rules' | 'uncanny_arcana';
 }
 
 export const defaultSotDLCharacter: SotDLCharacter = {
-    id: '',
-    system: 'sofdl',
+  id: '',
+  system: 'sofdl',
   name: 'Novo Personagem',
-    ancestry: 'Humano',
+  ancestry: 'Humano',
   level: 0,
   paths: {
     novice: '',
@@ -139,38 +139,38 @@ export const defaultSotDLCharacter: SotDLCharacter = {
     master: ''
   },
   imageUrl: '',
-    attributes: {
-        strength: 10,
-        agility: 10,
-        intellect: 10,
-        will: 10
-    },
-    perception: 10,
-    defense: 10,
-    health: 10,
-    healingRate: 2,
-    size: 1,
-    speed: 10,
-    power: 0,
-    damage: 0,
-    insanity: 0,
-    corruption: 0,
-    description: '',
-    notes: '',
-    professions: [],
-    languages: ['Comum'],
+  attributes: {
+    strength: 10,
+    agility: 10,
+    intellect: 10,
+    will: 10
+  },
+  perception: 10,
+  defense: 10,
+  health: 10,
+  healingRate: 2,
+  size: 1,
+  speed: 10,
+  power: 0,
+  damage: 0,
+  insanity: 0,
+  corruption: 0,
+  description: '',
+  notes: '',
+  professions: [],
+  languages: ['Comum'],
   senses: [],
   afflictions: [],
-    talents: [],
-    spells: [],
-    equipment: [],
+  talents: [],
+  spells: [],
+  equipment: [],
   currency: { gc: 0, ss: 0, cp: 0, bits: 0 },
   effects: [],
   campaignId: null,
   campaignName: null,
   gmName: null,
   campaignApproval: null,
-    combatActive: false,
+  combatActive: false,
   currentRound: 1,
   magicSystem: 'standard'
 };
@@ -181,10 +181,10 @@ export const sotdlCharacter = writable<SotDLCharacter>(JSON.parse(JSON.stringify
 // Derived Stats
 export const sotdlAttributes = derived(sotdlCharacter, $c => $c.attributes);
 export const sotdlModifiers = derived(sotdlAttributes, $a => ({
-    strength: $a.strength - 10,
-    agility: $a.agility - 10,
-    intellect: $a.intellect - 10,
-    will: $a.will - 10
+  strength: $a.strength - 10,
+  agility: $a.agility - 10,
+  intellect: $a.intellect - 10,
+  will: $a.will - 10
 }));
 
 export const sotdlCurrentHealth = derived(sotdlCharacter, $c => $c.health - $c.damage);
@@ -218,74 +218,74 @@ export const sotdlCharacterActions = {
       return newState;
     });
   },
-    updateAttribute: (attr: keyof SotDLCharacter['attributes'], value: number) => {
-        sotdlCharacter.update(c => ({
-            ...c,
-            attributes: { ...c.attributes, [attr]: value }
-        }));
-    },
-    takeDamage: (amount: number) => {
-        sotdlCharacter.update(c => {
-            const newDamage = Math.max(0, Math.min(c.health, c.damage + amount));
-            return { ...c, damage: newDamage };
-        });
-    },
-    heal: (amount: number) => {
-        sotdlCharacter.update(c => {
-            const newDamage = Math.max(0, c.damage - amount);
-            return { ...c, damage: newDamage };
-        });
-    },
-    updateStat: (stat: 'insanity' | 'corruption', value: number) => {
-        sotdlCharacter.update(c => ({ ...c, [stat]: Math.max(0, value) }));
-    },
-    // Effects Actions
-    toggleEffect: (id: string) => {
-        sotdlCharacter.update(c => ({
-            ...c,
-            effects: c.effects.map(e => e.id === id ? { ...e, isActive: !e.isActive } : e)
-        }));
-    },
-    deleteEffect: (id: string) => {
-        sotdlCharacter.update(c => ({
-            ...c,
-            effects: c.effects.filter(e => e.id !== id)
-        }));
-    },
-    cleanInactiveEffects: () => {
-        sotdlCharacter.update(c => ({
-            ...c,
-            effects: c.effects.filter(e => e.isActive)
-        }));
-    },
-    advanceRound: (direction: 'next' | 'prev') => {
-      sotdlCharacter.update(c => {
-        if (direction === 'next') {
-          // Auto-deactivate END_OF_ROUND effects
-          const newEffects = c.effects.map(e =>
-            e.isActive && e.duration === 'END_OF_ROUND'
-              ? { ...e, isActive: false }
-              : e
-          );
-          return { ...c, currentRound: c.currentRound + 1, effects: newEffects };
-        }
-        return { ...c, currentRound: Math.max(1, c.currentRound - 1) };
-      });
-    },
-    checkLuckEnds: (id: string) => {
-      const char = get(sotdlCharacter);
-      const effect = char.effects.find(e => e.id === id);
-      modalState.set({
-        type: 'pre_roll',
-        isOpen: true,
-        data: {
-          type: 'luck_ends',
-          system: 'sofdl',
-          effectId: id,
-          source: { name: effect?.name || 'Efeito' }
-        }
-      });
-    },
+  updateAttribute: (attr: keyof SotDLCharacter['attributes'], value: number) => {
+    sotdlCharacter.update(c => ({
+      ...c,
+      attributes: { ...c.attributes, [attr]: value }
+    }));
+  },
+  takeDamage: (amount: number) => {
+    sotdlCharacter.update(c => {
+      const newDamage = Math.max(0, Math.min(c.health, c.damage + amount));
+      return { ...c, damage: newDamage };
+    });
+  },
+  heal: (amount: number) => {
+    sotdlCharacter.update(c => {
+      const newDamage = Math.max(0, c.damage - amount);
+      return { ...c, damage: newDamage };
+    });
+  },
+  updateStat: (stat: 'insanity' | 'corruption', value: number) => {
+    sotdlCharacter.update(c => ({ ...c, [stat]: Math.max(0, value) }));
+  },
+  // Effects Actions
+  toggleEffect: (id: string) => {
+    sotdlCharacter.update(c => ({
+      ...c,
+      effects: c.effects.map(e => e.id === id ? { ...e, isActive: !e.isActive } : e)
+    }));
+  },
+  deleteEffect: (id: string) => {
+    sotdlCharacter.update(c => ({
+      ...c,
+      effects: c.effects.filter(e => e.id !== id)
+    }));
+  },
+  cleanInactiveEffects: () => {
+    sotdlCharacter.update(c => ({
+      ...c,
+      effects: c.effects.filter(e => e.isActive)
+    }));
+  },
+  advanceRound: (direction: 'next' | 'prev') => {
+    sotdlCharacter.update(c => {
+      if (direction === 'next') {
+        // Auto-deactivate END_OF_ROUND effects
+        const newEffects = c.effects.map(e =>
+          e.isActive && e.duration === 'END_OF_ROUND'
+            ? { ...e, isActive: false }
+            : e
+        );
+        return { ...c, currentRound: c.currentRound + 1, effects: newEffects };
+      }
+      return { ...c, currentRound: Math.max(1, c.currentRound - 1) };
+    });
+  },
+  checkLuckEnds: (id: string) => {
+    const char = get(sotdlCharacter);
+    const effect = char.effects.find(e => e.id === id);
+    modalState.set({
+      type: 'pre_roll',
+      isOpen: true,
+      data: {
+        type: 'luck_ends',
+        system: 'sofdl',
+        effectId: id,
+        source: { name: effect?.name || 'Efeito' }
+      }
+    });
+  },
   checkConcentration: (effectId: string) => {
     const char = get(sotdlCharacter);
     const effect = char.effects.find(e => e.id === effectId);
@@ -571,11 +571,35 @@ export const sotdlCharacterActions = {
       });
     }
   },
-    // Item Actions
-    useConsumable: (item: any) => {
-        console.log('Use consumable', item);
-    },
-    reloadWeapon: (item: any) => {
-        console.log('Reload weapon', item);
-    }
+  // Item Actions
+  useConsumable: (item: any) => {
+    console.log('Use consumable', item);
+  },
+  reloadWeapon: (item: any) => {
+    console.log('Reload weapon', item);
+  },
+
+  // Rest action
+  rest: () => {
+    sotdlCharacter.update(c => {
+      // Reset all spell castings
+      const resetSpells = c.spells.map(s => ({ ...s, castingsUsed: 0 }));
+
+      // Reset all talent uses
+      const resetTalents = c.talents.map(t => ({
+        ...t,
+        uses: t.isPassive ? 0 : t.maxUses
+      }));
+
+      // Heal damage equal to healing rate
+      const newDamage = Math.max(0, c.damage - c.healingRate);
+
+      return {
+        ...c,
+        spells: resetSpells,
+        talents: resetTalents,
+        damage: newDamage
+      };
+    });
+  }
 };
