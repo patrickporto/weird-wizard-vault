@@ -171,16 +171,20 @@
     let currentSystem = $derived(campaignsMap.get(campId)?.system || 'sofww');
     let filteredEnemies = $derived($liveEnemies.filter(e => {
         const enemySystem = e.system || 'sofww'; // Default legacy to sofww
-        return enemySystem === currentSystem;
+        const isSystemMatch = enemySystem === currentSystem;
+        const isGlobal = e.global === true;
+        const isCampaignMatch = e.campaignId === campId;
+        return isSystemMatch && (isGlobal || isCampaignMatch);
     }));
 
     let filteredEncounters = $derived($liveEncounters.filter(e => {
-        // Encounters usually don't have system explicitly, but we can infer from their enemies or just show all for now?
-        // Ideally encounters should also have system. For now let's assume if it contains enemies of that system it's relevant,
-        // or just rely on manual management.
-        // Let's add system to encounters when saving.
         const encSystem = e.system || 'sofww';
-        return encSystem === currentSystem;
+        const isSystemMatch = encSystem === currentSystem;
+        // Encounters don't currently have a UI for 'global' but if they did:
+        const isGlobal = e.global === true;
+        // Assume encounters created in this campaign are local.
+        const isCampaignMatch = e.campaignId === campId;
+        return isSystemMatch && (isGlobal || isCampaignMatch);
     }));
 </script>
 
