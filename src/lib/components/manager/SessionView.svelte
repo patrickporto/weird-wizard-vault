@@ -15,9 +15,11 @@
     import { calculateDiceRoll } from '$lib/logic/dice';
     import { onMount } from 'svelte';
     import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncCharacter } from '$lib/logic/sync';
-    import type { InitiativeStyle } from '$lib/systems';
-    import { DEFAULT_SYSTEM } from '$lib/systems';
+    import type { InitiativeStyle, TierLevel } from '$lib/systems';
+    import { DEFAULT_SYSTEM, getDefaultTier } from '$lib/systems';
     import { sortCombatants } from '$lib/logic/initiative';
+    import CombatDifficultySotDL from './CombatDifficultySotDL.svelte';
+    import CombatDifficultySofWW from './CombatDifficultySofWW.svelte';
 
     let { campaign } = $props<{ campaign: any }>();
 
@@ -83,6 +85,11 @@
     let activeEnemies = $derived(campaign?.activeEnemies || []);
     let campaignMembers = $derived(campaign?.members || []);
     let currentStyle = $derived<InitiativeStyle>(campaign?.initiativeStyle || 'dle');
+    let tier = $derived<TierLevel>(campaign?.tier || getDefaultTier(campaign?.system));
+
+    // Calculate total difficulty from active enemies
+    let totalDifficulty = $derived(activeEnemies.reduce((sum, e) => sum + (e.difficulty || 0), 0));
+    let playerCount = $derived(roster.length || 1);
 
     // Players present in the campaign - includes those in the session roster and anyone who joined via invite
     // IMPORTANT: Member data (synced via WebRTC) takes priority for real-time fields like health/damage
@@ -642,6 +649,17 @@
              </div>
         </div>
 
+        <!-- Combat Difficulty (Mobile) -->
+        {#if activeEnemies.length > 0}
+            <div class="lg:hidden">
+                {#if campaign?.system === 'sofdl'}
+                    <CombatDifficultySotDL {tier} {totalDifficulty} />
+                {:else}
+                    <CombatDifficultySofWW {tier} {totalDifficulty} {playerCount} />
+                {/if}
+            </div>
+        {/if}
+
         <div class="space-y-3 pb-20">
             {#each sortedCombatants as entity (entity.type === 'player' ? entity.id : entity.instanceId)}
                 <div animate:flip={{duration: 300}}>
@@ -656,7 +674,14 @@
 
     <!-- Right -->
     <div class="hidden lg:flex flex-col gap-4">
-        <!-- Sidebar Empty or Other Widgets -->
+        <!-- Combat Difficulty -->
+        {#if activeEnemies.length > 0}
+            {#if campaign?.system === 'sofdl'}
+                <CombatDifficultySotDL {tier} {totalDifficulty} />
+            {:else}
+                <CombatDifficultySofWW {tier} {totalDifficulty} {playerCount} />
+            {/if}
+        {/if}
     </div>
 </div>
 

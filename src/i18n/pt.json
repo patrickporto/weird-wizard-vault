@@ -81,7 +81,25 @@
         "team": "Iniciativa de Time",
         "individual": "Individual (d20 + Agi)"
       },
-      "magic_system": "Sistema de Magia"
+      "magic_system": "Sistema de Magia",
+      "tier": "Tier do Grupo",
+      "tiers": {
+        "starting": "Iniciante",
+        "novice": "Novato",
+        "expert": "Especialista",
+        "master": "Mestre"
+      }
+    },
+    "difficulty": {
+      "title": "Dificuldade do Combate",
+      "total": "Total",
+      "easy": "Fácil",
+      "average": "Médio",
+      "challenging": "Desafiador",
+      "hard": "Difícil",
+      "max_creature": "Criatura Máx.",
+      "players": "{count} Jogadores",
+      "none": "Nenhum"
     },
     "active": "Campanha Ativa",
     "waiting_approval": "Aguardando Aprovação",

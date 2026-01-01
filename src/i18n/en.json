@@ -79,7 +79,25 @@
                 "team": "Team Initiative",
                 "individual": "Individual (d20 + Agi)"
             },
-            "magic_system": "Magic System"
+            "magic_system": "Magic System",
+            "tier": "Party Tier",
+            "tiers": {
+                "starting": "Starting",
+                "novice": "Novice",
+                "expert": "Expert",
+                "master": "Master"
+            }
+        },
+        "difficulty": {
+            "title": "Combat Difficulty",
+            "total": "Total",
+            "easy": "Easy",
+            "average": "Average",
+            "challenging": "Challenging",
+            "hard": "Hard",
+            "max_creature": "Max Creature",
+            "players": "{count} Players",
+            "none": "None"
         },
         "active": "Active Campaign",
         "waiting_approval": "Waiting Approval",
