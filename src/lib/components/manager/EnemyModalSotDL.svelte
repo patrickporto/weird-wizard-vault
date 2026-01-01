@@ -4,6 +4,7 @@
     import { X, Plus, Trash2, Save, Eye, Camera, Sword, Shield, Heart, Zap, Globe, ChevronLeft } from 'lucide-svelte';
     import Avatar from '../common/Avatar.svelte';
     import ImageCropperModal from '../common/ImageCropperModal.svelte';
+    import SizeCounter from '../common/SizeCounter.svelte';
     import { saveImage } from '$lib/logic/image';
 
     interface Props {
@@ -51,7 +52,7 @@
         return {
             name: '',
             difficulty: 1,
-            size: '1',
+            size: 1,
             description: '',
             descriptors: '',
             perception: 10,
@@ -74,6 +75,12 @@
     function getModifier(value: number): string {
         const mod = value - 10;
         return mod >= 0 ? `+${mod}` : `${mod}`;
+    }
+
+    function formatSize(val: number) {
+        if (val === 0.125) return '1/8';
+        if (val === 0.5) return '1/2';
+        return val;
     }
 
     $effect(() => {
@@ -145,7 +152,7 @@
                                     <span class="text-red-500 font-bold text-sm">{$t('session.enemies.difficulty').toUpperCase()} {form.difficulty}</span>
                                 </div>
                                 <div class="text-sm text-slate-400 mt-1">
-                                    {$t('session.enemy_modal.size')} {form.size} {form.descriptors}
+                                    {$t('session.enemy_modal.size')} {formatSize(form.size)} {form.descriptors}
                                 </div>
                                 {#if form.description}
                                     <div class="text-xs text-slate-500 italic mt-2 leading-relaxed opacity-75">
@@ -345,7 +352,7 @@
                             </div>
                              <div>
                                 <label for="enemy-size" class="text-xs text-slate-500 uppercase font-bold block mb-1">{$t('session.enemy_modal.size')}</label>
-                                <input id="enemy-size" type="text" placeholder="1/2, 1, 2..." class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={form.size} />
+                                <SizeCounter value={form.size || 1} onUpdate={(v) => form.size = v} />
                             </div>
                         </div>
 

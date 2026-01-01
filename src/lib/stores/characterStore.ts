@@ -94,6 +94,7 @@ export interface WWCharacter {
     currency: { gp: number; sp: number; cp: number };
     naturalDefense: number;
     bonusDamage: number;
+    size: number;
     speed: number;
     currentRound: number;
     languages: string[];
@@ -152,6 +153,7 @@ export const defaultCharacter: WWCharacter = {
     currency: { gp: 0, sp: 0, cp: 0 },
     naturalDefense: 10,
     bonusDamage: 0,
+    size: 1,
     speed: 10,
     currentRound: 1,
     languages: [],

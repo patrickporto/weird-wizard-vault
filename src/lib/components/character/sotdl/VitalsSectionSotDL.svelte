@@ -3,9 +3,14 @@
     import { Shield, Zap, Eye, HeartPulse, Sparkles, Maximize2, Edit } from 'lucide-svelte';
     import { sotdlCharacter, sotdlTotalHealingRate, sotdlDerivedStats } from '$lib/stores/characterStoreSotDL';
     import { modalState } from '$lib/stores/characterStore';
+    import SizeCounter from '$lib/components/common/SizeCounter.svelte';
 
     function openModal(type: string, data: any) {
         modalState.update(m => ({ ...m, type, isOpen: true, data }));
+    }
+
+    function updateSize(newValue: number) {
+        sotdlCharacter.update(c => ({...c, size: newValue}));
     }
 </script>
 
@@ -137,22 +142,21 @@
         </button>
 
         <!-- Size Card -->
-        <button
-            onclick={() => openModal('stat', { system: 'sofdl', key: 'size' })}
-            class="bg-slate-900 overflow-hidden rounded-2xl border border-slate-800 p-3 text-left transition-all hover:bg-slate-800 shadow-lg shadow-black/20 group flex flex-col w-full"
+        <div
+            class="bg-slate-900 overflow-hidden rounded-2xl border border-slate-800 p-3 text-left shadow-lg shadow-black/20 flex flex-col w-full"
         >
             <div class="flex justify-between items-start w-full mb-2">
-                <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest group-hover:text-indigo-400 transition-colors flex items-center gap-1.5 min-w-0 pr-1">
+                <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 min-w-0 pr-1">
                     <Maximize2 size={12} class="flex-shrink-0"/> <span class="truncate">{$t('sofdl.attributes.size')}</span>
-                </div>
-                <div class="text-slate-600 group-hover:text-indigo-400 transition-colors flex-shrink-0 opacity-50 group-hover:opacity-100">
-                    <Edit size={12} />
                 </div>
             </div>
 
-            <div class="flex items-baseline gap-1">
-                <span class="text-3xl font-black text-white leading-none">{$sotdlCharacter.size}</span>
+            <div class="w-full">
+                <SizeCounter
+                    value={$sotdlCharacter.size || 1}
+                    onUpdate={updateSize}
+                />
             </div>
-        </button>
+        </div>
     </div>
 </div>

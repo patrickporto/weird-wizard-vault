@@ -1,8 +1,9 @@
 <script lang="ts">
     import { t } from 'svelte-i18n';
     import { character, modalState, totalDefense, effectiveSpeed } from '$lib/stores/characterStore';
-    import { Shield, Zap, Sword, Activity, Edit } from 'lucide-svelte';
+    import { Shield, Zap, Sword, Activity, Edit, Maximize2 } from 'lucide-svelte';
     import DiceCounter from '$lib/components/common/DiceCounter.svelte';
+    import SizeCounter from '$lib/components/common/SizeCounter.svelte';
     import ProfessionsSection from './ProfessionsSection.svelte';
 
     function openModal(type: string, data: any) {
@@ -11,6 +12,10 @@
 
     function updateBonusDamage(newValue: number) {
         character.update(c => ({...c, bonusDamage: newValue}));
+    }
+
+    function updateSize(newValue: number) {
+        character.update(c => ({...c, size: newValue}));
     }
 </script>
 
@@ -78,6 +83,17 @@
         <DiceCounter
             value={$character.bonusDamage || 0}
             onUpdate={updateBonusDamage}
+        />
+    </div>
+
+    <!-- Size Controller -->
+    <div class="bg-slate-900 rounded-2xl border border-slate-800 p-4 shadow-lg shadow-black/20">
+        <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
+            <Maximize2 size={14} class="text-indigo-500"/> {$t('character.vitals.size')}
+        </span>
+        <SizeCounter
+            value={$character.size || 1}
+            onUpdate={updateSize}
         />
     </div>
 

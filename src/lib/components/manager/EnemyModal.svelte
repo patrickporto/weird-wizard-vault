@@ -4,6 +4,7 @@
     import { X, Plus, Trash2, Save, Eye, Camera, Globe, ChevronLeft } from 'lucide-svelte';
     import Avatar from '../common/Avatar.svelte';
     import ImageCropperModal from '../common/ImageCropperModal.svelte';
+    import SizeCounter from '../common/SizeCounter.svelte';
     import { saveImage } from '$lib/logic/image';
 
     interface Props {
@@ -246,7 +247,10 @@
                              <!-- Main Stats -->
                              <div class="grid grid-cols-2 gap-4">
                                  <div><label for="enemy-diff" class="text-xs text-slate-500 uppercase font-bold block mb-1">{$t('session.enemy_modal.difficulty')}</label><input id="enemy-diff" type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={form.difficulty} /></div>
-                                 <div><label for="enemy-size" class="text-xs text-slate-500 uppercase font-bold block mb-1">{$t('session.enemy_modal.size')}</label><input id="enemy-size" type="number" step="0.5" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={form.size} /></div>
+                                 <div class="flex flex-col">
+                                    <label for="enemy-size" class="text-xs text-slate-500 uppercase font-bold block mb-1">{$t('session.enemy_modal.size')}</label>
+                                    <SizeCounter value={form.size || 1} onUpdate={(v) => form.size = v} />
+                                 </div>
                              </div>
 
                              <div class="grid grid-cols-2 gap-4">
