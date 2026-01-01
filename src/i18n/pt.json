@@ -615,7 +615,6 @@
       "health": "Vida",
       "enemy_default": "Inimigo",
       "image_error": "Erro ao salvar imagem",
-      "title_sotdl": "Criar Inimigo (Demon Lord)",
       "descriptors": "Descritores",
       "special_attacks": "Ataques Especiais",
       "attack_options": "Opções de Ataque",

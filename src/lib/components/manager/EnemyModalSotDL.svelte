@@ -288,7 +288,7 @@
             <div class="p-4 border-b border-slate-700 bg-slate-900 flex justify-between items-center">
                 <div class="flex items-center gap-3">
                      <button onclick={onClose} class="lg:hidden text-slate-400 hover:text-white p-1 rounded-full hover:bg-slate-800 transition-colors"><ChevronLeft size={24}/></button>
-                     <h3 id="modal-title" class="font-bold text-white text-lg">{$t('session.enemy_modal.title_sotdl')}</h3>
+                     <h3 id="modal-title" class="font-bold text-white text-lg">{$t('session.enemy_modal.title')}</h3>
                 </div>
                 <button onclick={onClose} class="hidden lg:block text-slate-400 hover:text-white"><X size={20}/></button>
             </div>

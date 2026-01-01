@@ -622,7 +622,6 @@
             "health": "Health",
             "enemy_default": "Enemy",
             "image_error": "Error saving image",
-            "title_sotdl": "Create Enemy (Demon Lord)",
             "descriptors": "Descriptors",
             "special_attacks": "Special Attacks",
             "attack_options": "Attack Options",
