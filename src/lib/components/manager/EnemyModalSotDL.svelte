@@ -1,6 +1,6 @@
 <script lang="ts">
     import { t } from 'svelte-i18n';
-    import { X, Plus, Trash2, Save, Eye, Camera, Sword, Shield, Heart, Zap } from 'lucide-svelte';
+    import { X, Plus, Trash2, Save, Eye, Camera, Sword, Shield, Heart, Zap, Globe } from 'lucide-svelte';
     import Avatar from '../common/Avatar.svelte';
     import ImageCropperModal from '../common/ImageCropperModal.svelte';
     import { saveImage } from '$lib/logic/image';
@@ -64,7 +64,8 @@
             attackOptions: [] as { name: string; type: string; attackRoll: string; damage: string; desc: string }[],
             specialAttacks: [] as { name: string; desc: string }[],
             endOfRound: [] as { name: string; desc: string }[],
-            imageUrl: ''
+            imageUrl: '',
+            global: false
         };
     }
 
@@ -177,6 +178,13 @@
                                 <label for="enemy-desc" class="text-xs text-slate-500 uppercase font-bold block mb-1">{$t('session.enemy_modal.descriptors')}</label>
                                 <input id="enemy-desc" type="text" placeholder={$t('session.enemy_modal.descriptors_placeholder')} class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm" bind:value={form.descriptors} />
                             </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 mt-4">
+                            <input id="enemy-global" type="checkbox" class="w-4 h-4 bg-slate-900 border-slate-700 rounded focus:ring-indigo-500" bind:checked={form.global} />
+                            <label for="enemy-global" class="text-sm font-bold text-slate-400 select-none cursor-pointer flex items-center gap-2">
+                                <Globe size={14} /> {$t('session.enemy_modal.global_enemy')}
+                            </label>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">

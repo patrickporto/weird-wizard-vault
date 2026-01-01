@@ -626,6 +626,7 @@
             "special_attacks": "Special Attacks",
             "attack_options": "Attack Options",
             "speed_notes": "Speed Notes",
+            "global_enemy": "Global Enemy",
             "melee": "Melee",
             "ranged": "Ranged",
             "attack_placeholder": "Attack (ex: +1 with 1 boon)",

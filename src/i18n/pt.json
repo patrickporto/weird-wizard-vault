@@ -619,6 +619,7 @@
       "special_attacks": "Ataques Especiais",
       "attack_options": "Opções de Ataque",
       "speed_notes": "Notas de Movimento",
+      "global_enemy": "Inimigo Global",
       "melee": "Corpo a corpo",
       "ranged": "À distância",
       "attack_placeholder": "Ataque (ex: +1 com 1 boon)",

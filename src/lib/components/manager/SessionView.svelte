@@ -22,6 +22,7 @@
     let { campaign } = $props<{ campaign: any }>();
 
     let isAddCharOpen = $state(false);
+    let isQuickAddDrawerOpen = $state(false); // Mobile drawer for quick add
     let showCopyTooltip = $state(false);
     let showQrCode = $state(false);
 
@@ -115,6 +116,22 @@
         !campaignMembers.some(m => m.id === c.id) &&
         (c.system || DEFAULT_SYSTEM) === (campaign?.system || DEFAULT_SYSTEM)
     ));
+
+    // Filtered Enemies & Encounters for Quick Add
+    let filteredEnemies = $derived($liveEnemies.filter(e => {
+        const sysMatch = (e.system || DEFAULT_SYSTEM) === (campaign?.system || DEFAULT_SYSTEM);
+        // Enemies are available if they match system AND (belong to this campaign OR are global)
+        const scopeMatch = e.campaignId === campaign?.id || e.global;
+        return sysMatch && scopeMatch;
+    }));
+
+    let filteredEncounters = $derived($liveEncounters.filter(e => {
+        const sysMatch = (e.system || DEFAULT_SYSTEM) === (campaign?.system || DEFAULT_SYSTEM);
+        // Encounters available if system matches. For now, assuming encounters created within campaign context or generally available.
+        // If we add global flag to encounters, use e.global
+         const scopeMatch = true; // e.campaignId === campaign.id || e.global; // TODO: Add campaignId/global to encounters if not present
+        return sysMatch && scopeMatch;
+    }));
 
     // Helpers to update Campaign in DB - Using Map directly to avoid stale prop issues
     function updateCampaign(updates: any) {
@@ -346,6 +363,35 @@
 
         updateCampaign({ members: newMembers, activeEnemies: newEnemies });
     }
+
+    // Drag & Drop
+    function handleDragStart(e: DragEvent, item: any, type: 'enemy' | 'encounter') {
+        if (!e.dataTransfer) return;
+        e.dataTransfer.setData('application/json', JSON.stringify({ item, type }));
+        e.dataTransfer.effectAllowed = 'copy';
+    }
+
+    function handleDragOver(e: DragEvent) {
+        e.preventDefault();
+        return false;
+    }
+
+    function handleDrop(e: DragEvent) {
+        e.preventDefault();
+        const data = e.dataTransfer?.getData('application/json');
+        if (data) {
+            try {
+                const { item, type } = JSON.parse(data);
+                if (type === 'enemy') {
+                    addToCombat(item);
+                } else if (type === 'encounter') {
+                    addToCombatEncounter(item);
+                }
+            } catch (err) {
+                console.error("Drop error", err);
+            }
+        }
+    }
 </script>
 
 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full relative">
@@ -510,7 +556,8 @@
              </div>
         </div>
 
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col h-[400px]">
+        <!-- Quick Add Section (Desktop Only) -->
+        <div class="hidden lg:flex flex-col h-[400px] bg-slate-900 border border-slate-800 rounded-xl p-4">
             <div class="flex items-center gap-2 mb-3 bg-slate-950 p-1 rounded-lg border border-slate-800">
                  <button onclick={() => activeQuickTab = 'enemies'} class="flex-1 text-xs font-bold py-1.5 rounded flex items-center justify-center gap-2 transition-colors {activeQuickTab === 'enemies' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-white'}"><Ghost size={14}/> {$t('session.enemies.title')}</button>
                  <button onclick={() => activeQuickTab = 'encounters'} class="flex-1 text-xs font-bold py-1.5 rounded flex items-center justify-center gap-2 transition-colors {activeQuickTab === 'encounters' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-white'}"><Layers size={14}/> {$t('session.enemies.encounters')}</button>
@@ -518,33 +565,52 @@
 
             <div class="flex-1 overflow-y-auto pr-1 custom-scrollbar space-y-2">
                 {#if activeQuickTab === 'enemies'}
-                    {#each $liveEnemies as enemy (enemy.id)}
-                        <div class="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-800 group hover:border-indigo-500/30 transition-all">
+                    {#each filteredEnemies as enemy (enemy.id)}
+                        <!-- svelte-ignore a11y_no_static_element_interactions -->
+                        <div
+                            class="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-800 group hover:border-indigo-500/30 transition-all cursor-move hover:bg-slate-800/50"
+                            draggable="true"
+                            ondragstart={(e) => handleDragStart(e, enemy, 'enemy')}
+                        >
                             <div class="truncate flex-1 flex items-center gap-2">
-                                 <!-- Draggable hint -->
                                  <GripVertical size={12} class="text-slate-600 cursor-grab"/>
-                                 <div>
-                                     <div class="text-sm font-bold text-white truncate">{enemy.name}</div>
+                                 <div class="min-w-0 flex-1">
+                                     <div class="text-sm font-bold text-white truncate flex items-center gap-1">
+                                        {enemy.name}
+                                        {#if enemy.global}
+                                            <Globe size={10} class="text-indigo-400" />
+                                        {/if}
+                                     </div>
                                      <div class="text-[10px] text-slate-500">{$t('session.enemies.difficulty')} {enemy.difficulty}</div>
                                  </div>
                             </div>
-                            <button onclick={() => addToCombat(enemy)} class="text-slate-500 hover:text-indigo-400 p-1 ml-2 bg-slate-900 rounded border border-slate-800"><Plus size={16}/></button>
+                            <button onclick={() => addToCombat(enemy)} class="text-slate-500 hover:text-indigo-400 p-1 ml-2 bg-slate-900 rounded border border-slate-800 hover:bg-slate-800"><Plus size={16}/></button>
                         </div>
                     {/each}
-                    {#if $liveEnemies.length === 0}
+                    {#if filteredEnemies.length === 0}
                          <div class="text-center text-slate-600 italic text-xs mt-4">{$t('session.enemies.none')}</div>
                     {/if}
                 {:else}
-                    {#each $liveEncounters as enc (enc.id)}
-                        <div class="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-800 group hover:border-indigo-500/30 transition-all">
+                    {#each filteredEncounters as enc (enc.id)}
+                        <!-- svelte-ignore a11y_no_static_element_interactions -->
+                        <div
+                            class="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-800 group hover:border-indigo-500/30 transition-all cursor-move hover:bg-slate-800/50"
+                            draggable="true"
+                            ondragstart={(e) => handleDragStart(e, enc, 'encounter')}
+                        >
                             <div class="truncate flex-1">
-                                 <div class="text-sm font-bold text-white truncate">{enc.name}</div>
+                                 <div class="text-sm font-bold text-white truncate flex items-center gap-1">
+                                    {enc.name}
+                                    {#if enc.global}
+                                        <Globe size={10} class="text-indigo-400" />
+                                    {/if}
+                                 </div>
                                  <div class="text-[10px] text-slate-500">{enc.enemies?.reduce((a,c) => a + c.count, 0) || 0} {$t('session.enemies.title')}</div>
                             </div>
-                            <button onclick={() => addToCombatEncounter(enc)} class="text-slate-500 hover:text-indigo-400 p-1 ml-2 bg-slate-900 rounded border border-slate-800"><Play size={14}/></button>
+                            <button onclick={() => addToCombatEncounter(enc)} class="text-slate-500 hover:text-indigo-400 p-1 ml-2 bg-slate-900 rounded border border-slate-800 hover:bg-slate-800"><Play size={14}/></button>
                         </div>
                     {/each}
-                     {#if $liveEncounters.length === 0}
+                     {#if filteredEncounters.length === 0}
                          <div class="text-center text-slate-600 italic text-xs mt-4">{$t('session.enemies.no_encounters')}</div>
                     {/if}
                 {/if}
@@ -552,9 +618,15 @@
         </div>
     </div>
 
-    <!-- Center -->
-    <div class="lg:col-span-2 space-y-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex justify-between items-center shadow-lg sticky top-0 z-20">
+     <!-- Center -->
+     <div
+        class="lg:col-span-2 space-y-4"
+        ondragover={handleDragOver}
+        ondrop={handleDrop}
+        role="region"
+        aria-label="Combat Zone"
+     >
+         <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex justify-between items-center shadow-lg sticky top-0 z-20">
              <div class="flex items-center gap-4">
                 {#if !combat.active}
                     <button onclick={startCombat} class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-green-900/20"><Swords size={20}/> {$t('session.combat.start')}</button>
@@ -669,6 +741,74 @@
         </div>
     </div>
 {/if}
+
+ {#if isQuickAddDrawerOpen}
+     <!-- svelte-ignore a11y_click_events_have_key_events -->
+     <!-- svelte-ignore a11y_no_static_element_interactions -->
+     <div class="fixed inset-0 z-50 flex justify-end bg-black/60" onclick={(e) => { if (e.target === e.currentTarget) isQuickAddDrawerOpen = false; }}>
+         <div class="w-full max-w-[300px] h-full bg-slate-900 border-l border-slate-800 p-4 shadow-2xl animate-in slide-in-from-right duration-300">
+              <div class="flex justify-between items-center mb-4">
+                  <h3 class="font-bold text-white uppercase tracking-widest text-sm flex items-center gap-2"><Ghost size={16}/> {$t('session.enemies.title')}</h3>
+                  <button onclick={() => isQuickAddDrawerOpen = false} class="bg-slate-800 p-2 rounded-lg text-slate-400 hover:text-white"><X size={18}/></button>
+              </div>
+
+               <div class="flex items-center gap-2 mb-3 bg-slate-950 p-1 rounded-lg border border-slate-800">
+                 <button onclick={() => activeQuickTab = 'enemies'} class="flex-1 text-xs font-bold py-2 rounded flex items-center justify-center gap-2 transition-colors {activeQuickTab === 'enemies' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-white'}"><Ghost size={14}/> {$t('session.enemies.title')}</button>
+                 <button onclick={() => activeQuickTab = 'encounters'} class="flex-1 text-xs font-bold py-2 rounded flex items-center justify-center gap-2 transition-colors {activeQuickTab === 'encounters' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-white'}"><Layers size={14}/> {$t('session.enemies.encounters')}</button>
+               </div>
+
+                <div class="h-[calc(100%-100px)] overflow-y-auto custom-scrollbar space-y-2">
+                {#if activeQuickTab === 'enemies'}
+                    {#each filteredEnemies as enemy (enemy.id)}
+                         <!-- svelte-ignore a11y_no_static_element_interactions -->
+                        <div class="flex justify-between items-center bg-slate-950 p-3 rounded-xl border border-slate-800 group active:border-indigo-500/50 transition-all">
+                            <div class="truncate flex-1 flex flex-col">
+                                 <div class="text-sm font-bold text-white truncate flex items-center gap-1">
+                                    {enemy.name}
+                                    {#if enemy.global}
+                                        <Globe size={10} class="text-indigo-400" />
+                                    {/if}
+                                 </div>
+                                 <div class="text-[10px] text-slate-500">{$t('session.enemies.difficulty')} {enemy.difficulty}</div>
+                            </div>
+                            <button onclick={() => { addToCombat(enemy); isQuickAddDrawerOpen = false; }} class="text-white hover:bg-indigo-600 p-2 bg-slate-800 rounded-lg border border-slate-700"><Plus size={16}/></button>
+                        </div>
+                    {/each}
+                    {#if filteredEnemies.length === 0}
+                         <div class="text-center text-slate-600 italic text-xs mt-4">{$t('session.enemies.none')}</div>
+                    {/if}
+                {:else}
+                    {#each filteredEncounters as enc (enc.id)}
+                        <div class="flex justify-between items-center bg-slate-950 p-3 rounded-xl border border-slate-800 group active:border-indigo-500/50 transition-all">
+                            <div class="truncate flex-1">
+                                 <div class="text-sm font-bold text-white truncate flex items-center gap-1">
+                                    {enc.name}
+                                    {#if enc.global}
+                                        <Globe size={10} class="text-indigo-400" />
+                                    {/if}
+                                 </div>
+                                 <div class="text-[10px] text-slate-500">{enc.enemies?.reduce((a,c) => a + c.count, 0) || 0} {$t('session.enemies.title')}</div>
+                            </div>
+                            <button onclick={() => { addToCombatEncounter(enc); isQuickAddDrawerOpen = false; }} class="text-white hover:bg-indigo-600 p-2 bg-slate-800 rounded-lg border border-slate-700"><Play size={16}/></button>
+                        </div>
+                    {/each}
+                     {#if filteredEncounters.length === 0}
+                         <div class="text-center text-slate-600 italic text-xs mt-4">{$t('session.enemies.no_encounters')}</div>
+                    {/if}
+                {/if}
+            </div>
+         </div>
+     </div>
+ {/if}
+
+ <!-- Mobile Quick Add Button -->
+ <button
+    onclick={() => isQuickAddDrawerOpen = true}
+    class="lg:hidden fixed bottom-24 right-4 bg-slate-800 text-white p-3 rounded-full shadow-lg border border-slate-700 z-40 active:scale-90 transition-transform"
+    aria-label="Add Enemy"
+ >
+    <Ghost size={24} />
+ </button>
 
 <HistorySidebar isOpen={$isHistoryOpen} onClose={() => isHistoryOpen.set(false)} />
 

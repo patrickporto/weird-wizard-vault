@@ -1,7 +1,7 @@
 <script lang="ts">
     import { t } from 'svelte-i18n';
     import { liveEnemies, liveEncounters } from '$lib/stores/live';
-    import { Ghost, Layers, Plus, Edit, Trash2, GripVertical, Play } from 'lucide-svelte';
+    import { Ghost, Layers, Plus, Edit, Trash2, GripVertical, Play, Globe } from 'lucide-svelte';
     import { enemiesMap, encountersMap, campaignsMap } from '$lib/db';
     import { uuidv7 } from 'uuidv7';
     import EnemyModalSotDL from './EnemyModalSotDL.svelte';
@@ -95,7 +95,7 @@
 
     function saveEncounter(data: any) {
         const id = editingEncounterId || uuidv7();
-        encountersMap.set(id, { ...data, id });
+        encountersMap.set(id, { ...data, id, system: currentSystem });
         isEncounterModalOpen = false;
     }
 
@@ -173,6 +173,15 @@
         const enemySystem = e.system || 'sofww'; // Default legacy to sofww
         return enemySystem === currentSystem;
     }));
+
+    let filteredEncounters = $derived($liveEncounters.filter(e => {
+        // Encounters usually don't have system explicitly, but we can infer from their enemies or just show all for now?
+        // Ideally encounters should also have system. For now let's assume if it contains enemies of that system it's relevant,
+        // or just rely on manual management.
+        // Let's add system to encounters when saving.
+        const encSystem = e.system || 'sofww';
+        return encSystem === currentSystem;
+    }));
 </script>
 
 <div>
@@ -192,7 +201,7 @@
                 <span class="font-bold text-sm">{$t('session.bestiary.new_encounter')}</span>
              </button>
 
-             {#each $liveEncounters as enc (enc.id)}
+             {#each filteredEncounters as enc (enc.id)}
                  <!-- svelte-ignore a11y_no_static_element_interactions -->
                  <div
                     class="bg-slate-900 border border-slate-800 rounded-2xl p-4 transition-all hover:border-indigo-500/30 group relative flex flex-col justify-between shadow-lg hover:shadow-indigo-500/10"
@@ -202,7 +211,12 @@
                     aria-label="Encontro {enc.name}"
                  >
                      <div class="flex-1">
-                        <div class="font-bold text-white text-base mb-2 group-hover:text-indigo-400 transition-colors uppercase tracking-tight truncate">{enc.name}</div>
+                        <div class="flex items-center gap-2 mb-2">
+                             <div class="font-bold text-white text-base group-hover:text-indigo-400 transition-colors uppercase tracking-tight truncate">{enc.name}</div>
+                             {#if enc.global}
+                                <Globe size={12} class="text-indigo-400" />
+                             {/if}
+                        </div>
                         <div class="flex flex-wrap gap-1">
                             {#each enc.enemies || [] as item}
                                 {@const enemy = $liveEnemies.find(e => e.id === item.enemyId)}
@@ -248,8 +262,13 @@
                 ondragstart={(e) => handleDragStart(e, enemy)}
                 role="listitem"
              >
-                  <div class="flex justify-between items-start mb-3">
-                      <h3 class="font-bold text-lg text-white group-hover:text-indigo-400 transition-colors">{enemy.name}</h3>
+                   <div class="flex justify-between items-start mb-3">
+                       <div class="flex items-center gap-2">
+                            <h3 class="font-bold text-lg text-white group-hover:text-indigo-400 transition-colors">{enemy.name}</h3>
+                            {#if enemy.global}
+                                <Globe size={14} class="text-indigo-400" />
+                            {/if}
+                       </div>
                       <span class="text-[10px] font-black bg-indigo-500/10 text-indigo-400 border border-indigo-400/20 px-2 py-1 rounded-lg uppercase">{$t('session.bestiary.level')} {enemy.difficulty}</span>
                   </div>
 

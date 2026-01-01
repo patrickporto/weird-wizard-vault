@@ -1,6 +1,6 @@
 <script lang="ts">
     import { t } from 'svelte-i18n';
-    import { X, Plus, Trash2, Save, Eye, Camera } from 'lucide-svelte';
+    import { X, Plus, Trash2, Save, Eye, Camera, Globe } from 'lucide-svelte';
     import Avatar from '../common/Avatar.svelte';
     import ImageCropperModal from '../common/ImageCropperModal.svelte';
     import { saveImage } from '$lib/logic/image';
@@ -54,7 +54,8 @@
             traits: [] as {name: string, desc: string}[],
             actions: [] as {name: string, desc: string}[],
             reactions: [] as {name: string, desc: string}[],
-            endOfRound: [] as {name: string, desc: string}[]
+            endOfRound: [] as {name: string, desc: string}[],
+            global: false
         };
     }
 
@@ -127,6 +128,13 @@
                              <div class="grid grid-cols-2 gap-4">
                                  <div><label for="enemy-diff" class="text-xs text-slate-500 uppercase font-bold block mb-1">{$t('session.enemy_modal.difficulty')}</label><input id="enemy-diff" type="number" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={form.difficulty} /></div>
                                  <div><label for="enemy-size" class="text-xs text-slate-500 uppercase font-bold block mb-1">{$t('session.enemy_modal.size')}</label><input id="enemy-size" type="number" step="0.5" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white" bind:value={form.size} /></div>
+                             </div>
+
+                             <div class="flex items-center gap-2">
+                                <input id="enemy-global" type="checkbox" class="w-4 h-4 bg-slate-900 border-slate-700 rounded focus:ring-indigo-500" bind:checked={form.global} />
+                                <label for="enemy-global" class="text-sm font-bold text-slate-400 select-none cursor-pointer flex items-center gap-2">
+                                    <Globe size={14} /> {$t('session.enemy_modal.global_enemy')}
+                                </label>
                              </div>
                              <div>
                                  <label for="enemy-desc" class="text-xs text-slate-500 uppercase font-bold block mb-1">{$t('session.enemy_modal.description')}</label>
