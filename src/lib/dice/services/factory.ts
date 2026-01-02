@@ -28,6 +28,7 @@ interface DiceColorData {
   outline: string;
   texture: any;
   edge?: string;
+  font?: string;
 }
 
 interface DiceObject {
@@ -115,6 +116,7 @@ export class DiceFactory {
   #label_outline = '';
   #dice_texture: any = '';
   #dice_material = '';
+  #dice_font = 'Arial';
 
   private baseScale: number;
   private bumpMapping: boolean;
@@ -578,16 +580,18 @@ export class DiceFactory {
           textstartx = textstartx * 0.98;
         }
 
-        context.font = fontsize + 'pt ' + diceobj.font;
-        contextBump.font = fontsize + 'pt ' + diceobj.font;
+        const font = this.#dice_font || diceobj.font || 'Arial';
+        context.font = fontsize + 'pt ' + font;
+        contextBump.font = fontsize + 'pt ' + font;
 
         let lineHeight = context.measureText('M').width * 1.4;
         let textlines = text.split('\n');
 
         if (textlines.length > 1) {
           fontsize = fontsize / textlines.length;
-          context.font = fontsize + 'pt ' + diceobj.font;
-          contextBump.font = fontsize + 'pt ' + diceobj.font;
+          const font = this.#dice_font || diceobj.font || 'Arial';
+          context.font = fontsize + 'pt ' + font;
+          contextBump.font = fontsize + 'pt ' + font;
           lineHeight = context.measureText('M').width * 1.2;
           textstarty -= (lineHeight * textlines.length) / 2;
         }
@@ -628,8 +632,9 @@ export class DiceFactory {
       var hw = canvas.width / 2;
       var hh = canvas.height / 2;
 
-      context.font = (ts / 128) * 24 + 'pt ' + diceobj.font;
-      contextBump.font = (ts / 128) * 24 + 'pt ' + diceobj.font;
+      const font = this.#dice_font || diceobj.font || 'Arial';
+      context.font = (ts / 128) * 24 + 'pt ' + font;
+      contextBump.font = (ts / 128) * 24 + 'pt ' + font;
 
       //draw the numbers
       for (let i = 0; i < text.length; i++) {
@@ -708,6 +713,9 @@ export class DiceFactory {
     this.#dice_texture = colordata.texture;
     this.#dice_material = colordata.texture?.material || 'none';
     this.#edge_color = colordata.edge || colordata.background;
+    if (colordata.font) {
+      this.#dice_font = colordata.font;
+    }
   }
 
   setRandomColors(): void {

@@ -137,6 +137,7 @@ export class DiceColors {
       background: options.background ?? '#000000',
       outline: options.outline,
       edge: options.edge,
+      font: options.font,
       texture: textureData,
       material: options.material ?? 'plastic'
     };
