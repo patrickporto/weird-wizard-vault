@@ -153,7 +153,7 @@
         <button
             onclick={() => isQuickRollMenuOpen = !isQuickRollMenuOpen}
             class="w-16 h-16 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full shadow-[0_0_20px_rgba(79,70,229,0.4)] flex items-center justify-center transition-all active:scale-90 border-2 border-white/10 group"
-            title="Rolagens Rápidas"
+            title={$t('session.quick.fab_title')}
         >
             <Dices size={32} class="group-hover:rotate-12 transition-transform" />
         </button>
@@ -175,7 +175,7 @@
                     class="flex flex-col items-center justify-center gap-1 flex-1 transition-all {activeSubTab === 'session' ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300'}"
                 >
                     <Sword size={20} class={activeSubTab === 'session' ? 'animate-in zoom-in-75 duration-300' : ''} />
-                    <span class="text-[9px] font-black uppercase tracking-widest leading-none">Sessão</span>
+                    <span class="text-[9px] font-black uppercase tracking-widest leading-none">{$t('session.tabs.session')}</span>
                 </button>
 
                 <!-- Central Action: Quick Roll -->
@@ -186,7 +186,7 @@
                     <button
                         onclick={() => isQuickRollMenuOpen = !isQuickRollMenuOpen}
                         class="relative w-14 h-14 bg-indigo-600 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(79,70,229,0.5)] border-4 border-slate-900 transition-all active:scale-90 hover:bg-indigo-500 z-10"
-                        aria-label="Rolar Dados"
+                        aria-label={$t('session.quick.roll_dice')}
                     >
                         <Dices size={28} class="text-white {isQuickRollMenuOpen ? 'rotate-90' : 'rotate-0'} transition-transform duration-300" />
                     </button>
@@ -198,7 +198,7 @@
                     class="flex flex-col items-center justify-center gap-1 flex-1 transition-all {activeSubTab === 'bestiary' ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300'}"
                 >
                     <Library size={20} class={activeSubTab === 'bestiary' ? 'animate-in zoom-in-75 duration-300' : ''} />
-                    <span class="text-[9px] font-black uppercase tracking-widest leading-none">Bestiário</span>
+                    <span class="text-[9px] font-black uppercase tracking-widest leading-none">{$t('session.tabs.bestiary')}</span>
                 </button>
             </div>
         </div>

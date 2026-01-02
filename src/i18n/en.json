@@ -39,6 +39,20 @@
             "connected": "Connected",
             "peers": "Peers: {count}",
             "offline": "Offline"
+        },
+        "systems": {
+            "sofww": {
+                "name": "Weird Wizard",
+                "description": "A dark fantasy world where you face terrible dangers and heroes rise from unexpected places."
+            },
+            "sofdl": {
+                "name": "Demon Lord",
+                "description": "The world is ending. The Demon Lord approaches. How will you spend your final days?"
+            },
+            "dle": {
+                "name": "Demon Lord Engine",
+                "description": "The classic game engine that powers Shadow of the Demon Lord."
+            }
         }
     },
     "dashboard": {
@@ -86,7 +100,23 @@
                 "novice": "Novice",
                 "expert": "Expert",
                 "master": "Master"
-            }
+            },
+            "system_label": "Game System",
+            "system_unknown": "Unknown System",
+            "fixed": "Fixed",
+            "name_label": "Campaign Name",
+            "name_placeholder": "e.g. Shadow of the Sorcerer",
+            "gm_label": "Master (GM)",
+            "gm_placeholder": "Your name or nickname",
+            "description_label": "Description",
+            "description_placeholder": "A brief description of your journey...",
+            "password_label": "Access Password (Optional)",
+            "password_protected": "Protected",
+            "password_change_placeholder": "Fill to change...",
+            "password_empty_placeholder": "Leave blank for no password",
+            "password_remove": "Remove Password",
+            "password_remove_info": "The password will be removed upon saving.",
+            "password_info": "Set a password to protect the invitation to this campaign."
         },
         "difficulty": {
             "title": "Combat Difficulty",
@@ -112,9 +142,23 @@
     },
     "character": {
         "settings": {
-            "title_label": "Character Settings",
-            "player_name": "Player Name",
-            "magic_system": "Magic System"
+            "title": "Edit Character",
+            "system_label": "Game System",
+            "system_unknown": "Unknown System",
+            "fixed": "Fixed",
+            "name_label": "Character Name",
+            "name_placeholder": "e.g. Alaric, the Wanderer",
+            "player_label": "Player Name",
+            "player_placeholder": "Your name or nickname",
+            "ancestry_label": "Ancestry",
+            "ancestry_placeholder": "e.g. Human",
+            "level_label": "Level",
+            "path_label": "Initial Path (Novice)",
+            "path_placeholder": "e.g. Warrior, Magician",
+            "defense_label": "Defense",
+            "health_label": "Max Health",
+            "save_changes": "Save Changes",
+            "cancel": "Cancel"
         },
         "not_found": {
             "title": "Character Not Found",
@@ -1273,6 +1317,49 @@
                 "shopkeeper": "Shopkeeper",
                 "teamster": "Teamster"
             }
+        },
+        "categories": {
+            "academic": "Academic",
+            "criminal": "Criminal",
+            "martial": "Martial",
+            "wilderness": "Wilderness",
+            "religious": "Religious",
+            "common": "Common",
+            "entertainment": "Entertainment",
+            "military": "Military",
+            "aristocratic": "Aristocratic"
+        }
+    },
+    "ancestries": {
+        "sofdl": {
+            "human": "Human",
+            "changeling": "Changeling",
+            "clockwork": "Clockwork",
+            "dwarf": "Dwarf",
+            "goblin": "Goblin",
+            "orc": "Orc",
+            "other": "Other"
+        },
+        "sofww": {
+            "human": "Human",
+            "other": "Other"
+        }
+    },
+    "paths": {
+        "sofdl": {
+            "magician": "Magician",
+            "priest": "Priest",
+            "rogue": "Rogue",
+            "warrior": "Warrior",
+            "other": "Other"
+        },
+        "sofww": {
+            "fighter": "Fighter",
+            "mage": "Mage",
+            "priest": "Priest",
+            "rogue": "Rogue",
+            "ancestry": "Ancestry",
+            "other": "Other"
         }
     }
 }

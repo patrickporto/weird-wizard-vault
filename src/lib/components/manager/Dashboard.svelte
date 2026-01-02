@@ -145,7 +145,7 @@
     let isCreateCharModalOpen = $state(false);
     let charFormStr = $state("{}");
 
-    const defaultCharForm = { name: '', playerName: '', ancestry: 'Humano', novicePath: '', level: 0, defense: 8, health: 5, system: DEFAULT_SYSTEM };
+    const defaultCharForm = { name: '', playerName: '', ancestry: 'Human', novicePath: '', level: 0, defense: 8, health: 5, system: DEFAULT_SYSTEM };
 
     function openCharModal() {
         isCreateCharModalOpen = true;
@@ -190,7 +190,7 @@
                     master: ''
                 },
                 professions: formData.professions || existing.professions || (formData.profession ? [formData.profession] : []),
-                languages: existing.languages || ['Comum'],
+                languages: existing.languages || ['Common'],
                 talents: existing.talents || [],
                 spells: existing.spells || [],
                 equipment: existing.equipment || [],
@@ -213,10 +213,10 @@
                     master: '-'
                 },
                 attributes: existing.attributes || [
-                    { name: "Força", value: 10, key: "str" },
-                    { name: "Agilidade", value: 10, key: "agi" },
-                    { name: "Intelecto", value: 10, key: "int" },
-                    { name: "Vontade", value: 10, key: "wil" }
+                    { name: $t('modals.mod_targets.str'), value: 10, key: "str" },
+                    { name: $t('modals.mod_targets.agi'), value: 10, key: "agi" },
+                    { name: $t('modals.mod_targets.int'), value: 10, key: "int" },
+                    { name: $t('modals.mod_targets.wil'), value: 10, key: "wil" }
                 ],
                 speed: existing.speed || 5,
                 health: formData.health,
@@ -227,7 +227,7 @@
                 afflictions: existing.afflictions || [],
                 effects: existing.effects || [],
                 currency: existing.currency || { gp: 0, sp: 0, cp: 0 },
-                languages: existing.languages || ['Comum']
+                languages: existing.languages || ['Common']
             };
 
             // Add profession if new
@@ -489,7 +489,7 @@
                      <div class="flex-1">
                         <h3 class="font-black text-xl text-white group-hover:text-indigo-400 transition-colors uppercase tracking-tight truncate pr-16">{char.name}</h3>
                         <div class="flex items-center gap-2 mt-1 flex-wrap">
-                            <span class="text-[10px] bg-indigo-500/10 text-indigo-400 font-black px-2 py-0.5 rounded uppercase tracking-wider">{char.ancestry || 'Humano'}</span>
+                            <span class="text-[10px] bg-indigo-500/10 text-indigo-400 font-black px-2 py-0.5 rounded uppercase tracking-wider">{$t(`ancestries.${char.system === 'sofdl' ? 'sofdl' : 'sofww'}.${(char.ancestry || 'Human').toLowerCase()}`)}</span>
                             <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{$t('common.labels.level')} {char.level}</span>
                             {#if char.playerName}
                                 <span class="text-[10px] text-slate-400 font-medium">• {char.playerName}</span>
@@ -497,7 +497,7 @@
                         </div>
                          <div class="mt-2 flex items-center gap-2">
                              <div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-800 text-[9px] text-slate-400 border border-slate-700 font-bold uppercase tracking-wider">
-                                 <Gamepad2 size={10} /> {getSystem(char.system).name}
+                                 <Gamepad2 size={10} /> {$t(getSystem(char.system).nameKey)}
                              </div>
                          </div>
                      </div>
@@ -584,7 +584,7 @@
                            <p class="text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em] mb-3">{camp.gmName || $t('common.labels.master')}</p>
                            <div class="mb-3">
                                 <div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-800 text-[9px] text-slate-400 border border-slate-700 font-bold uppercase tracking-wider">
-                                    <Gamepad2 size={10} /> {getSystem(camp.system || DEFAULT_SYSTEM).name}
+                                    <Gamepad2 size={10} /> {$t(getSystem(camp.system || DEFAULT_SYSTEM).nameKey)}
                                 </div>
                            </div>
                            <p class="text-sm text-slate-400 line-clamp-2 leading-relaxed h-10">{camp.description || $t('dashboard.campaigns.no_description')}</p>
@@ -634,7 +634,7 @@
                               </div>
                               <div class="mb-4">
                                    <div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-800/50 text-[9px] text-slate-400 border border-slate-700/50 font-bold uppercase tracking-wider">
-                                       <Gamepad2 size={10} /> {getSystem(camp.system || DEFAULT_SYSTEM).name}
+                                       <Gamepad2 size={10} /> {$t(getSystem(camp.system || DEFAULT_SYSTEM).nameKey)}
                                    </div>
                               </div>
                               <p class="text-sm text-slate-400 line-clamp-3 leading-relaxed mb-6 h-15">{camp.description || $t('dashboard.campaigns.public_description')}</p>

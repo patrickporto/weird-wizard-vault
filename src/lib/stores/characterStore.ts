@@ -115,6 +115,7 @@ export interface WWCharacter {
     imageUrl?: string;
     system?: string;
     campaignApproval?: 'pending' | 'approved' | 'rejected' | null;
+    passwordHash?: string;
 }
 
 export interface RollHistoryEntry {

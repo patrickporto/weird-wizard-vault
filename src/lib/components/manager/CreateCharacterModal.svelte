@@ -105,22 +105,42 @@
         const randomKey = keys[Math.floor(Math.random() * keys.length)];
 
         const translatedProfession = $t(`professions.${currentSystem}.${randomCategory.toLowerCase()}.${randomKey}`);
-        form.profession = `${translatedProfession} (${randomCategory})`;
+        const translatedCategory = $t(`professions.categories.${randomCategory.toLowerCase()}`);
+        form.profession = `${translatedProfession} (${translatedCategory})`;
         selectedCategory = ''; // Close any open category view
     }
 
     function selectProfession(category: string, key: string) {
         const currentSystem = (form.system === 'sofdl' || form.system === 'sofww') ? form.system : 'sofww';
         const translatedProfession = $t(`professions.${currentSystem}.${category.toLowerCase()}.${key}`);
-        form.profession = `${translatedProfession} (${category})`;
+        const translatedCategory = $t(`professions.categories.${category.toLowerCase()}`);
+        form.profession = `${translatedProfession} (${translatedCategory})`;
     }
 
     function handleFinish() {
         // Finalize "Other" fields if on last step
         if (form.novicePath === 'Other') form.novicePath = otherPath;
 
+        const currentSystem = (form.system === 'sofdl' || form.system === 'sofww') ? form.system : 'sofww';
+
+        // Translate Ancestry if it's a standard key
+        let finalAncestry = form.ancestry;
+        const standardAncestries = ['Human', 'Changeling', 'Clockwork', 'Dwarf', 'Goblin', 'Orc'];
+        if (standardAncestries.includes(finalAncestry)) {
+             finalAncestry = $t(`ancestries.${currentSystem}.${finalAncestry.toLowerCase()}`);
+        }
+
+        // Translate Path if it's a standard key
+        let finalPath = form.novicePath;
+        const standardPaths = ['Magician', 'Priest', 'Rogue', 'Warrior', 'Fighter', 'Mage', 'Ancestry'];
+        if (standardPaths.includes(finalPath)) {
+            finalPath = $t(`paths.${currentSystem}.${finalPath.toLowerCase()}`);
+        }
+
         const finalForm = {
             ...form,
+            ancestry: finalAncestry,
+            novicePath: finalPath,
             level: form.system === 'sofdl' ? 0 : 1, // DL starts at 0, WW usually 1
             health: form.system === 'sofdl' ? 10 : 10, // Defaults, will be adjusted by ancestry usually
             defense: 10
@@ -184,7 +204,7 @@
                                         onclick={() => form.ancestry = ancestry}
                                         class="p-4 rounded-xl border-2 text-center font-bold uppercase tracking-wider transition-all {form.ancestry === ancestry ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)]' : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600 hover:text-white'}"
                                     >
-                                        {ancestry === 'Other' ? 'Outro' : ancestry}
+                                        {$t(`ancestries.sofdl.${ancestry.toLowerCase()}`)}
                                     </button>
                                 {/each}
                             {:else}
@@ -192,13 +212,13 @@
                                     onclick={() => form.ancestry = 'Human'}
                                     class="p-4 rounded-xl border-2 text-center font-bold uppercase tracking-wider transition-all {form.ancestry === 'Human' ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)]' : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600 hover:text-white'}"
                                 >
-                                    Humano
+                                    {$t('ancestries.sofww.human')}
                                 </button>
                                 <button
                                     onclick={() => form.ancestry = 'Other'}
                                     class="p-4 rounded-xl border-2 text-center font-bold uppercase tracking-wider transition-all {form.ancestry === 'Other' ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)]' : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600 hover:text-white'}"
                                 >
-                                    Outro
+                                    {$t('ancestries.sofww.other')}
                                 </button>
                             {/if}
                         </div>
@@ -236,7 +256,7 @@
                                             onclick={() => selectedCategory = category}
                                             class="p-3 rounded-xl border border-slate-800 bg-slate-900/50 hover:bg-slate-800 text-slate-300 hover:text-white font-bold text-xs uppercase tracking-widest transition-all"
                                         >
-                                            {category}
+                                            {$t(`professions.categories.${category.toLowerCase()}`)}
                                         </button>
                                     {/each}
                                 </div>
@@ -244,7 +264,7 @@
                                 <div in:fade={{ duration: 200 }} class="space-y-3">
                                     <div class="flex items-center justify-between">
                                         <button onclick={() => selectedCategory = ''} class="text-xs text-indigo-400 hover:text-indigo-300 font-bold uppercase tracking-widest flex items-center gap-1 transition-all">
-                                            <ChevronLeft size={14} /> {selectedCategory}
+                                            <ChevronLeft size={14} /> {$t(`professions.categories.${selectedCategory.toLowerCase()}`)}
                                         </button>
                                     </div>
                                     <div class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
@@ -304,13 +324,13 @@
                                 {$t('wizard.character.step4_skip')}
                             </button>
 
-                            {#if form.system === 'sofdl'}
+                             {#if form.system === 'sofdl'}
                                 {#each ['Magician', 'Priest', 'Rogue', 'Warrior', 'Other'] as path}
                                     <button
                                         onclick={() => form.novicePath = path}
                                         class="p-4 rounded-xl border-2 text-center font-bold uppercase tracking-wider transition-all {form.novicePath === path ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)]' : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600 hover:text-white'}"
                                     >
-                                        {path === 'Other' ? $t('wizard.character.step4_other') : path}
+                                        {$t(`paths.sofdl.${path.toLowerCase()}`)}
                                     </button>
                                 {/each}
                             {:else}
@@ -319,7 +339,7 @@
                                         onclick={() => form.novicePath = path}
                                         class="p-4 rounded-xl border-2 text-center font-bold uppercase tracking-wider transition-all {form.novicePath === path ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)]' : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600 hover:text-white'}"
                                     >
-                                        {path === 'Ancestry' ? $t('wizard.character.step4_ancestry') : path === 'Other' ? $t('wizard.character.step4_other') : path}
+                                        {$t(`paths.sofww.${path.toLowerCase()}`)}
                                     </button>
                                 {/each}
                             {/if}

@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from 'svelte-i18n';
     import { User, Gamepad2, Info } from 'lucide-svelte';
     import Modal from '$lib/components/common/Modal.svelte';
     import { SYSTEMS, DEFAULT_SYSTEM, isSystemDisabled } from '$lib/systems';
@@ -58,56 +59,59 @@
     }
 </script>
 
-<Modal {isOpen} {onClose} title="Editar Personagem" maxWidth="max-w-md">
+<Modal {isOpen} {onClose} title={$t('character.settings.title')} maxWidth="max-w-md">
     <div class="space-y-4">
         <div>
             <label class="text-xs text-slate-500 uppercase font-black block mb-2 tracking-widest flex items-center gap-1">
-                <Gamepad2 size={12} /> Sistema de Jogo
+                <Gamepad2 size={12} /> {$t('character.settings.system_label')}
             </label>
             <div class="p-3 bg-slate-800 rounded-lg border border-slate-700 text-slate-300 text-sm font-bold flex items-center gap-2">
-                 {SYSTEMS.find(s => s.id === form.system)?.name || 'Sistema Desconhecido'}
-                 <span class="text-[9px] bg-slate-700 text-slate-400 px-1.5 py-0.5 rounded uppercase tracking-wider ml-auto">Fixo</span>
+                  {(() => {
+                      const sys = SYSTEMS.find(s => s.id === form.system);
+                      return sys ? $t(sys.nameKey) : $t('character.settings.system_unknown');
+                  })()}
+                  <span class="text-[9px] bg-slate-700 text-slate-400 px-1.5 py-0.5 rounded uppercase tracking-wider ml-auto">{$t('character.settings.fixed')}</span>
             </div>
         </div>
 
         <div>
-            <label for="char-name" class="text-xs text-slate-500 uppercase font-black block mb-1 tracking-widest">Nome do Personagem</label>
-            <input id="char-name" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none focus:border-indigo-500 transition-colors" placeholder="Ex: Alaric, o Errante" bind:value={form.name}/>
+            <label for="char-name" class="text-xs text-slate-500 uppercase font-black block mb-1 tracking-widest">{$t('character.settings.name_label')}</label>
+            <input id="char-name" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none focus:border-indigo-500 transition-colors" placeholder={$t('character.settings.name_placeholder')} bind:value={form.name}/>
         </div>
         <div>
             <label for="char-player" class="text-xs text-slate-500 uppercase font-black block mb-1 tracking-widest flex items-center gap-1">
-                <User size={12} /> Nome do Jogador
+                <User size={12} /> {$t('character.settings.player_label')}
             </label>
-            <input id="char-player" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none focus:border-indigo-500 transition-colors" placeholder="Seu nome ou apelido" bind:value={form.playerName}/>
+            <input id="char-player" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none focus:border-indigo-500 transition-colors" placeholder={$t('character.settings.player_placeholder')} bind:value={form.playerName}/>
         </div>
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label for="char-ancestry" class="text-xs text-slate-500 uppercase font-black block mb-1 tracking-widest">Ancestralidade</label>
-                <input id="char-ancestry" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none focus:border-indigo-500 transition-colors" placeholder="Ex: Humano" bind:value={form.ancestry}/>
+                <label for="char-ancestry" class="text-xs text-slate-500 uppercase font-black block mb-1 tracking-widest">{$t('character.settings.ancestry_label')}</label>
+                <input id="char-ancestry" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none focus:border-indigo-500 transition-colors" placeholder={$t('character.settings.ancestry_placeholder')} bind:value={form.ancestry}/>
             </div>
             <div>
-                <label for="char-level" class="text-xs text-slate-500 uppercase font-black block mb-1 tracking-widest">Nível</label>
+                <label for="char-level" class="text-xs text-slate-500 uppercase font-black block mb-1 tracking-widest">{$t('character.settings.level_label')}</label>
                 <input id="char-level" type="number" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none focus:border-indigo-500 transition-colors" bind:value={form.level}/>
             </div>
         </div>
         <div>
-            <label for="char-path" class="text-xs text-slate-500 uppercase font-black block mb-1 tracking-widest">Trilha Inicial (Novice)</label>
-            <input id="char-path" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none focus:border-indigo-500 transition-colors" placeholder="Ex: Guerreiro, Mago" bind:value={form.novicePath}/>
+            <label for="char-path" class="text-xs text-slate-500 uppercase font-black block mb-1 tracking-widest">{$t('character.settings.path_label')}</label>
+            <input id="char-path" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none focus:border-indigo-500 transition-colors" placeholder={$t('character.settings.path_placeholder')} bind:value={form.novicePath}/>
         </div>
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label for="char-defense" class="text-xs text-slate-500 uppercase font-black block mb-1 tracking-widest">Defesa</label>
+                <label for="char-defense" class="text-xs text-slate-500 uppercase font-black block mb-1 tracking-widest">{$t('character.settings.defense_label')}</label>
                 <input id="char-defense" type="number" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none focus:border-indigo-500 transition-colors" bind:value={form.defense}/>
             </div>
             <div>
-                <label for="char-health" class="text-xs text-slate-500 uppercase font-black block mb-1 tracking-widest">Vida Máxima</label>
+                <label for="char-health" class="text-xs text-slate-500 uppercase font-black block mb-1 tracking-widest">{$t('character.settings.health_label')}</label>
                 <input id="char-health" type="number" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none focus:border-indigo-500 transition-colors" bind:value={form.health}/>
             </div>
         </div>
     </div>
 
     <div class="flex gap-3 mt-8">
-        <button onclick={onClose} class="flex-1 bg-slate-700 hover:bg-slate-600 transition-all py-3 rounded-xl text-white font-bold active:scale-95">Cancelar</button>
-        <button onclick={handleSave} class="flex-1 bg-indigo-600 hover:bg-indigo-500 transition-all py-3 rounded-xl text-white font-bold shadow-lg shadow-indigo-900/20 active:scale-95">Salvar Alterações</button>
+        <button onclick={onClose} class="flex-1 bg-slate-700 hover:bg-slate-600 transition-all py-3 rounded-xl text-white font-bold active:scale-95">{$t('character.settings.cancel')}</button>
+        <button onclick={handleSave} class="flex-1 bg-indigo-600 hover:bg-indigo-500 transition-all py-3 rounded-xl text-white font-bold shadow-lg shadow-indigo-900/20 active:scale-95">{$t('character.settings.save_changes')}</button>
     </div>
 </Modal>

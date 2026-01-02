@@ -1,7 +1,7 @@
 export interface GameSystem {
     id: string;
-    name: string;
-    description: string;
+    nameKey: string;
+    descriptionKey: string;
     disabled?: boolean;
     comingSoon?: boolean;
 }
@@ -9,18 +9,18 @@ export interface GameSystem {
 export const SYSTEMS: GameSystem[] = [
     {
         id: 'sofww',
-        name: 'Shadow of the Weird Wizard',
-        description: 'A fantasy roleplaying game of dark magic and perilous quests.'
+        nameKey: 'common.systems.sofww.name',
+        descriptionKey: 'common.systems.sofww.description'
     },
     {
         id: 'sofdl',
-        name: 'Shadow of the Demon Lord',
-        description: 'A dark fantasy tabletop RPG.'
+        nameKey: 'common.systems.sofdl.name',
+        descriptionKey: 'common.systems.sofdl.description'
     },
     {
         id: 'dle',
-        name: 'Demon Lord Engine',
-        description: 'A system agnostic engine based on the Demon Lord mechanics.',
+        nameKey: 'common.systems.dle.name',
+        descriptionKey: 'common.systems.dle.description',
         disabled: true,
         comingSoon: true
     }

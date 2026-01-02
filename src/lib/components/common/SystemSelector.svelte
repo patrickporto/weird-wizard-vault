@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from 'svelte-i18n';
     import { SYSTEMS } from '$lib/systems';
     import { Check, Lock } from 'lucide-svelte';
 
@@ -44,7 +45,7 @@
             <div class="absolute inset-0 bg-slate-900">
                 <img
                     src={getCoverImage(system.id)}
-                    alt={system.name}
+                    alt={$t(system.nameKey)}
                     class="w-full h-full object-cover {getObjectPosition(system.id)} opacity-40 group-hover:opacity-60 transition-opacity duration-500"
                 />
                 <div class="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent"></div>
@@ -66,10 +67,10 @@
 
                 <div>
                     <h3 class="text-xl font-black text-white uppercase leading-tight mb-2 group-hover:text-indigo-400 transition-colors">
-                        {system.name}
+                        {$t(system.nameKey)}
                     </h3>
                     <p class="text-xs text-slate-400 font-medium leading-relaxed max-w-[90%]">
-                        {system.description}
+                        {$t(system.descriptionKey)}
                     </p>
                 </div>
             </div>

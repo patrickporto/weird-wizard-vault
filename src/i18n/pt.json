@@ -40,6 +40,21 @@
       "connected": "Conectado",
       "peers": "Pares: {count}",
       "offline": "Desconectado"
+    },
+    "systems": {
+      "sofww": {
+        "name": "Shadow of the Weird Wizard",
+        "description": "Um mundo de fantasia sombria onde você enfrenta perigos terríveis e heróis surgem de lugares inesperados."
+      },
+      "sofdl": {
+        "name": "Shadow of the Demon Lord",
+        "description": "O mundo está acabando. O Demon Lord se aproxima. Como você passará seus últimos dias?"
+      },
+
+      "dle": {
+        "name": "Demon Lord Engine",
+        "description": "O motor de jogo clássico que alimenta Shadow of the Demon Lord."
+      }
     }
   },
   "dashboard": {
@@ -88,7 +103,23 @@
         "novice": "Novato",
         "expert": "Especialista",
         "master": "Mestre"
-      }
+      },
+      "system_label": "Sistema de Jogo",
+      "system_unknown": "Sistema Desconhecido",
+      "fixed": "Fixo",
+      "name_label": "Nome da Campanha",
+      "name_placeholder": "Ex: A Sombra do Feiticeiro",
+      "gm_label": "Mestre (GM)",
+      "gm_placeholder": "Seu nome ou apelido",
+      "description_label": "Descrição",
+      "description_placeholder": "Uma breve descrição da sua jornada...",
+      "password_label": "Senha de Acesso (Opcional)",
+      "password_protected": "Protegida",
+      "password_change_placeholder": "Preencha para alterar...",
+      "password_empty_placeholder": "Deixe em branco para sem senha",
+      "password_remove": "Remover Senha",
+      "password_remove_info": "A senha será removida ao salvar.",
+      "password_info": "Defina uma senha para proteger o convite desta campanha."
     },
     "difficulty": {
       "title": "Dificuldade do Combate",
@@ -114,9 +145,23 @@
   },
   "character": {
     "settings": {
-      "title_label": "Configurações do Personagem",
-      "player_name": "Nome do Jogador",
-      "magic_system": "Sistema de Magia"
+      "title": "Editar Personagem",
+      "system_label": "Sistema de Jogo",
+      "system_unknown": "Sistema Desconhecido",
+      "fixed": "Fixo",
+      "name_label": "Nome do Personagem",
+      "name_placeholder": "Ex: Alaric, o Errante",
+      "player_label": "Nome do Jogador",
+      "player_placeholder": "Seu nome ou apelido",
+      "ancestry_label": "Ancestralidade",
+      "ancestry_placeholder": "Ex: Humano",
+      "level_label": "Nível",
+      "path_label": "Trilha Inicial (Novice)",
+      "path_placeholder": "Ex: Guerreiro, Mago",
+      "defense_label": "Defesa",
+      "health_label": "Vida Máxima",
+      "save_changes": "Salvar Alterações",
+      "cancel": "Cancelar"
     },
     "not_found": {
       "title": "Personagem Não Encontrado",
@@ -978,7 +1023,8 @@
         "name": "Visão Verdadeira",
         "description": "Vê em sombras e escuridão como se iluminado. Vê criaturas invisíveis e reconhece ilusões."
       }
-    },
+    }
+  },
     "wizard": {
       "campaign": {
         "title": "Nova Campanha",
@@ -1260,7 +1306,49 @@
           "shopkeeper": "Logista",
           "teamster": "Carroceiro"
         }
+      },
+      "categories": {
+        "academic": "Acadêmico",
+        "criminal": "Criminoso",
+        "martial": "Marcial",
+        "wilderness": "Selvagem",
+        "religious": "Religioso",
+        "common": "Comum",
+        "entertainment": "Entretenimento",
+        "military": "Militar",
+        "aristocratic": "Aristocrático"
+      }
+    },
+    "ancestries": {
+      "sofdl": {
+        "human": "Humano",
+        "changeling": "Mutante",
+        "clockwork": "Autômato",
+        "dwarf": "Anão",
+        "goblin": "Goblin",
+        "orc": "Orc",
+        "other": "Outro"
+      },
+      "sofww": {
+        "human": "Humano",
+        "other": "Outro"
+      }
+    },
+    "paths": {
+      "sofdl": {
+        "magician": "Mago",
+        "priest": "Sacerdote",
+        "rogue": "Ladino",
+        "warrior": "Combatente",
+        "other": "Outro"
+      },
+      "sofww": {
+        "fighter": "Lutador",
+        "mage": "Mago",
+        "priest": "Sacerdote",
+        "rogue": "Ladino",
+        "ancestry": "Ancestralidade",
+        "other": "Outro"
       }
     }
-  }
 }
