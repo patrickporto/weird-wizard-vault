@@ -196,6 +196,7 @@
     "vitals": {
       "defense": "Defesa",
       "speed": "Velocidade",
+      "size": "Tamanho",
       "bonus_damage": "Bônus de Dano",
       "extra_dice": "Dados Extras",
       "healing_rate": "Taxa de Cura"

@@ -121,26 +121,8 @@
         // Finalize "Other" fields if on last step
         if (form.novicePath === 'Other') form.novicePath = otherPath;
 
-        const currentSystem = (form.system === 'sofdl' || form.system === 'sofww') ? form.system : 'sofww';
-
-        // Translate Ancestry if it's a standard key
-        let finalAncestry = form.ancestry;
-        const standardAncestries = ['Human', 'Changeling', 'Clockwork', 'Dwarf', 'Goblin', 'Orc'];
-        if (standardAncestries.includes(finalAncestry)) {
-             finalAncestry = $t(`ancestries.${currentSystem}.${finalAncestry.toLowerCase()}`);
-        }
-
-        // Translate Path if it's a standard key
-        let finalPath = form.novicePath;
-        const standardPaths = ['Magician', 'Priest', 'Rogue', 'Warrior', 'Fighter', 'Mage', 'Ancestry'];
-        if (standardPaths.includes(finalPath)) {
-            finalPath = $t(`paths.${currentSystem}.${finalPath.toLowerCase()}`);
-        }
-
         const finalForm = {
             ...form,
-            ancestry: finalAncestry,
-            novicePath: finalPath,
             level: form.system === 'sofdl' ? 0 : 1, // DL starts at 0, WW usually 1
             health: form.system === 'sofdl' ? 10 : 10, // Defaults, will be adjusted by ancestry usually
             defense: 10
