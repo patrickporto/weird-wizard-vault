@@ -28,7 +28,8 @@
       "bestiary": "Bestiário",
       "language": "Idioma",
       "health_label": "Vida",
-      "coming_soon": "Em breve"
+      "coming_soon": "Em breve",
+      "result": "Resultado"
     },
     "status": {
       "syncing": "Sincronizando",

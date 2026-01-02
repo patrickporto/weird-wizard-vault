@@ -27,7 +27,8 @@
             "session": "Session",
             "bestiary": "Bestiary",
             "language": "Language",
-            "coming_soon": "Coming Soon"
+            "coming_soon": "Coming Soon",
+            "result": "Result"
         },
         "status": {
             "syncing": "Syncing",

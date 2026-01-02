@@ -412,22 +412,22 @@
         rollLabel={$t('character.dice_roll.roll')}
         effects={isSotDL ? $sotdlActiveEffects : $activeEffects}
         onClose={() => modalState.update(m => ({ ...m, type: null, isOpen: false, data: null }))}
-        onRoll={(mod, selectedEffects) => {
+        onRoll={(mod, selectedEffects, options) => {
             if (isSotDL) {
                 // @ts-ignore - finalizeRoll exists on sotdlCharacterActions
-                sotdlCharacterActions.finalizeRoll(
+                return sotdlCharacterActions.finalizeRoll(
                     $modalState.data,
                     mod,
                     selectedEffects.map(e => e.name)
                 );
             } else {
-                characterActions.finalizeRoll(
+                return characterActions.finalizeRoll(
                     $modalState.data,
                     mod,
-                    selectedEffects
+                    selectedEffects,
+                    options
                 );
             }
-            modalState.update(m => ({ ...m, type: null, isOpen: false, data: null }));
         }}
     />
 

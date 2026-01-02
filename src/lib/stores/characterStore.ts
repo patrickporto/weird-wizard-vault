@@ -485,7 +485,7 @@ export const characterActions = {
         modalState.set({ type: null, isOpen: false, data: null });
     },
 
-    finalizeRoll: (data: any, modifier: number, selectedEffects: any[] = []) => {
+  finalizeRoll: (data: any, modifier: number, selectedEffects: any[] = [], options: { suppressHistory?: boolean } = {}): { d20?: number; boonBaneDice?: number[]; damageDice?: number[]; total?: number; formula?: string; commit?: () => void } | void => {
         const char = get(character);
         const derivedStatsVal = get(derivedStats);
         const _t = get(t);
@@ -496,6 +496,9 @@ export const characterActions = {
         const item = data?.source;
         const sourceName = item?.name || _t('common.labels.action');
         const hasTrait = (it: any, trait: string) => it.traits && it.traits.toLowerCase().includes(trait.toLowerCase());
+
+    let resultData: any = {};
+    let commitFn: () => void = () => { };
 
         if (!isDamage) {
             const d20 = Math.floor(Math.random() * 20) + 1;
@@ -541,12 +544,12 @@ export const characterActions = {
 
             let boonBaneTotal = 0;
             let boonBaneStr = '';
+          let boonBaneRolls: number[] = [];
 
             if (modifier !== 0) {
                 const numDice = Math.abs(modifier);
-                let rolls = [];
-                for (let i = 0; i < numDice; i++) rolls.push(Math.floor(Math.random() * 6) + 1);
-                const highest = Math.max(...rolls);
+              for (let i = 0; i < numDice; i++) boonBaneRolls.push(Math.floor(Math.random() * 6) + 1);
+              const highest = Math.max(...boonBaneRolls);
 
                 if (modifier > 0) {
                     boonBaneTotal = highest;
@@ -580,28 +583,33 @@ export const characterActions = {
                 if (critEffects.length > 0) description += `\nCRÍTICO! ${critEffects.join(" ")} `;
             }
 
-            characterActions.addToHistory({
+          const formula = `d20(${d20})${attrMod !== 0 ? (attrMod >= 0 ? '+' : '') + attrMod : ''}${boonBaneStr}`;
+
+          resultData = { d20, boonBaneDice: boonBaneRolls, total, formula };
+
+          commitFn = () => {
+              characterActions.addToHistory({
                 source: isAttack ? 'attack' : isLuck ? 'luck' : 'attribute',
                 name: sourceName,
                 description: description,
-                formula: `d20(${d20})${attrMod !== 0 ? (attrMod >= 0 ? '+' : '') + attrMod : ''}${boonBaneStr} `,
-                total: total,
-                crit: d20 === 20,
-                effectsApplied: selectedEffects.map(e => e.name)
-            });
+                  formula: formula,
+                  total: total,
+                  crit: d20 === 20,
+                  effectsApplied: selectedEffects.map(e => e.name)
+                });
 
-            character.update(c => ({
+              character.update(c => ({
                 ...c,
                 effects: c.effects.map(e => (e.isActive && e.duration === 'NEXT_ROLL') ? { ...e, isActive: false } : e)
-            }));
+              }));
 
-            if (isAttack && hasTrait(item, 'Reload')) {
+              if (isAttack && hasTrait(item, 'Reload')) {
                 character.update(c => ({
-                    ...c,
-                    equipment: c.equipment.map(i => i.id === item.id ? { ...i, isLoaded: false } : i)
+                  ...c,
+                  equipment: c.equipment.map(i => i.id === item.id ? { ...i, isLoaded: false } : i)
                 }));
-            }
-
+              }
+            };
         } else {
             let baseDice = parseInt(item.damageDice) || 0;
 
@@ -645,21 +653,31 @@ export const characterActions = {
                 sum += r;
             }
 
-            damage.set(sum);
+          const formula = `${totalDice}d6 [${results.join(', ')}] ${originalRollsInfo.some(s => s.includes('->')) ? `(Rolagens: ${originalRollsInfo.join(', ')})` : ''}`;
 
-            characterActions.addToHistory({
+          resultData = { damageDice: results, total: sum, formula };
+
+          commitFn = () => {
+              damage.set(sum);
+
+              characterActions.addToHistory({
                 source: `damage`,
                 name: item.name,
                 description: `${_t('history.source.damage')}: ${totalDice}d6 ${hasTrait(item, 'Brutal') ? '(Brutal)' : ''}`,
-                formula: `${totalDice}d6 [${results.join(', ')}] ${originalRollsInfo.some(s => s.includes('->')) ? `(Rolagens: ${originalRollsInfo.join(', ')})` : ''}`,
-                total: sum,
-                effectsApplied: selectedEffects.map(e => e.name)
-            });
+                  formula: formula,
+                  total: sum,
+                  effectsApplied: selectedEffects.map(e => e.name)
+                });
 
-            if (item.type === ITEM_TYPES.EXPLOSIVE) characterActions.useConsumable(item);
+              if (item.type === ITEM_TYPES.EXPLOSIVE) characterActions.useConsumable(item);
+          };
         }
 
-        modalState.set({ type: null, isOpen: false, data: null });
+    if (!options.suppressHistory) {
+      commitFn();
+        }
+
+    return { ...resultData, commit: commitFn };
     },
 
     reloadWeapon: (item: WWItem) => {
