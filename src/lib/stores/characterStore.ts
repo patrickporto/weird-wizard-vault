@@ -137,8 +137,7 @@ export interface AppSettings {
     autoOpenHistory: boolean;
     stickyHistory: boolean;
     theme: string;
-    defaultPlayerName?: string;
-    defaultGmName?: string;
+    userName?: string;
 }
 
 // --- STATE ---
@@ -193,8 +192,7 @@ const initialSettings: AppSettings = {
     autoOpenHistory: false,
     stickyHistory: false,
     theme: 'dark',
-    defaultPlayerName: '',
-    defaultGmName: ''
+    userName: ''
 };
 
 function createAppSettings() {

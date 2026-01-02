@@ -5,6 +5,7 @@
     import SystemSelector from '$lib/components/common/SystemSelector.svelte';
     import { generateRandomName } from '$lib/logic/nameGenerator';
     import { appSettings } from '$lib/stores/characterStore';
+    import { googleSession } from '$lib/logic/googleDrive';
 
     interface Props {
         isOpen: boolean;
@@ -57,7 +58,7 @@
             step = 1;
             form.system = '';
             form.name = '';
-            form.playerName = $appSettings.defaultPlayerName || '';
+            form.playerName = $appSettings.userName || $googleSession.userProfile?.name || '';
             form.ancestry = '';
             form.profession = '';
             form.novicePath = '';

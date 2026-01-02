@@ -848,12 +848,17 @@
     "description": "Personalize sua experiência",
     "sections": {
       "interface": "Interface & Comportamento",
+      "identity": "Identidade",
       "appearance": "Aparência"
     },
     "options": {
       "auto_open_history": {
         "label": "Auto-abrir Histórico",
         "description": "Abre a barra lateral automaticamente sempre que um dado for rolado."
+      },
+      "user_name": {
+        "label": "Nome de Usuário (Padrão)",
+        "placeholder": "Seu nome ou apelido"
       },
       "theme": {
         "label": "Tema (Em breve)",

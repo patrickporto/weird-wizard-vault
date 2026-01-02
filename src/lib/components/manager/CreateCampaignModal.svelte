@@ -9,6 +9,7 @@
     import type { TierLevel } from '$lib/systems';
     import { generateRandomName } from '$lib/logic/nameGenerator';
     import { appSettings } from '$lib/stores/characterStore';
+    import { googleSession } from '$lib/logic/googleDrive';
 
     interface Props {
         isOpen: boolean;
@@ -36,7 +37,7 @@
             form.tier = 'starting';
             form.name = '';
             form.description = '';
-            form.gmName = $appSettings.defaultGmName || $appSettings.defaultPlayerName || '';
+            form.gmName = $appSettings.userName || $googleSession.userProfile?.name || '';
             form.password = '';
         }
     });

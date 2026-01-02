@@ -853,12 +853,17 @@
       "description": "Customize your experience",
       "sections": {
         "interface": "Interface & Behavior",
+        "identity": "Identity",
         "appearance": "Appearance"
       },
       "options": {
         "auto_open_history": {
           "label": "Auto-open History",
           "description": "Automatically opens the history sidebar whenever a die is rolled."
+        },
+        "user_name": {
+            "label": "User Name (Default)",
+            "placeholder": "Your name or nickname"
         },
         "theme": {
           "label": "Theme (Coming Soon)",
