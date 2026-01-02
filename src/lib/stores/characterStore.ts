@@ -658,7 +658,7 @@ export const characterActions = {
           resultData = { damageDice: results, total: sum, formula };
 
           commitFn = () => {
-              damage.set(sum);
+
 
               characterActions.addToHistory({
                 source: `damage`,

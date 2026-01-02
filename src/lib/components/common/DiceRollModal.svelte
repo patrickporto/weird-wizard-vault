@@ -119,41 +119,45 @@
     async function handleRoll() {
         const selected = effects.filter(e => selectedEffectsIds.includes(e.id));
 
-        // Call onRoll, suppressing history if 3D dice are enabled (so we can commit after animation)
-        const preRolled = onRoll(modifier, selected, { suppressHistory: enable3DDice });
+        // Always suppress history initially so we can show result in modal first
+        const preRolled = onRoll(modifier, selected, { suppressHistory: true });
 
-        // If 3D dice is enabled and we have pre-rolled results, show them
-        if (enable3DDice && diceRoller && preRolled) {
+        if (preRolled) {
             isRolling = true;
-            try {
-                // Determine notation based on what results we got
-                const notation = buildForcedNotation(preRolled.d20, preRolled.boonBaneDice, preRolled.damageDice);
 
-                if (notation) {
-                    await diceRoller.roll(notation);
-                    // Small delay for dramatic effect
-                    await new Promise(resolve => setTimeout(resolve, 500));
+            // 1. Play 3D animation if enabled
+            if (enable3DDice && diceRoller) {
+                try {
+                    const notation = buildForcedNotation(preRolled.d20, preRolled.boonBaneDice, preRolled.damageDice);
+                    if (notation) {
+                        await diceRoller.roll(notation);
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    }
+                } catch (error) {
+                    console.error('3D dice roll failed:', error);
                 }
-            } catch (error) {
-                console.error('3D dice roll failed:', error);
+            } else {
+                // Short delay for UI feel if 3D dice disabled
+                await new Promise(resolve => setTimeout(resolve, 200));
             }
+
             isRolling = false;
 
-            // Show result in modal
+            // 2. Show result in modal
             rollResult = preRolled;
 
-            // Store commit function to be called on close
+            // 3. Store commit function
             if (preRolled.commit) {
                 pendingCommit = preRolled.commit;
             }
 
-            // Auto close after 2.5 seconds
+            // 4. Auto close timer (2.5s)
             autoCloseTimer = setTimeout(() => {
                 closeAndReset();
             }, 2500);
 
         } else {
-            // No 3D dice or failed setup, just close
+            // Fallback if something failed (shouldn't happen with correct onRoll)
             onClose();
         }
     }
