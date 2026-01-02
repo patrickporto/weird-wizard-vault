@@ -223,6 +223,7 @@ export class DiceBox {
     });
 
     this.container.appendChild(this.renderer.domElement);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.shadowMap.enabled = this.shadows;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setClearColor(0x000000, 0);
