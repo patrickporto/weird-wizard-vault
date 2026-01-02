@@ -375,4 +375,112 @@ describe('Google Drive Sync - Deletion Regression Tests', () => {
             expect(campaignsMap.has(campId)).toBe(false);
         });
     });
+
+    describe('AppSettings Migration from Legacy Format', () => {
+        it('should migrate defaultPlayerName to userName', () => {
+            const cloudData = {
+                appSettings: {
+                    autoOpenHistory: false,
+                    stickyHistory: false,
+                    theme: 'dark',
+                    defaultPlayerName: 'Hero Player',
+                    defaultGmName: 'Master GM'
+                }
+            };
+
+            // Simulate the migration logic from syncFromCloud
+            const settings: any = { ...cloudData.appSettings };
+
+            if (!settings.userName && (settings.defaultPlayerName || settings.defaultGmName)) {
+                settings.userName = settings.defaultPlayerName || settings.defaultGmName || '';
+            }
+
+            delete settings.defaultPlayerName;
+            delete settings.defaultGmName;
+
+            // Verify migration
+            expect(settings.userName).toBe('Hero Player');
+            expect(settings.defaultPlayerName).toBeUndefined();
+            expect(settings.defaultGmName).toBeUndefined();
+        });
+
+        it('should prioritize defaultPlayerName over defaultGmName', () => {
+            const cloudData = {
+                appSettings: {
+                    autoOpenHistory: false,
+                    defaultPlayerName: 'Player Name',
+                    defaultGmName: 'GM Name'
+                }
+            };
+
+            const settings: any = { ...cloudData.appSettings };
+
+            if (!settings.userName && (settings.defaultPlayerName || settings.defaultGmName)) {
+                settings.userName = settings.defaultPlayerName || settings.defaultGmName || '';
+            }
+
+            expect(settings.userName).toBe('Player Name');
+        });
+
+        it('should use defaultGmName if defaultPlayerName is missing', () => {
+            const cloudData = {
+                appSettings: {
+                    autoOpenHistory: false,
+                    defaultGmName: 'GM Name'
+                }
+            };
+
+            const settings: any = { ...cloudData.appSettings };
+
+            if (!settings.userName && (settings.defaultPlayerName || settings.defaultGmName)) {
+                settings.userName = settings.defaultPlayerName || settings.defaultGmName || '';
+            }
+
+            expect(settings.userName).toBe('GM Name');
+        });
+
+        it('should not override existing userName', () => {
+            const cloudData = {
+                appSettings: {
+                    autoOpenHistory: false,
+                    userName: 'Existing User',
+                    defaultPlayerName: 'Old Player',
+                    defaultGmName: 'Old GM'
+                }
+            };
+
+            const settings: any = { ...cloudData.appSettings };
+
+            if (!settings.userName && (settings.defaultPlayerName || settings.defaultGmName)) {
+                settings.userName = settings.defaultPlayerName || settings.defaultGmName || '';
+            }
+
+            // Should keep existing userName
+            expect(settings.userName).toBe('Existing User');
+        });
+
+        it('should handle settings with no legacy fields', () => {
+            const cloudData = {
+                appSettings: {
+                    autoOpenHistory: true,
+                    stickyHistory: false,
+                    theme: 'dark',
+                    userName: 'Modern User'
+                }
+            };
+
+            const settings: any = { ...cloudData.appSettings };
+
+            if (!settings.userName && (settings.defaultPlayerName || settings.defaultGmName)) {
+                settings.userName = settings.defaultPlayerName || settings.defaultGmName || '';
+            }
+
+            delete settings.defaultPlayerName;
+            delete settings.defaultGmName;
+
+            expect(settings.userName).toBe('Modern User');
+            expect(settings.defaultPlayerName).toBeUndefined();
+            expect(settings.defaultGmName).toBeUndefined();
+        });
+    });
 });
