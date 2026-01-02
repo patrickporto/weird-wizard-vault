@@ -7,7 +7,7 @@
     import BestiaryView from '$lib/components/manager/BestiaryView.svelte';
     import CampaignHeader from '$lib/components/manager/CampaignHeader.svelte';
     import HistorySidebar from '$lib/components/character/HistorySidebar.svelte';
-    import { isHistoryOpen } from '$lib/stores/characterStore';
+    import { isHistoryOpen, appSettings } from '$lib/stores/characterStore';
     import CampaignModal from '$lib/components/manager/CampaignModal.svelte';
     import { syncCampaign } from '$lib/logic/sync';
     import { Sword, Library, Dices, ChevronUp, ChevronDown, X } from 'lucide-svelte';
@@ -62,7 +62,15 @@
                 formula: res.formula,
                 crit: res.crit
             });
-            isHistoryOpen.set(true);
+
+            const settings = get(appSettings);
+            if (settings.autoOpenHistory) {
+                isHistoryOpen.set(true);
+            } else {
+                import('$lib/stores/characterStore').then(({ hasUnreadRolls }) => {
+                    hasUnreadRolls.set(true);
+                });
+            }
         };
 
         if (!options?.suppressHistory) {
