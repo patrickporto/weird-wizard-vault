@@ -551,6 +551,10 @@
     "confirm_message": "Deseja entrar na campanha \"{campaign}\" com o personagem \"{character}\"?"
   },
   "session": {
+    "tabs": {
+      "session": "Sessão",
+      "bestiary": "Bestiário"
+    },
     "players": {
       "title": "Personagens",
       "add": "Adicionar",
@@ -1365,6 +1369,16 @@
         "rogue": "Ladino",
         "ancestry": "Ancestralidade",
         "other": "Outro"
+      }
+    },
+    "history": {
+      "source": {
+        "attack": "Ataque",
+        "damage": "Dano",
+        "luck": "Sorte",
+        "attribute": "Atributo",
+        "spell": "Magia",
+        "talent": "Talento"
       }
     }
 }

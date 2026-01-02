@@ -556,6 +556,10 @@
         "confirm_message": "Do you want to join the campaign \"{campaign}\" with the character \"{character}\"?"
     },
     "session": {
+        "tabs": {
+            "session": "Session",
+            "bestiary": "Bestiary"
+        },
         "players": {
             "title": "Characters",
             "add": "Add",
@@ -1370,6 +1374,16 @@
             "rogue": "Rogue",
             "ancestry": "Ancestry",
             "other": "Other"
+        }
+    },
+    "history": {
+        "source": {
+            "attack": "Attack",
+            "damage": "Damage",
+            "luck": "Luck",
+            "attribute": "Attribute",
+            "spell": "Spell",
+            "talent": "Talent"
         }
     }
 }
