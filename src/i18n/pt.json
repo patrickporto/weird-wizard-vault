@@ -1336,14 +1336,14 @@
     },
     "paths": {
       "sofdl": {
-        "magician": "Mago",
+        "magician": "Maigsta",
         "priest": "Sacerdote",
         "rogue": "Ladino",
-        "warrior": "Combatente",
+        "warrior": "Guerreiro",
         "other": "Outro"
       },
       "sofww": {
-        "fighter": "Lutador",
+        "fighter": "Guerreiro",
         "mage": "Mago",
         "priest": "Sacerdote",
         "rogue": "Ladino",
