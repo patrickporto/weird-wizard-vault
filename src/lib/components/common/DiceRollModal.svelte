@@ -46,11 +46,15 @@
         children
     }: Props = $props();
 
+    import { untrack } from 'svelte';
+
     let modifier = $state(0);
     let selectedEffectsIds = $state<string[]>([]);
     let diceRoller: DiceRoller;
     let isRolling = $state(false);
     let rollResult = $state<PreRolledResults | null>(null);
+    let pendingCommit = $state<(() => void) | undefined>(undefined);
+    let autoCloseTimer: ReturnType<typeof setTimeout>;
 
     // Derived: check if 3D dice is enabled
     const enable3DDice = $derived($appSettings.enable3DDice);
@@ -58,17 +62,26 @@
     // Reset modifier and effects when modal opens
     $effect(() => {
         if (isOpen) {
-            if (!rollResult) { // Only reset if not showing result
-                modifier = initialModifier;
-                selectedEffectsIds = effects.map(e => e.id);
-            }
+            untrack(() => {
+                if (!rollResult) { // Only reset if not showing result
+                    modifier = initialModifier;
+                    selectedEffectsIds = effects.map(e => e.id);
+                }
+            });
             isRolling = false;
         } else {
             // Clear when closing
+            cleanup();
             selectedEffectsIds = [];
             rollResult = null;
         }
+        return () => cleanup();
     });
+
+    function cleanup() {
+        if (autoCloseTimer) clearTimeout(autoCloseTimer);
+        pendingCommit = undefined;
+    }
 
     function toggleEffect(id: string) {
         if (selectedEffectsIds.includes(id)) {
@@ -129,10 +142,16 @@
             // Show result in modal
             rollResult = preRolled;
 
-            // Commit the result (save to history, update character)
+            // Store commit function to be called on close
             if (preRolled.commit) {
-                preRolled.commit();
+                pendingCommit = preRolled.commit;
             }
+
+            // Auto close after 2.5 seconds
+            autoCloseTimer = setTimeout(() => {
+                closeAndReset();
+            }, 2500);
+
         } else {
             // No 3D dice or failed setup, just close
             onClose();
@@ -140,6 +159,14 @@
     }
 
     function closeAndReset() {
+        if (autoCloseTimer) clearTimeout(autoCloseTimer);
+
+        // Execute pending commit if any (saves to history)
+        if (pendingCommit) {
+            pendingCommit();
+            pendingCommit = undefined; // prevent double commit
+        }
+
         onClose();
         // Reset state after a short delay to allow close animation
         setTimeout(() => {
