@@ -230,7 +230,8 @@ export class DiceBox {
     this.renderer.shadowMap.enabled = this.shadows;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.0;
+    this.renderer.toneMappingExposure = 1.2;
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.setClearColor(0x000000, 0);
 
     this.setDimensions(this.dimensions);

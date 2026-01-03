@@ -31,6 +31,12 @@ interface DiceColorData {
   font?: string;
   fontOffsetY?: number;
   labels?: Record<string, any[]>;
+  materialOptions?: {
+    color?: number;
+    roughness?: number;
+    metalness?: number;
+    envMapIntensity?: number;
+  };
 }
 
 interface DiceObject {
@@ -111,7 +117,7 @@ export class DiceFactory {
   static #dice = new Map<string, DiceObject>();
 
   #geometries = new Map<string, THREE.BufferGeometry>();
-  #materials_cache = new Map<string, { composite: THREE.Texture; bump: THREE.Texture | null }>();
+  #materials_cache = new Map<string, { composite: THREE.Texture; bump: THREE.Texture | null; emissive?: THREE.Texture | null }>();
   #label_color = '';
   #dice_color = '';
   #edge_color = '';
@@ -121,6 +127,7 @@ export class DiceFactory {
   #dice_font = 'Arial';
   #dice_labels: Record<string, any[]> = {};
   #dice_font_offset_y = 0;
+  #material_overrides: DiceColorData['materialOptions'] = undefined;
 
   private baseScale: number;
   private bumpMapping: boolean;
@@ -230,6 +237,7 @@ export class DiceFactory {
     const originalDiceFont = this.#dice_font;
     const originalDiceLabels = this.#dice_labels;
     const originalFontOffsetY = this.#dice_font_offset_y;
+    const originalMaterialOverrides = this.#material_overrides;
 
     // Temporarily apply the specific colorset
     this.colordata = colordata;
@@ -248,6 +256,7 @@ export class DiceFactory {
     if (colordata.fontOffsetY !== undefined) {
       this.#dice_font_offset_y = colordata.fontOffsetY;
     }
+    this.#material_overrides = colordata.materialOptions;
     this.setMaterialInfo();
 
     const materials = await this.createMaterials(diceobj, this.baseScale / 2, 1.0);
@@ -263,6 +272,7 @@ export class DiceFactory {
     this.#dice_font = originalDiceFont;
     this.#dice_labels = originalDiceLabels;
     this.#dice_font_offset_y = originalFontOffsetY;
+    this.#material_overrides = originalMaterialOverrides;
     this.setMaterialInfo();
 
     if (!materials || materials.length === 0) return null;
@@ -444,6 +454,21 @@ export class DiceFactory {
         mat = new THREE.MeshPhongMaterial(MATERIAL_OPTIONS);
       }
 
+      if (this.#material_overrides) {
+        if (this.#material_overrides.color !== undefined) {
+          mat.color.set(this.#material_overrides.color);
+        }
+        if (this.#material_overrides.roughness !== undefined && 'roughness' in mat) {
+          (mat as THREE.MeshStandardMaterial).roughness = this.#material_overrides.roughness;
+        }
+        if (this.#material_overrides.metalness !== undefined && 'metalness' in mat) {
+          (mat as THREE.MeshStandardMaterial).metalness = this.#material_overrides.metalness;
+        }
+        if (this.#material_overrides.envMapIntensity !== undefined) {
+          mat.envMapIntensity = this.#material_overrides.envMapIntensity;
+        }
+      }
+
       let canvasTextures;
       if (i == 0) {
         //edge
@@ -500,10 +525,17 @@ export class DiceFactory {
             mat.bumpMap.needsUpdate = true;
           }
         }
+        if (canvasTextures?.emissive) {
+          mat.emissiveMap = canvasTextures.emissive;
+          mat.emissive = new THREE.Color(0xffffff);
+          mat.emissiveIntensity = 1;
+        }
       }
       mat.opacity = 1;
       mat.transparent = true;
       mat.depthTest = false;
+
+
       mat.needsUpdate = true;
       materials.push(mat);
     }
@@ -522,7 +554,7 @@ export class DiceFactory {
     outlinecolor: string,
     backcolor: string,
     allowcache: boolean
-  ): Promise<{ composite: THREE.Texture; bump: THREE.Texture | null } | null> {
+  ): Promise<{ composite: THREE.Texture; bump: THREE.Texture | null; emissive: THREE.Texture | null } | null> {
     if (labels[index] === undefined) return null;
 
     texture = texture || this.dice_texture_rand;
@@ -576,6 +608,13 @@ export class DiceFactory {
     contextBump.globalAlpha = 0;
     contextBump.clearRect(0, 0, canvasBump.width, canvasBump.height);
 
+    // Create emissive canvas for numbers (black background, white numbers)
+    const { canvas: canvasEmissive, context: contextEmissive } = await createCanvas();
+    if (!canvasEmissive || !contextEmissive) return null;
+
+    contextEmissive.globalAlpha = 0;
+    contextEmissive.clearRect(0, 0, canvasEmissive.width, canvasEmissive.height);
+
     let ts;
 
     if (diceobj.shape == 'd4') {
@@ -586,6 +625,7 @@ export class DiceFactory {
 
     canvas.width = canvas.height = ts;
     canvasBump.width = canvasBump.height = ts;
+    canvasEmissive.width = canvasEmissive.height = ts;
 
     // create color
     context.fillStyle = backcolor;
@@ -593,6 +633,10 @@ export class DiceFactory {
 
     contextBump.fillStyle = '#FFFFFF';
     contextBump.fillRect(0, 0, canvasBump.width, canvasBump.height);
+
+    // Emissive starts black (no emission)
+    contextEmissive.fillStyle = '#000000';
+    contextEmissive.fillRect(0, 0, canvasEmissive.width, canvasEmissive.height);
 
     //create underlying texture
     if (texture.texture && texture.name != '' && texture.name != 'none') {
@@ -615,6 +659,9 @@ export class DiceFactory {
 
     contextBump.textAlign = 'center';
     contextBump.textBaseline = 'middle';
+
+    contextEmissive.textAlign = 'center';
+    contextEmissive.textBaseline = 'middle';
 
     if (diceobj.shape != 'd4') {
       // fixes texture rotations on specific dice models
@@ -655,6 +702,10 @@ export class DiceFactory {
           contextBump.translate(hw, hh);
           contextBump.rotate(degrees * (Math.PI / 180));
           contextBump.translate(-hw, -hh);
+
+          contextEmissive.translate(hw, hh);
+          contextEmissive.rotate(degrees * (Math.PI / 180));
+          contextEmissive.translate(-hw, -hh);
         }
       }
 
@@ -689,6 +740,7 @@ export class DiceFactory {
         const font = this.#dice_font || diceobj.font || 'Arial';
         context.font = fontsize + 'pt ' + font;
         contextBump.font = fontsize + 'pt ' + font;
+        contextEmissive.font = fontsize + 'pt ' + font;
 
         let lineHeight = context.measureText('M').width * 1.4;
         let textlines = text.split('\n');
@@ -698,6 +750,7 @@ export class DiceFactory {
           const font = this.#dice_font || diceobj.font || 'Arial';
           context.font = fontsize + 'pt ' + font;
           contextBump.font = fontsize + 'pt ' + font;
+          contextEmissive.font = fontsize + 'pt ' + font;
           lineHeight = context.measureText('M').width * 1.2;
           textstarty -= (lineHeight * textlines.length) / 2;
         }
@@ -715,9 +768,15 @@ export class DiceFactory {
             contextBump.lineWidth = 5;
             contextBump.strokeText(textlines[i], textstartx, textstarty);
 
+            // Emissive outline (white for glow effect)
+            contextEmissive.strokeStyle = forecolor;
+            contextEmissive.lineWidth = 5;
+            contextEmissive.strokeText(textlines[i], textstartx, textstarty);
+
             if (textline == '6' || textline == '9') {
               context.strokeText('  .', textstartx, textstarty);
               contextBump.strokeText('  .', textstartx, textstarty);
+              contextEmissive.strokeText('  .', textstartx, textstarty);
             }
           }
 
@@ -727,9 +786,14 @@ export class DiceFactory {
           contextBump.fillStyle = '#000000';
           contextBump.fillText(textlines[i], textstartx, textstarty);
 
+          // Emissive text (draw with forecolor for the emissive map)
+          contextEmissive.fillStyle = forecolor;
+          contextEmissive.fillText(textlines[i], textstartx, textstarty);
+
           if (textline == '6' || textline == '9') {
             context.fillText('  .', textstartx, textstarty);
             contextBump.fillText('  .', textstartx, textstarty);
+            contextEmissive.fillText('  .', textstartx, textstarty);
           }
           textstarty += lineHeight * 1.5;
         }
@@ -741,6 +805,7 @@ export class DiceFactory {
       const font = this.#dice_font || diceobj.font || 'Arial';
       context.font = (ts / 128) * 24 + 'pt ' + font;
       contextBump.font = (ts / 128) * 24 + 'pt ' + font;
+      contextEmissive.font = (ts / 128) * 24 + 'pt ' + font;
 
       //draw the numbers
       for (let i = 0; i < text.length; i++) {
@@ -769,6 +834,10 @@ export class DiceFactory {
             contextBump.strokeStyle = '#000000';
             contextBump.lineWidth = 5;
             contextBump.strokeText(text[i], hw, yPos);
+
+            contextEmissive.strokeStyle = forecolor;
+            contextEmissive.lineWidth = 5;
+            contextEmissive.strokeText(text[i], hw, yPos);
           }
 
           //draw label in top middle section
@@ -777,6 +846,9 @@ export class DiceFactory {
 
           contextBump.fillStyle = '#000000';
           contextBump.fillText(text[i], hw, yPos);
+
+          contextEmissive.fillStyle = forecolor;
+          contextEmissive.fillText(text[i], hw, yPos);
         }
 
         //rotate 1/3 for next label
@@ -787,6 +859,10 @@ export class DiceFactory {
         contextBump.translate(hw, hh);
         contextBump.rotate((Math.PI * 2) / 3);
         contextBump.translate(-hw, -hh);
+
+        contextEmissive.translate(hw, hh);
+        contextEmissive.rotate((Math.PI * 2) / 3);
+        contextEmissive.translate(-hw, -hh);
       }
 
       //debug side numbering
@@ -796,20 +872,24 @@ export class DiceFactory {
 
     var compositetexture = new THREE.CanvasTexture(canvas);
     var bumpMap;
+    var emissiveMap;
     if (!isTexture) {
       bumpMap = new THREE.CanvasTexture(canvasBump);
+      emissiveMap = new THREE.CanvasTexture(canvasEmissive);
     } else {
       bumpMap = null;
+      emissiveMap = null;
     }
 
     if (allowcache) {
       this.#materials_cache.set(cachestring, {
         composite: compositetexture,
         bump: bumpMap,
+        emissive: emissiveMap,
       });
     }
 
-    return { composite: compositetexture, bump: bumpMap };
+    return { composite: compositetexture, bump: bumpMap, emissive: emissiveMap };
   }
 
   applyColorSet(colordata: DiceColorData): void {
@@ -836,6 +916,7 @@ export class DiceFactory {
     if (colordata.fontOffsetY !== undefined) {
       this.#dice_font_offset_y = colordata.fontOffsetY;
     }
+    this.#material_overrides = colordata.materialOptions;
   }
 
   setRandomColors(): void {

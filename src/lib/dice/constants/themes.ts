@@ -12,6 +12,13 @@ export interface DiceStyle {
   /** Vertical offset for text positioning (0 = centered, negative = up, positive = down) */
   fontOffsetY?: number;
   labels?: Record<string, string[]>;
+  /** Material property overrides */
+  materialOptions?: {
+    color?: number;
+    roughness?: number;
+    metalness?: number;
+    envMapIntensity?: number;
+  };
 }
 
 export interface DiceTheme {
@@ -79,7 +86,7 @@ export const THEMES: Record<string, DiceTheme> = {
       background: '#000',
       outline: '#fff',
       edge: '#000',
-      texture: 'none',
+      texture: 'Metal',
       material: 'perfectmetal',
       font: '"Uncial Antiqua", system-ui',
       labels: {
@@ -103,6 +110,50 @@ export const THEMES: Record<string, DiceTheme> = {
       edge: '#85161c',
       outline: '#fff',
       fontOffsetY: -15,
+    },
+    cubeMap: DEFAULT_CUBEMAP
+  },
+  'weirdwizard': {
+    name: 'Weird Wizard',
+    author: 'Patrick Porto',
+    surface: 'wood_tray',
+    category: 'RPG',
+    dice: {
+      foreground: '#000',
+      background: '#fff',
+      outline: '#000',
+      edge: '#fff',
+      material: 'silk',
+      texture: 'none',
+      font: 'Arial, system-ui',
+      labels: {
+        d6: ['1', '2', '3', '4', '5', '6'],
+        d20: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20']
+      }
+    },
+    boon: {
+      background: '#1e4935',
+      foreground: '#fff',
+      edge: '#1e4935',
+      outline: '#fff',
+      materialOptions: {
+        color: 0x1e4935,
+        roughness: 0.5,
+        metalness: 0.6,
+        envMapIntensity: 1
+      }
+    },
+    bane: {
+      background: '#7b2cbf',
+      foreground: '#fff',
+      edge: '#7b2cbf',
+      outline: '#fff',
+      materialOptions: {
+        color: 0x7b2cbf,
+        roughness: 0.5,
+        metalness: 0.6,
+        envMapIntensity: 1
+      }
     },
     cubeMap: DEFAULT_CUBEMAP
   },
