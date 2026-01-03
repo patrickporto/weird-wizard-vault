@@ -10,8 +10,8 @@
     import { isHistoryOpen, appSettings } from '$lib/stores/characterStore';
     import CampaignModal from '$lib/components/manager/CampaignModal.svelte';
     import { syncCampaign } from '$lib/logic/sync';
-    import { Sword, Library, Dices, ChevronUp, ChevronDown, X } from 'lucide-svelte';
-    import { calculateDiceRoll } from '$lib/logic/dice';
+    import { Sword, Library, Dices, ChevronUp, ChevronDown, X, Calculator, ArrowLeft, Send } from 'lucide-svelte';
+    import { calculateDiceRoll, evaluateDiceFormula } from '$lib/logic/dice';
     import { characterActions } from '$lib/stores/characterStore';
     import { get } from 'svelte/store';
     import DiceRollModal from '$lib/components/common/DiceRollModal.svelte';
@@ -36,18 +36,56 @@
 
     // Quick Roll UI State
     let isQuickRollMenuOpen = $state(false);
-    let quickRollState = $state({ isOpen: false, sides: 20, count: 1, modifier: 0 });
+    let quickRollState = $state({ isOpen: false, sides: 20, count: 1, modifier: 0, isCustom: false, customFormula: '' });
+    let customRollMode = $state(false);
+    let customFormulaInput = $state('');
+
+    // Autocomplete suggestions
+    const diceSuggestions = ['1d4', '1d6', '1d8', '1d10', '1d12', '1d20', '1d100', '2d6', '3d6', '1d3', '1d6 + 1d3'];
+    let filteredSuggestions = $derived(
+        diceSuggestions.filter(s => s.startsWith(customFormulaInput) && s !== customFormulaInput)
+    );
 
     function startQuickRoll(sides: number, count = 1) {
-        quickRollState = { isOpen: true, sides, count, modifier: 0 };
+        quickRollState = { isOpen: true, sides, count, modifier: 0, isCustom: false, customFormula: '' };
+    }
+
+    function toggleCustomMode() {
+        customRollMode = !customRollMode;
+        if (!customRollMode) {
+            customFormulaInput = '';
+        }
+    }
+
+    function handleCustomRoll(input: string) {
+        if (!input) return;
+        quickRollState = { isOpen: true, sides: 0, count: 0, modifier: 0, isCustom: true, customFormula: input };
+        isQuickRollMenuOpen = false;
+        customRollMode = false;
+        customFormulaInput = '';
     }
 
     function confirmQuickRoll(mod: number, selectedEffects: any[] = [], options?: { suppressHistory?: boolean }) {
         if (!campaign) return;
 
-        const res = calculateDiceRoll(quickRollState.sides, quickRollState.count, mod);
+        let res;
+        let notation = '';
+
+        if (quickRollState.isCustom) {
+            // Custom Formula Roll
+            res = evaluateDiceFormula(quickRollState.customFormula);
+            // Build notation: "1d20@14+1d4@2" etc.
+            if (res.dice) {
+                const parts = res.dice.map(d => `${d.count}d${d.sides}@${d.results.join(',')}`);
+                notation = parts.join('+');
+            }
+        } else {
+            // Standard Quick Roll
+            res = calculateDiceRoll(quickRollState.sides, quickRollState.count, mod);
+        }
+
         let desc = "";
-        if (quickRollState.count > 1) desc += `Dados: [${res.results.join(', ')}] `;
+        if (quickRollState.count > 1 || quickRollState.isCustom) desc += `Dados: [${res.results.join(', ')}] `;
         if (res.bonusRolls?.length > 0) desc += `Bonus Rolls: [${res.bonusRolls.join(', ')}] -> ${Math.abs(res.modifierTotal)}`;
 
         const gmName = campaign.gmName || get(t)('common.labels.master');
@@ -56,7 +94,7 @@
              characterActions.addToHistory({
                 source: 'GM',
                 charName: gmName,
-                name: `${quickRollState.count}d${quickRollState.sides} ${mod ? (mod > 0 ? `+${mod}` : mod) : ''}`,
+                name: quickRollState.isCustom ? res.formula : `${quickRollState.count}d${quickRollState.sides} ${mod ? (mod > 0 ? `+${mod}` : mod) : ''}`,
                 description: desc.trim() || null,
                 total: res.total,
                 formula: res.formula,
@@ -78,7 +116,7 @@
             quickRollState.isOpen = false;
         }
 
-        const isD20 = quickRollState.sides === 20 && quickRollState.count === 1;
+        const isD20 = quickRollState.sides === 20 && quickRollState.count === 1 && !quickRollState.isCustom;
 
         return {
             d20: isD20 ? res.results[0] : undefined,
@@ -86,7 +124,8 @@
             damageDice: !isD20 ? res.results : [],
             total: res.total,
             formula: res.formula,
-            commit
+            commit,
+            notation
         };
     }
 </script>
@@ -110,7 +149,7 @@
         />
 
         <main class="max-w-7xl mx-auto p-4 md:p-8 animate-in slide-in-from-bottom-4 duration-500">
-            {#if activeSubTab === 'session'}
+             {#if activeSubTab === 'session'}
                 <SessionView {campaign} />
             {:else if activeSubTab === 'bestiary'}
                 <BestiaryView campId={id} />
@@ -119,7 +158,6 @@
     {:else if loaded && !campaign}
         <div class="flex flex-col items-center justify-center min-h-screen p-4 text-center">
             <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-600">
-                <!-- Using Ghost icon for consistency if available, or just keeping consistent style -->
                 <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ghost"><path d="M9 10h.01"/><path d="M15 10h.01"/><path d="M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8z"/></svg>
             </div>
             <h1 class="text-2xl font-black text-white mb-2 uppercase tracking-tight">{$t('campaign.not_found.title')}</h1>
@@ -142,34 +180,90 @@
 
     <!-- Dice Roll Popover Menu -->
     {#if isQuickRollMenuOpen}
-        <div class="fixed bottom-24 left-1/2 -translate-x-1/2 md:left-8 md:translate-x-0 z-[60] flex flex-col items-center gap-2">
-            <div class="bg-slate-900/95 backdrop-blur-md border border-white/10 rounded-2xl p-2 flex items-center gap-2 shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-200">
-                <button onclick={() => { startQuickRoll(20); isQuickRollMenuOpen = false; }} class="bg-indigo-600/20 hover:bg-indigo-600 text-indigo-400 hover:text-white font-bold w-12 h-12 rounded-xl flex flex-col items-center justify-center transition-all active:scale-95 shadow-lg border border-indigo-500/20">
-                    <span class="text-[10px] opacity-70">d20</span>
-                    <Dices size={16} />
-                </button>
-                <button onclick={() => { startQuickRoll(6); isQuickRollMenuOpen = false; }} class="bg-slate-800 hover:bg-slate-700 text-white font-bold w-12 h-12 rounded-xl flex flex-col items-center justify-center transition-all active:scale-95 shadow-lg border border-white/5">
-                    <span class="text-[10px] opacity-70">1d6</span>
-                    <Dices size={16} />
-                </button>
-                <button onclick={() => { startQuickRoll(6, 2); isQuickRollMenuOpen = false; }} class="bg-slate-800 hover:bg-slate-700 text-white font-bold w-12 h-12 rounded-xl flex flex-col items-center justify-center transition-all active:scale-95 shadow-lg border border-white/5">
-                    <span class="text-[10px] opacity-70">2d6</span>
-                    <Dices size={16} />
-                </button>
-                <button onclick={() => { startQuickRoll(6, 3); isQuickRollMenuOpen = false; }} class="bg-slate-800 hover:bg-slate-700 text-white font-bold w-12 h-12 rounded-xl flex flex-col items-center justify-center transition-all active:scale-95 shadow-lg border border-white/5">
-                    <span class="text-[10px] opacity-70">3d6</span>
-                    <Dices size={16} />
-                </button>
-                <div class="w-px h-8 bg-white/10 mx-1"></div>
-                <button onclick={() => isQuickRollMenuOpen = false} class="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-white transition-colors">
-                    <X size={20} />
-                </button>
+        <div class="fixed bottom-24 left-1/2 -translate-x-1/2 md:left-8 md:translate-x-0 z-[60] flex flex-col items-center gap-2 max-w-[95vw]">
+            <div class="bg-slate-900/95 backdrop-blur-md border border-white/10 rounded-2xl p-2 flex items-center gap-2 shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-200 relative overflow-visible">
+                {#if !customRollMode}
+                    <button onclick={() => { startQuickRoll(20); isQuickRollMenuOpen = false; }} class="bg-indigo-600/20 hover:bg-indigo-600 text-indigo-400 hover:text-white font-bold w-12 h-12 rounded-xl flex flex-col items-center justify-center transition-all active:scale-95 shadow-lg border border-indigo-500/20">
+                        <span class="text-[10px] opacity-70">d20</span>
+                        <Dices size={16} />
+                    </button>
+                    <button onclick={() => { startQuickRoll(6); isQuickRollMenuOpen = false; }} class="bg-slate-800 hover:bg-slate-700 text-white font-bold w-12 h-12 rounded-xl flex flex-col items-center justify-center transition-all active:scale-95 shadow-lg border border-white/5">
+                        <span class="text-[10px] opacity-70">1d6</span>
+                        <Dices size={16} />
+                    </button>
+
+                    {#if campaign?.system === 'sofdl'}
+                         <button onclick={() => { startQuickRoll(3); isQuickRollMenuOpen = false; }} class="bg-slate-800 hover:bg-slate-700 text-white font-bold w-12 h-12 rounded-xl flex flex-col items-center justify-center transition-all active:scale-95 shadow-lg border border-white/5">
+                            <span class="text-[10px] opacity-70">1d3</span>
+                            <Dices size={16} />
+                        </button>
+                    {/if}
+
+                    <button onclick={() => { startQuickRoll(6, 2); isQuickRollMenuOpen = false; }} class="bg-slate-800 hover:bg-slate-700 text-white font-bold w-12 h-12 rounded-xl flex flex-col items-center justify-center transition-all active:scale-95 shadow-lg border border-white/5">
+                        <span class="text-[10px] opacity-70">2d6</span>
+                        <Dices size={16} />
+                    </button>
+                    <button onclick={() => { startQuickRoll(6, 3); isQuickRollMenuOpen = false; }} class="bg-slate-800 hover:bg-slate-700 text-white font-bold w-12 h-12 rounded-xl flex flex-col items-center justify-center transition-all active:scale-95 shadow-lg border border-white/5">
+                        <span class="text-[10px] opacity-70">3d6</span>
+                        <Dices size={16} />
+                    </button>
+
+                    <div class="w-px h-8 bg-white/10 mx-1"></div>
+
+                     <button onclick={toggleCustomMode} class="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white w-12 h-12 rounded-xl flex flex-col items-center justify-center transition-all active:scale-95 shadow-lg border border-white/5" title={$t('session.quick.custom_roll')}>
+                        <Calculator size={20} />
+                    </button>
+
+                {:else}
+                    <button onclick={toggleCustomMode} class="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-white transition-colors">
+                        <ArrowLeft size={20} />
+                    </button>
+
+                    <div class="relative">
+                        <input
+                            type="text"
+                            bind:value={customFormulaInput}
+                            placeholder={$t('session.quick.custom_roll_placeholder')}
+                            class="bg-slate-800 border border-slate-700 rounded-lg pl-3 pr-2 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 w-48 font-mono placeholder:text-slate-600"
+                            onkeydown={(e) => e.key === 'Enter' && handleCustomRoll(customFormulaInput)}
+                            autofocus
+                        />
+
+                        {#if filteredSuggestions.length > 0}
+                             <div class="absolute bottom-full left-0 right-0 mb-2 bg-slate-900/95 backdrop-blur-md border border-white/10 rounded-xl p-1 shadow-xl max-h-48 overflow-y-auto z-50 flex flex-col gap-0.5 min-w-[12rem]">
+                                {#each filteredSuggestions as suggestion}
+                                    <button
+                                        class="px-3 py-2 text-left hover:bg-indigo-600/50 rounded-lg text-xs font-mono text-slate-300 transition-colors w-full"
+                                        onclick={() => handleCustomRoll(suggestion)}
+                                    >
+                                        {suggestion}
+                                    </button>
+                                {/each}
+                            </div>
+                        {/if}
+                    </div>
+
+                    <button
+                        onclick={() => handleCustomRoll(customFormulaInput)}
+                        disabled={!customFormulaInput}
+                        class="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white w-10 h-10 rounded-lg flex items-center justify-center transition-colors shadow-lg"
+                    >
+                        <Send size={18} />
+                    </button>
+                {/if}
+
+                {#if !customRollMode}
+                    <div class="w-px h-8 bg-white/10 mx-1"></div>
+                    <button onclick={() => isQuickRollMenuOpen = false} class="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-white transition-colors">
+                        <X size={20} />
+                    </button>
+                {/if}
             </div>
         </div>
         <!-- Backdrop for menu -->
         <!-- svelte-ignore a11y_click_events_have_key_events -->
         <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div class="fixed inset-0 bg-black/40 z-[55]" onclick={() => isQuickRollMenuOpen = false}></div>
+        <div class="fixed inset-0 bg-black/40 z-[55]" onclick={() => { isQuickRollMenuOpen = false; customRollMode = false; }}></div>
     {/if}
 
     <!-- Desktop Floating Action Button -->
@@ -230,8 +324,9 @@
 
     <DiceRollModal
         isOpen={quickRollState.isOpen}
-        title={`${$t('session.quick.roll_title')} (${quickRollState.count}d${quickRollState.sides})`}
-        label={quickRollState.sides === 20 ? $t('session.quick.boons_banes') : $t('session.quick.fixed_modifier')}
+        title={quickRollState.isCustom ? $t('session.quick.custom_roll') : `${$t('session.quick.roll_title')} (${quickRollState.count}d${quickRollState.sides})`}
+        label={quickRollState.isCustom ? '' : (quickRollState.sides === 20 ? $t('session.quick.boons_banes') : $t('session.quick.fixed_modifier'))}
+        customFormula={quickRollState.customFormula}
         onClose={() => quickRollState.isOpen = false}
         onRoll={confirmQuickRoll}
         initialModifier={0}

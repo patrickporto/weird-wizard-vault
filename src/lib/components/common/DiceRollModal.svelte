@@ -15,11 +15,12 @@
     /** Pre-calculated dice results for deterministic display */
     interface PreRolledResults {
         d20?: number;
-        boonBaneDice?: number[];  // Array of d6 rolls for boons/banes
-        damageDice?: number[];    // Array of d6 rolls for damage
+        boonBaneDice?: number[];
+        damageDice?: number[];
         total?: number;
         formula?: string;
         commit?: () => void;
+        notation?: string; // Explicit notation override
     }
 
     interface Props {
@@ -29,6 +30,7 @@
         label?: string;
         rollLabel?: string;
         effects?: Effect[];
+        customFormula?: string; // If set, disables modifier UI
         onClose: () => void;
         /** Called when roll button is clicked. Returns pre-rolled results for deterministic 3D dice */
         onRoll: (modifier: number, selectedEffects: Effect[], options?: { suppressHistory?: boolean }) => PreRolledResults | void;
@@ -42,6 +44,7 @@
         label,
         rollLabel,
         effects = [],
+        customFormula,
         onClose,
         onRoll,
         children
@@ -95,29 +98,24 @@
 
     /**
      * Build dice notation with forced results and styles
-     * Example: "1d20+2d6[boon]@15,4,6" forces d20=15, first d6=4, second d6=6 with boon style
      */
     function buildForcedNotation(d20?: number, boonBaneDice: number[] = [], damageDice: number[] = []): string {
-        // If it's a damage roll (d20 undefined), use damage dice
-        if (d20 === undefined && damageDice.length > 0) {
-            const results = damageDice.join(',');
-            return `${damageDice.length}d6@${results}`;
+        // Legacy: if it's a d20 roll
+        if (d20 !== undefined) {
+             const numD6 = boonBaneDice.length;
+             const allResults = [d20, ...boonBaneDice].join(',');
+
+             if (numD6 === 0) {
+                 return `1d20@${d20}`;
+             }
+             const style = modifier > 0 ? 'boon' : modifier < 0 ? 'bane' : '';
+             const styleNotation = style ? `[${style}]` : '';
+             return `1d20+${numD6}d6${styleNotation}@${allResults}`;
         }
 
-        // If it's a d20 roll
-        if (d20 !== undefined) {
-            const numD6 = boonBaneDice.length;
-            const allResults = [d20, ...boonBaneDice].join(',');
-
-            if (numD6 === 0) {
-                return `1d20@${d20}`;
-            }
-
-            // Determine style based on modifier (positive = boon, negative = bane)
-            const style = modifier > 0 ? 'boon' : modifier < 0 ? 'bane' : '';
-            const styleNotation = style ? `[${style}]` : '';
-
-            return `1d20+${numD6}d6${styleNotation}@${allResults}`;
+        // Legacy damage roll
+        if (damageDice.length > 0) {
+            return `${damageDice.length}d6@${damageDice.join(',')}`;
         }
 
         return '';
@@ -135,7 +133,9 @@
             // 1. Play 3D animation if enabled
             if (enable3DDice && diceRoller) {
                 try {
-                    const notation = buildForcedNotation(preRolled.d20, preRolled.boonBaneDice, preRolled.damageDice);
+                    // Use explicit notation if provided, otherwise fallback to legacy builder
+                    const notation = preRolled.notation || buildForcedNotation(preRolled.d20, preRolled.boonBaneDice, preRolled.damageDice);
+
                     if (notation) {
                         await diceRoller.roll(notation);
                         await new Promise(resolve => setTimeout(resolve, 500));
@@ -235,32 +235,43 @@
                     <div class="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
 
                     <div class="flex justify-center items-center gap-8 mb-4 relative z-10">
-                        <button
-                            onclick={() => modifier--}
-                            class="w-12 h-12 rounded-full bg-slate-800 hover:bg-red-500/20 text-slate-300 hover:text-red-400 border border-slate-700 hover:border-red-500/30 flex items-center justify-center transition-all active:scale-90 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                            aria-label={$t('common.buttons.decrease')}
-                            disabled={isRolling}
-                        >
-                            <Minus size={24}/>
-                        </button>
+                        {#if customFormula}
+                            <div class="flex flex-col items-center">
+                                <div class="text-xs font-black text-slate-500 uppercase tracking-widest mb-2">{$t('common.labels.formula')}</div>
+                                <div class="text-2xl font-mono font-bold text-white bg-slate-950/50 px-4 py-2 rounded-lg border border-white/10 shadow-inner">
+                                    {customFormula}
+                                </div>
+                            </div>
+                        {:else}
+                            <button
+                                onclick={() => modifier--}
+                                class="w-12 h-12 rounded-full bg-slate-800 hover:bg-red-500/20 text-slate-300 hover:text-red-400 border border-slate-700 hover:border-red-500/30 flex items-center justify-center transition-all active:scale-90 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                                aria-label={$t('common.buttons.decrease')}
+                                disabled={isRolling}
+                            >
+                                <Minus size={24}/>
+                            </button>
 
-                        <div class="flex flex-col items-center min-w-[100px]">
-                            <span class="text-5xl font-black {modifier > 0 ? 'text-green-400' : modifier < 0 ? 'text-red-400' : 'text-slate-500'} tabular-nums drop-shadow-sm transition-colors duration-300">
-                                {modifier > 0 ? '+' : ''}{modifier}
-                            </span>
-                        </div>
+                            <div class="flex flex-col items-center min-w-[100px]">
+                                <span class="text-5xl font-black {modifier > 0 ? 'text-green-400' : modifier < 0 ? 'text-red-400' : 'text-slate-500'} tabular-nums drop-shadow-sm transition-colors duration-300">
+                                    {modifier > 0 ? '+' : ''}{modifier}
+                                </span>
+                            </div>
 
-                        <button
-                            onclick={() => modifier++}
-                            class="w-12 h-12 rounded-full bg-slate-800 hover:bg-green-500/20 text-slate-300 hover:text-green-400 border border-slate-700 hover:border-green-500/30 flex items-center justify-center transition-all active:scale-90 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                            aria-label={$t('common.buttons.increase')}
-                            disabled={isRolling}
-                        >
-                            <Plus size={24}/>
-                        </button>
+                            <button
+                                onclick={() => modifier++}
+                                class="w-12 h-12 rounded-full bg-slate-800 hover:bg-green-500/20 text-slate-300 hover:text-green-400 border border-slate-700 hover:border-green-500/30 flex items-center justify-center transition-all active:scale-90 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                                aria-label={$t('common.buttons.increase')}
+                                disabled={isRolling}
+                            >
+                                <Plus size={24}/>
+                            </button>
+                        {/if}
                     </div>
 
-                    <div class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] relative z-10">{displayLabel}</div>
+                    {#if !customFormula}
+                        <div class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] relative z-10">{displayLabel}</div>
+                    {/if}
                 </div>
 
                 <!-- Active Effects Selection -->

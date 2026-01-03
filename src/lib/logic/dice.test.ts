@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest';
-import { calculateDiceRoll } from './dice';
+import { calculateDiceRoll, evaluateDiceFormula } from './dice';
 
 describe('Dice Logic', () => {
     it('should roll basic d20', () => {
@@ -47,5 +47,38 @@ describe('Dice Logic', () => {
         expect(result.bonusRolls.length).toBe(3);
         const max = Math.max(...result.bonusRolls);
         expect(result.modifierTotal).toBe(max);
+    });
+
+    describe('Formula Evaluation', () => {
+        it('should evaluate simple dice', () => {
+            const result = evaluateDiceFormula('1d6');
+            expect(result.results.length).toBe(1);
+            expect(result.total).toBeGreaterThanOrEqual(1);
+            expect(result.total).toBeLessThanOrEqual(6);
+        });
+
+        it('should evaluate addition', () => {
+            const result = evaluateDiceFormula('1d4 + 2');
+            expect(result.total).toBeGreaterThanOrEqual(3);
+            expect(result.total).toBeLessThanOrEqual(6);
+        });
+
+        it('should evaluate mixed dice', () => {
+            const result = evaluateDiceFormula('1d6 + 1d4');
+            expect(result.results.length).toBe(2);
+            expect(result.total).toBeGreaterThanOrEqual(2);
+            expect(result.total).toBeLessThanOrEqual(10);
+        });
+
+        it('should evaluate subtraction', () => {
+            const result = evaluateDiceFormula('1d1 - 5');
+            expect(result.total).toBe(-4);
+        });
+
+        it('should handle demon lord 1d3', () => {
+            const result = evaluateDiceFormula('1d3');
+            expect(result.total).toBeGreaterThanOrEqual(1);
+            expect(result.total).toBeLessThanOrEqual(3);
+        });
     });
 });

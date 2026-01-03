@@ -35,7 +35,8 @@
       "result": "Resultado",
       "size_selector": "Seletor de Tamanho",
       "total": "Total",
-      "boons_banes": "Dádivas / Perdições"
+      "boons_banes": "Dádivas / Perdições",
+      "formula": "Fórmula"
     },
     "status": {
       "syncing": "Sincronizando",
@@ -620,8 +621,11 @@
     "quick": {
       "title": "Quick",
       "roll_title": "Rolagem Rápida",
-      "boons_banes": "Boons / Banes",
-      "fixed_modifier": "Modificador Fixo"
+      "custom_roll": "Rolagem Customizada",
+      "custom_roll_placeholder": "Ex: 2d8 + 1d4 + 3",
+      "boons_banes": "Dádivas / Perdições",
+      "fixed_modifier": "Modificador Fixo",
+      "formula": "Fórmula"
     },
     "end_of_round": {
       "title": "Fim da Rodada",

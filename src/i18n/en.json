@@ -34,7 +34,8 @@
             "result": "Result",
             "size_selector": "Size Selector",
             "total": "Total",
-            "boons_banes": "Boons / Banes"
+            "boons_banes": "Boons / Banes",
+            "formula": "Formula"
         },
         "status": {
             "syncing": "Syncing",
@@ -626,8 +627,11 @@
         "quick": {
             "title": "Quick",
             "roll_title": "Quick Roll",
+            "custom_roll": "Custom Roll",
+            "custom_roll_placeholder": "Ex: 2d8 + 1d4 + 3",
             "boons_banes": "Boons / Banes",
-            "fixed_modifier": "Fixed Modifier"
+            "fixed_modifier": "Fixed Modifier",
+            "formula": "Formula"
         },
         "end_of_round": {
             "title": "End of Round",
