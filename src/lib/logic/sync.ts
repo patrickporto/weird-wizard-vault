@@ -42,7 +42,7 @@ let lastCampaignJoinAttempt = 0;
 const MIN_JOIN_INTERVAL_MS = 2000; // Minimum 2 seconds between join attempts
 
 // Global Discovery
-const lobbyConfig = { appId: 'weird-wizard-vault-lobby' };
+const lobbyConfig = { appId };
 export const publicCampaigns = writable<any[]>([]);
 
 // Lobby connection status
