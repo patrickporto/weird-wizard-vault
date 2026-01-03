@@ -129,16 +129,37 @@ function canAttemptJoin(lastAttempt: number): boolean {
   return (now - lastAttempt) >= MIN_JOIN_INTERVAL_MS;
 }
 
+// Monitoring variables
+let lobbyMonitorInterval: any = null;
+
+function startLobbyMonitor(url: string) {
+  if (lobbyMonitorInterval) clearInterval(lobbyMonitorInterval);
+  lobbyMonitorInterval = setInterval(async () => {
+    const isOnline = await checkTrackerConnection(url, 3000);
+    lobbyStatus.update(s => {
+      if (!isOnline && s === 'connected') {
+        console.warn('Lobby monitor: Tracker unreachable');
+        return 'error';
+      }
+      if (isOnline && (s === 'disconnected' || s === 'error')) return 'connected';
+      return s;
+    });
+  }, 10000); // Check every 10s
+}
+
 let sendDiscovery: any;
 
 export async function joinLobby() {
-  // If lobby already exists, check if tracker config changed (advanced check omitted for simplicity, assumes reconnect on reload for now or manual reconnect)
+  const currentTracker = get(trackerUrl);
 
   // If lobby already exists, return the existing sendDiscovery function
   if (lobby && sendDiscovery) {
-    const currentTracker = get(trackerUrl);
     console.log('Lobby already connected, reusing existing connection');
     lobbyStatus.set('connected');
+
+    // Ensure monitor is running even if reusing
+    startLobbyMonitor(currentTracker);
+
     return sendDiscovery;
   }
 
@@ -162,11 +183,10 @@ export async function joinLobby() {
   lobbyStatus.set('connecting');
 
   // Verify tracker connectivity first
-  const trackerConf = get(trackerUrl);
-  const isOnline = await checkTrackerConnection(trackerConf);
+  const isOnline = await checkTrackerConnection(currentTracker);
 
   if (!isOnline) {
-    console.warn(`Tracker ${trackerConf} appears offline.`);
+    console.warn(`Tracker ${currentTracker} appears offline.`);
     lobbyStatus.set('error');
     lobby = null;
     return null;
@@ -197,6 +217,10 @@ export async function joinLobby() {
 
     lobbyStatus.set('connected');
     sendDiscovery = sendFn; // Store for reuse and announceCampaign
+
+    // Start Monitor
+    startLobbyMonitor(currentTracker);
+
     return sendFn;
   } catch (e) {
     console.error('Failed to join lobby:', e);

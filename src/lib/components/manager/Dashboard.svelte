@@ -6,8 +6,8 @@
     import { charactersMap, campaignsMap, deletedIdsMap } from '$lib/db';
     import { goto } from '$app/navigation';
     import { resolve, base } from '$app/paths';
-    import { Skull, Users, Scroll, Plus, Edit, Play, Trash2, Globe, Wifi, Settings, Gamepad2, Loader2 } from 'lucide-svelte';
-    import { publicCampaigns, lobbyStatus } from '$lib/logic/sync';
+    import { Skull, Users, Scroll, Plus, Edit, Play, Trash2, Globe, Wifi, Settings, Gamepad2, Loader2, RefreshCw } from 'lucide-svelte';
+    import { publicCampaigns, lobbyStatus, joinLobby } from '$lib/logic/sync';
     import ConfirmationModal from './ConfirmationModal.svelte';
     import CampaignModal from './CampaignModal.svelte';
     import CreateCampaignModal from './CreateCampaignModal.svelte';
@@ -628,11 +628,17 @@
                             <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]"></div>
                             <span class="text-[9px] font-bold text-emerald-400 uppercase tracking-wider">{$t('dashboard.status.connected')}</span>
                         {:else if $lobbyStatus === 'error'}
-                             <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div>
-                             <span class="text-[9px] font-bold text-red-500 uppercase tracking-wider">{$t('dashboard.status.error')}</span>
+                             <button onclick={() => joinLobby()} class="flex items-center gap-1 cursor-pointer hover:bg-white/5 rounded px-1 -ml-1 transition-colors group" title="Tentar reconectar">
+                                 <div class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div>
+                                 <span class="text-[9px] font-bold text-red-500 uppercase tracking-wider">{$t('dashboard.status.error')}</span>
+                                 <RefreshCw size={10} class="text-red-500 ml-1 group-hover:rotate-180 transition-transform"/>
+                             </button>
                         {:else}
-                            <div class="w-1.5 h-1.5 rounded-full bg-slate-500"></div>
-                            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">{$t('dashboard.status.disconnected')}</span>
+                            <button onclick={() => joinLobby()} class="flex items-center gap-1 cursor-pointer hover:bg-white/5 rounded px-1 -ml-1 transition-colors group">
+                                <div class="w-1.5 h-1.5 rounded-full bg-slate-500"></div>
+                                <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">{$t('dashboard.status.disconnected')}</span>
+                                <RefreshCw size={10} class="text-slate-500 ml-1 group-hover:rotate-180 transition-transform"/>
+                            </button>
                         {/if}
                      </div>
 
