@@ -56,14 +56,14 @@ export const THEMES: Record<string, DiceTheme> = {
     // Override para boons (opcional)
     boon: {
       background: '#1a4d2e',  // Verde escuro
-      foreground: '#4ade80',  // Verde claro
+      foreground: '#fff',  // Verde claro
       edge: '#1a4d2e',
       outline: '#fff',
     },
     // Override para banes (opcional)
     bane: {
       background: '#4d1a1a',  // Vermelho escuro
-      foreground: '#f87171',  // Vermelho claro
+      foreground: '#fff',  // Vermelho claro
       edge: '#4d1a1a',
       outline: '#fff',
     },
