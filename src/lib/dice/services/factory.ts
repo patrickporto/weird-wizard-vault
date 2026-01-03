@@ -29,6 +29,7 @@ interface DiceColorData {
   texture: any;
   edge?: string;
   font?: string;
+  fontOffsetY?: number;
   labels?: Record<string, any[]>;
 }
 
@@ -119,6 +120,7 @@ export class DiceFactory {
   #dice_material = '';
   #dice_font = 'Arial';
   #dice_labels: Record<string, any[]> = {};
+  #dice_font_offset_y = 0;
 
   private baseScale: number;
   private bumpMapping: boolean;
@@ -227,6 +229,7 @@ export class DiceFactory {
     const originalEdgeColor = this.#edge_color;
     const originalDiceFont = this.#dice_font;
     const originalDiceLabels = this.#dice_labels;
+    const originalFontOffsetY = this.#dice_font_offset_y;
 
     // Temporarily apply the specific colorset
     this.colordata = colordata;
@@ -242,6 +245,9 @@ export class DiceFactory {
     if (colordata.labels) {
       this.#dice_labels = colordata.labels;
     }
+    if (colordata.fontOffsetY !== undefined) {
+      this.#dice_font_offset_y = colordata.fontOffsetY;
+    }
     this.setMaterialInfo();
 
     const materials = await this.createMaterials(diceobj, this.baseScale / 2, 1.0);
@@ -256,6 +262,7 @@ export class DiceFactory {
     this.#edge_color = originalEdgeColor;
     this.#dice_font = originalDiceFont;
     this.#dice_labels = originalDiceLabels;
+    this.#dice_font_offset_y = originalFontOffsetY;
     this.setMaterialInfo();
 
     if (!materials || materials.length === 0) return null;
@@ -669,7 +676,7 @@ export class DiceFactory {
         // text-only face
       } else {
         let fontsize = ts / (1 + 2 * margin);
-        let textstarty = canvas.height / 2 + 10;
+        let textstarty = canvas.height / 2 + 10 + (this.#dice_font_offset_y || 0);
         let textstartx = canvas.width / 2;
 
         if (diceobj.shape == 'd10') {
@@ -753,22 +760,23 @@ export class DiceFactory {
           );
         } else {
           // attempt to outline the text with a meaningful color
+          const yPos = hh - ts * 0.3 + (this.#dice_font_offset_y || 0);
           if (outlinecolor != 'none' && outlinecolor != backcolor) {
             context.strokeStyle = outlinecolor;
             context.lineWidth = 5;
-            context.strokeText(text[i], hw, hh - ts * 0.3);
+            context.strokeText(text[i], hw, yPos);
 
             contextBump.strokeStyle = '#000000';
             contextBump.lineWidth = 5;
-            contextBump.strokeText(text[i], hw, hh - ts * 0.3);
+            contextBump.strokeText(text[i], hw, yPos);
           }
 
           //draw label in top middle section
           context.fillStyle = forecolor;
-          context.fillText(text[i], hw, hh - ts * 0.3);
+          context.fillText(text[i], hw, yPos);
 
           contextBump.fillStyle = '#000000';
-          contextBump.fillText(text[i], hw, hh - ts * 0.3);
+          contextBump.fillText(text[i], hw, yPos);
         }
 
         //rotate 1/3 for next label
@@ -824,6 +832,9 @@ export class DiceFactory {
     }
     if (colordata.labels) {
       this.#dice_labels = colordata.labels;
+    }
+    if (colordata.fontOffsetY !== undefined) {
+      this.#dice_font_offset_y = colordata.fontOffsetY;
     }
   }
 

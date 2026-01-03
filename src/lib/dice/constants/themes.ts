@@ -7,6 +7,8 @@ export interface DiceStyle {
   texture: string | string[];
   material: string;
   font: string;
+  /** Vertical offset for text positioning (0 = centered, negative = up, positive = down) */
+  fontOffsetY?: number;
   labels?: Record<string, string[]>;
 }
 
@@ -90,6 +92,7 @@ export const THEMES: Record<string, DiceTheme> = {
       foreground: '#000',
       edge: '#fff',
       outline: '#000',
+      fontOffsetY: -15,
       labels: {
         d6: ['1', '2', '3', '4', '5', '/artworks/dice/demonlord-face.webp'],
       }
@@ -99,6 +102,7 @@ export const THEMES: Record<string, DiceTheme> = {
       foreground: '#fff',
       edge: '#ff0000',
       outline: '#fff',
+      fontOffsetY: -15,
     },
     cubeMap: DEFAULT_CUBEMAP
   },
