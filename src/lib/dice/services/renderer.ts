@@ -599,6 +599,37 @@ export class DiceBox {
     this.light.shadow.camera.bottom = -d;
     this.scene.add(this.light);
 
+    // Create environment map for metallic materials
+    if (!this.scene.environment) {
+      const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
+      pmremGenerator.compileEquirectangularShader();
+
+      // Create a simple gradient environment
+      const envScene = new THREE.Scene();
+      const envCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+      // Create gradient background
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d')!;
+      const gradient = ctx.createLinearGradient(0, 0, 0, 512);
+      gradient.addColorStop(0, '#ffffff');
+      gradient.addColorStop(0.3, '#888888');
+      gradient.addColorStop(0.5, '#444444');
+      gradient.addColorStop(0.7, '#222222');
+      gradient.addColorStop(1, '#111111');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 512, 512);
+
+      const envTexture = new THREE.CanvasTexture(canvas);
+      envTexture.mapping = THREE.EquirectangularReflectionMapping;
+
+      this.scene.environment = pmremGenerator.fromEquirectangular(envTexture).texture;
+      pmremGenerator.dispose();
+      envTexture.dispose();
+    }
+
     if (this.desk) this.scene.remove(this.desk);
     let shadowplane = new THREE.ShadowMaterial();
     shadowplane.opacity = 0.5;

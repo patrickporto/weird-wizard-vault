@@ -32,10 +32,10 @@ export const THEMES: Record<string, DiceTheme> = {
     dice: {
       foreground: '#fff',
       background: '#000',
-      outline: '#211f1fff',
-      edge: '#0a0a0aff',
+      outline: '#fff',
+      edge: '#fff',
       texture: 'none',
-      material: 'plastic',
+      material: 'perfectmetal',
       font: '"Uncial Antiqua", system-ui',
       labels: {
         d6: ['1', '2', '3', '4', '5', '/artworks/dice/demonlord-face-white.webp'],

@@ -343,7 +343,7 @@ export class DiceFactory {
       if (this.dice_material_rand && this.dice_material_rand !== 'none') {
         const materialType = this.dice_material_rand as MaterialType;
         mat = new THREE.MeshStandardMaterial(MATERIALTYPES[materialType]);
-        mat.envMapIntensity = 0;
+        mat.envMapIntensity = MATERIALTYPES[materialType].envMapIntensity ?? 1;
       } else {
         mat = new THREE.MeshPhongMaterial(MATERIAL_OPTIONS);
       }
