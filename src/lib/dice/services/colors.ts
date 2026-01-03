@@ -24,6 +24,7 @@ interface ColorSet {
   name: string;
   texture: TextureData;
   material?: string;
+  labels?: Record<string, any[]>;
   [key: string]: any; // Allow other colorset props
 }
 
@@ -106,6 +107,14 @@ export class DiceColors {
       colorset.texture.material = baseColorset.material;
     }
 
+    // Load label images if present in theme
+    if (theme.dice.labels) {
+      colorset.labels = {};
+      for (const [type, labels] of Object.entries(theme.dice.labels)) {
+        colorset.labels[type] = await this.#loadLabelImages(labels);
+      }
+    }
+
     // Cache for later use
     if (setName) {
       this.#colorsets.set(setName, colorset);
@@ -142,9 +151,32 @@ export class DiceColors {
       material: options.material ?? 'plastic'
     };
 
+    if (options.labels) {
+      colorset.labels = {};
+      for (const [type, labels] of Object.entries(options.labels as Record<string, string[]>)) {
+        colorset.labels[type] = await this.#loadLabelImages(labels);
+      }
+    }
+
     // Cache for later use
     this.#colorsets.set(colorset.name, colorset);
 
     return colorset;
+  }
+
+  async #loadLabelImages(labels: string[]): Promise<any[]> {
+    return Promise.all(
+      labels.map(async (label) => {
+        if (typeof label === 'string' && /\.(png|jpe?g|gif|webp)$/i.test(label)) {
+          try {
+            return await this.#loadImage(label);
+          } catch (error) {
+            console.error(`Failed to load label image: ${label}`, error);
+            return label;
+          }
+        }
+        return label;
+      })
+    );
   }
 }

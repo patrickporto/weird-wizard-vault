@@ -1,42 +1,47 @@
 export interface DiceTheme {
-	name: string;
-	description?: string;
-	author?: string;
-	showColorPicker?: boolean;
-	surface: string;
-	category: string;
-	dice: {
-		foreground: string | string[];
-		background: string | string[];
-		outline?: string | string[];
-		edge?: string | string[];
-		texture: string | string[];
-		material: string;
+  name: string;
+  description?: string;
+  author?: string;
+  showColorPicker?: boolean;
+  surface: string;
+  category: string;
+  dice: {
+    foreground: string | string[];
+    background: string | string[];
+    outline?: string | string[];
+    edge?: string | string[];
+    texture: string | string[];
+    material: string;
     font: string;
-	};
-	cubeMap?: string[];
+    labels?: Record<string, string[]>;
+  };
+  cubeMap?: string[];
 }
 
 const DEFAULT_CUBEMAP = ['envmap.jpg', 'envmap.jpg', 'envmap.jpg', 'envmap.jpg', 'envmap.jpg', 'envmap.jpg'];
 const TABLE_CUBEMAP = ['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png'];
 
 export const THEMES: Record<string, DiceTheme> = {
-// Original Themes (Apps/Presets)
-	'default': {
-		name: 'Solid Color',
-		author: 'MajorVictory',
-		showColorPicker: true,
-		surface: 'wood_tray',
-		category: 'Basic',
+  // Original Themes (Apps/Presets)
+  'demonlord': {
+    name: 'Demon Lord',
+    author: 'Patrick Porto',
+    showColorPicker: true,
+    surface: 'wood_tray',
+    category: 'RPG',
     dice: {
-      foreground: '#ff0000',
-      background: 'rgba(255, 255, 255, 1)',
-      outline: 'rgba(0, 0, 0, 1)',
-      edge: 'rgba(0, 0, 0, 1)',
+      foreground: '#fff',
+      background: '#000',
+      outline: '#211f1fff',
+      edge: '#0a0a0aff',
       texture: 'none',
-      material: 'glass',
-      font: 'Arial'
+      material: 'plastic',
+      font: '"Uncial Antiqua", system-ui',
+      labels: {
+        d6: ['1', '2', '3', '4', '5', '/artworks/dice/demonlord-face-white.webp'],
+        d20: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '/artworks/dice/demonlord-face-white.webp']
+      }
     },
-		cubeMap: DEFAULT_CUBEMAP
+    cubeMap: DEFAULT_CUBEMAP
   },
 };

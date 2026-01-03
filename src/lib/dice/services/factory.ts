@@ -29,6 +29,7 @@ interface DiceColorData {
   texture: any;
   edge?: string;
   font?: string;
+  labels?: Record<string, any[]>;
 }
 
 interface DiceObject {
@@ -117,6 +118,7 @@ export class DiceFactory {
   #dice_texture: any = '';
   #dice_material = '';
   #dice_font = 'Arial';
+  #dice_labels: Record<string, any[]> = {};
 
   private baseScale: number;
   private bumpMapping: boolean;
@@ -322,10 +324,18 @@ export class DiceFactory {
   ): Promise<Array<THREE.MeshStandardMaterial | THREE.MeshPhongMaterial>> {
     let materials: Array<THREE.MeshStandardMaterial | THREE.MeshPhongMaterial> = [];
     let labels = diceobj.labels;
+
     if (diceobj.shape == 'd4') {
       labels = diceobj.labels[d4specialindex];
       size = this.baseScale / 2;
       margin = this.baseScale * 2;
+    }
+
+    if (this.#dice_labels[diceobj.type]) {
+      labels = this.#getProcessedLabels(diceobj.type, this.#dice_labels[diceobj.type]);
+      if (diceobj.shape == 'd4') {
+        labels = labels[d4specialindex];
+      }
     }
 
     for (let i = 0; i < labels.length; ++i) {
@@ -715,6 +725,9 @@ export class DiceFactory {
     this.#edge_color = colordata.edge || colordata.background;
     if (colordata.font) {
       this.#dice_font = colordata.font;
+    }
+    if (colordata.labels) {
+      this.#dice_labels = colordata.labels;
     }
   }
 
@@ -1211,5 +1224,26 @@ export class DiceFactory {
         return null;
       }
     }
+  }
+
+  #getProcessedLabels(type: string, faces: any[]): any[] {
+    const diceobj = DiceFactory.#dice.get(type);
+    if (!diceobj) return faces;
+
+    if (diceobj.shape === 'd4') {
+      const [a, b, c, d] = faces;
+      return [
+        [[], [0, 0, 0], [b, d, c], [a, c, d], [b, a, d], [a, b, c]],
+        [[], [0, 0, 0], [b, c, d], [c, a, d], [b, d, a], [c, b, a]],
+        [[], [0, 0, 0], [d, c, b], [c, d, a], [d, b, a], [c, a, b]],
+        [[], [0, 0, 0], [d, b, c], [a, d, c], [d, a, b], [a, c, b]],
+      ];
+    }
+
+    const targetArray = ['', ''];
+    if (['d2', 'd10'].includes(diceobj.shape)) {
+      targetArray.pop();
+    }
+    return [...targetArray, ...faces];
   }
 }
