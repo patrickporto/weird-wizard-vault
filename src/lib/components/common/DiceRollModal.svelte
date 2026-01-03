@@ -94,8 +94,8 @@
     }
 
     /**
-     * Build dice notation with forced results
-     * Example: "1d20+2d6@15,4,6" forces d20=15, first d6=4, second d6=6
+     * Build dice notation with forced results and styles
+     * Example: "1d20+2d6[boon]@15,4,6" forces d20=15, first d6=4, second d6=6 with boon style
      */
     function buildForcedNotation(d20?: number, boonBaneDice: number[] = [], damageDice: number[] = []): string {
         // If it's a damage roll (d20 undefined), use damage dice
@@ -112,7 +112,12 @@
             if (numD6 === 0) {
                 return `1d20@${d20}`;
             }
-            return `1d20+${numD6}d6@${allResults}`;
+
+            // Determine style based on modifier (positive = boon, negative = bane)
+            const style = modifier > 0 ? 'boon' : modifier < 0 ? 'bane' : '';
+            const styleNotation = style ? `[${style}]` : '';
+
+            return `1d20+${numD6}d6${styleNotation}@${allResults}`;
         }
 
         return '';

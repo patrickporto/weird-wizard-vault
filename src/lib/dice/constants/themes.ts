@@ -1,3 +1,15 @@
+/** Style properties for a dice type */
+export interface DiceStyle {
+  foreground: string | string[];
+  background: string | string[];
+  outline?: string | string[];
+  edge?: string | string[];
+  texture: string | string[];
+  material: string;
+  font: string;
+  labels?: Record<string, string[]>;
+}
+
 export interface DiceTheme {
   name: string;
   description?: string;
@@ -5,16 +17,14 @@ export interface DiceTheme {
   showColorPicker?: boolean;
   surface: string;
   category: string;
-  dice: {
-    foreground: string | string[];
-    background: string | string[];
-    outline?: string | string[];
-    edge?: string | string[];
-    texture: string | string[];
-    material: string;
-    font: string;
-    labels?: Record<string, string[]>;
-  };
+  /** Default dice style */
+  dice: DiceStyle;
+  /** Override style for d20 dice */
+  d20?: Partial<DiceStyle>;
+  /** Override style for boon dice (positive d6) */
+  boon?: Partial<DiceStyle>;
+  /** Override style for bane dice (negative d6) */
+  bane?: Partial<DiceStyle>;
   cubeMap?: string[];
 }
 
@@ -40,6 +50,16 @@ export const THEMES: Record<string, DiceTheme> = {
         d6: ['1', '2', '3', '4', '5', '6'],
         d20: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20']
       }
+    },
+    // Override para boons (opcional)
+    boon: {
+      background: '#1a4d2e',  // Verde escuro
+      foreground: '#4ade80',  // Verde claro
+    },
+    // Override para banes (opcional)
+    bane: {
+      background: '#4d1a1a',  // Vermelho escuro
+      foreground: '#f87171',  // Vermelho claro
     },
     cubeMap: DEFAULT_CUBEMAP
   },

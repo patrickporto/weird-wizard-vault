@@ -196,6 +196,59 @@ export class DiceFactory {
     return this.#fixMaterials(dicemesh, diceobj.values.length);
   }
 
+  /**
+   * Create dice with a specific colorset (for d20, boon, bane styling)
+   */
+  async createWithColorSet(type: string, colordata: DiceColorData): Promise<DiceMesh | null> {
+    const diceobj = this.get(type);
+    if (!diceobj) return null;
+
+    let geom = this.#geometries.get(type);
+    if (!geom) {
+      const newGeom = this.createGeometry(
+        type as DiceShape,
+        diceobj.scale * this.baseScale,
+        this.createDiceGeometry.bind(this)
+      );
+      if (newGeom instanceof THREE.BufferGeometry) {
+        this.#geometries.set(type, newGeom);
+        geom = newGeom;
+      }
+    }
+    if (!geom) return null;
+
+    // Apply the specific colorset
+    this.applyColorSet(colordata);
+    this.setMaterialInfo();
+
+    const materials = await this.createMaterials(diceobj, this.baseScale / 2, 1.0);
+    if (!materials || materials.length === 0) return null;
+
+    const mesh = new THREE.Mesh(geom, materials);
+    const dicemesh = mesh as unknown as DiceMesh;
+
+    Object.assign(dicemesh, {
+      result: [],
+      shape: diceobj.shape,
+      rerolls: 0,
+      resultReason: 'natural',
+      mass: diceobj.mass,
+      notation: { type }
+    });
+
+    this.#attachDiceMeshMethods(dicemesh);
+
+    if (diceobj.color && Array.isArray(dicemesh.material)) {
+      const material = dicemesh.material[0] as THREE.MeshStandardMaterial | THREE.MeshPhongMaterial;
+      material.color = new THREE.Color(diceobj.color);
+      material.emissive = new THREE.Color(diceobj.color);
+      material.emissiveIntensity = 1;
+      material.needsUpdate = true;
+    }
+
+    return this.#fixMaterials(dicemesh, diceobj.values.length);
+  }
+
   #attachDiceMeshMethods(dicemesh: DiceMesh): void {
     dicemesh.getFaceValue = function () {
       const reason = this.resultReason;

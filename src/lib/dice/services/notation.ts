@@ -7,6 +7,8 @@ interface DiceSet {
   func?: string;
   args?: string | string[];
   op?: string;
+  /** Style variant: 'boon', 'bane', 'd20', or undefined for default */
+  style?: 'boon' | 'bane' | 'd20' | 'default';
 }
 
 interface NotationObject {
@@ -99,8 +101,9 @@ export class DiceNotation {
 
     let [notationString, forcedResults] = notation.split('@');
 
+    // Updated regex to capture style brackets like [boon] or [bane]
     const rollRegex =
-      /(\+|\-|\*|\/|\%|\^|){0,1}()(\d*)([a-z]+\d+|[a-z]+|)(?:\{([a-z]+)(.*?|)\}|)()/i;
+      /(\+|\-|\*|\/|\%|\^|){0,1}()(\d*)([a-z]+\d+|[a-z]+|)(?:\[(\w+)\])?(?:\{([a-z]+)(.*?|)\}|)()/i;
     const resultsRegex = /(\b)*(\-\d+|\d+)(\b)*/gi;
 
     let runs = 0;
@@ -120,6 +123,7 @@ export class DiceNotation {
         groupStart,
         amount,
         type,
+        styleMatch = '',
         funcname = '',
         funcargs = '',
         groupEnd,
@@ -135,6 +139,9 @@ export class DiceNotation {
       }
 
       const parsedFuncArgs = funcargs.split(',').slice(1);
+
+      // Parse style from bracket notation
+      const style = styleMatch?.toLowerCase() as 'boon' | 'bane' | 'd20' | 'default' | undefined;
 
       // Handle single operator and constant case
       if (
@@ -153,7 +160,8 @@ export class DiceNotation {
           groupLevel,
           funcname,
           parsedFuncArgs,
-          operator
+          operator,
+          'd20'
         );
       }
       // Handle ending operator + constant case
@@ -164,6 +172,9 @@ export class DiceNotation {
       }
       // Normal case
       else if (addSet) {
+        // Auto-detect d20 style
+        const effectiveStyle = type === 'd20' ? 'd20' : style;
+
         this.addSet(
           amount,
           type,
@@ -171,7 +182,8 @@ export class DiceNotation {
           groupLevel,
           funcname,
           parsedFuncArgs,
-          operator
+          operator,
+          effectiveStyle
         );
       }
 
@@ -221,19 +233,20 @@ export class DiceNotation {
     groupLevel = 0,
     funcname = '',
     funcargs: string | string[] = '',
-    operator = '+'
+    operator = '+',
+    style?: 'boon' | 'bane' | 'd20' | 'default'
   ): void {
     amount = Math.abs(parseInt(amount.toString() || '1', 10));
     if (amount === 0) return;
 
-    const setKey = `${operator}${type}${groupID}${groupLevel}${funcname}${funcargs}`;
+    const setKey = `${operator}${type}${groupID}${groupLevel}${funcname}${funcargs}${style || ''}`;
     const existingSetIndex = this.#setkeys.get(setKey);
 
     if (existingSetIndex !== undefined) {
       const existingSet = this.#set[existingSetIndex];
       existingSet.num += amount;
     } else {
-      const newSet = {
+      const newSet: DiceSet = {
         num: amount,
         type,
         sid: this.#setid,
@@ -242,6 +255,7 @@ export class DiceNotation {
         ...(funcname && { func: funcname }),
         ...(funcargs && { args: funcargs }),
         ...(operator && { op: operator }),
+        ...(style && { style }),
       };
 
       this.#setkeys.set(setKey, this.#set.length);

@@ -119,6 +119,50 @@ export class DiceColors {
     return colorset;
   }
 
+  /**
+   * Get colorset for a specific dice type (d20, boon, bane)
+   * Merges base dice style with type-specific overrides
+   */
+  async getColorSetForDiceType(
+    themeName: string,
+    diceType: 'd20' | 'boon' | 'bane' | 'default'
+  ): Promise<ColorSet> {
+    const theme = THEMES[themeName] || THEMES['default'];
+
+    // Get base colorset
+    const baseColorset = { ...theme.dice };
+
+    // Apply type-specific overrides if they exist
+    const override = diceType !== 'default' ? theme[diceType] : undefined;
+    if (override) {
+      Object.assign(baseColorset, override);
+    }
+
+    const colorset: ColorSet = {
+      name: `${theme.name}-${diceType}`,
+      ...baseColorset,
+      texture: { ...((TEXTURELIST as TextureList).none) }
+    };
+
+    // Get and load texture data
+    colorset.texture = await this.#imageLoader(this.#getTexture(baseColorset.texture || 'none'));
+
+    // Apply material type
+    if (baseColorset.material) {
+      colorset.texture.material = baseColorset.material;
+    }
+
+    // Load label images if present
+    if (baseColorset.labels) {
+      colorset.labels = {};
+      for (const [type, labels] of Object.entries(baseColorset.labels)) {
+        colorset.labels[type] = await this.#loadLabelImages(labels);
+      }
+    }
+
+    return colorset;
+  }
+
   async makeColorSet(options: any = {}): Promise<ColorSet> {
     // Generate a unique name since custom colorsets don't have named IDs
     const customName = options.name ?? Date.now().toString();

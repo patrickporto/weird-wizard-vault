@@ -32,6 +32,8 @@ interface DiceBoxConfig {
   baseScale: number;
   strength: number;
   iterationLimit: number;
+  scale?: number;
+  onRollComplete?: () => void;
 }
 
 interface DisplayConfig {
@@ -692,6 +694,7 @@ export class DiceBox {
       let glvl = notationVectors.set[i].glvl;
       let func = notationVectors.set[i].func;
       let args = notationVectors.set[i].args;
+      let style = notationVectors.set[i].style;
 
       for (let k = 0; k < numdice; k++) {
         let vec = this.vectorRand(vector);
@@ -764,6 +767,7 @@ export class DiceBox {
           glvl: glvl,
           func: func,
           args: args,
+          style: style,
           pos: pos,
           velocity: velocity,
           angle: angle,
@@ -907,7 +911,16 @@ export class DiceBox {
     let dicemesh;
 
     if (!reset) {
-      dicemesh = await this.DiceFactory.create(vectordata.type, this.colorData);
+      // Check if we need a style-specific colorset
+      if (vectordata.style && this.theme_colorset) {
+        const styleColorData = await this.DiceColors.getColorSetForDiceType(
+          this.theme_colorset,
+          vectordata.style
+        );
+        dicemesh = await this.DiceFactory.createWithColorSet(vectordata.type, styleColorData);
+      } else {
+        dicemesh = await this.DiceFactory.create(vectordata.type, this.colorData);
+      }
       if (!dicemesh) return;
       dicemesh.notation = vectordata;
       dicemesh.result = [];
@@ -1164,16 +1177,21 @@ export class DiceBox {
     const time_diff = (time - this.#last_time) / 1000;
     this.#last_time = time;
 
-    // Rotate dice
+    // Rotate dice and position them in a row
+    const spacing = 100; // Spacing between dice
+    const totalDice = this.diceList.length;
+    const startX = -((totalDice - 1) * spacing) / 2;
+
     this.diceList.forEach((dice, index) => {
       if (dice) {
         dice.rotation.y += 0.01;
         dice.rotation.x += 0.005;
 
-        // Ensure they stay in place (center)
-        dice.position.set(0, 0, 0);
+        // Position dice in a row (centered)
+        const xPos = startX + (index * spacing);
+        dice.position.set(xPos, 0, 0);
         if (dice.body) {
-          dice.body.position.set(0, 0, 0);
+          dice.body.position.set(xPos, 0, 0);
           dice.body.quaternion.setFromEuler(dice.rotation.x, dice.rotation.y, dice.rotation.z);
         }
       }
@@ -1188,21 +1206,25 @@ export class DiceBox {
     }
   }
 
-  async showSelector(dice: string[] = ['d20']): Promise<void> {
+  async showSelector(dice: (string | { type: string; style?: string })[] = ['d20']): Promise<void> {
     this.clearDice();
     this.#rolling = false;
     this.#animstate = 'selector';
-    this.selector = { dice }; // Populate selector data
+    this.selector = { dice: dice.map(d => typeof d === 'string' ? d : d.type) }; // Populate selector data
     this.setDimensions(this.dimensions); // Update camera for selector
 
     const threadid = Date.now();
     this.#running = threadid;
     this.#last_time = threadid;
 
-    for (const type of dice) {
+    for (const diceItem of dice) {
+      const type = typeof diceItem === 'string' ? diceItem : diceItem.type;
+      const style = typeof diceItem === 'string' ? undefined : diceItem.style;
+
       // Create dummy vector data for spawn
       const vectordata = {
         type,
+        style,
         pos: { x: 0, y: 0, z: 0 },
         velocity: { x: 0, y: 0, z: 0 },
         angle: { x: 0, y: 0, z: 0 },

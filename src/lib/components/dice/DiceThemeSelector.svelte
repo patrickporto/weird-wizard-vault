@@ -24,17 +24,21 @@
             scale: 6,
             theme_surface: selectedTheme, // Use selected theme for surface
             theme_customColorset: THEMES[selectedTheme as keyof typeof THEMES]?.dice,
-            theme_colorset: 'white', // Default base
+            theme_colorset: selectedTheme, // Use selected theme
             gravity_multiplier: 400,
-            baseScale: 100,
+            baseScale: 45, // Smaller scale for preview
             strength: 1,
             onRollComplete: () => {}
         });
 
         await diceBox.initialize();
 
-        // Show rotating d20 for preview
-        await diceBox.showSelector(['d20']);
+        // Show rotating dice for preview: d20, boon d6, and bane d6
+        await diceBox.showSelector([
+            'd20',
+            { type: 'd6', style: 'boon' },
+            { type: 'd6', style: 'bane' }
+        ]);
     });
 
     async function selectTheme(themeId: string) {
@@ -45,9 +49,14 @@
         if (diceBox && theme) {
             await diceBox.updateConfig({
                 theme_surface: themeId,
+                theme_colorset: themeId, // Update colorset for boon/bane styles
                 theme_customColorset: theme.dice
             });
-            await diceBox.showSelector(['d20']);
+            await diceBox.showSelector([
+                'd20',
+                { type: 'd6', style: 'boon' },
+                { type: 'd6', style: 'bane' }
+            ]);
         }
     }
 </script>
