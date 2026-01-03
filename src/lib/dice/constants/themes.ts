@@ -46,7 +46,7 @@ export const THEMES: Record<string, DiceTheme> = {
       outline: '#fff',
       edge: '#000',
       texture: 'none',
-      material: 'perfectmetal',
+      material: 'silk',
       font: 'Arial, system-ui',
       labels: {
         d6: ['1', '2', '3', '4', '5', '6'],
@@ -60,9 +60,9 @@ export const THEMES: Record<string, DiceTheme> = {
       outline: '#000',
     },
     bane: {
-      background: '#85161c',
+      background: '#b30511ff',
       foreground: '#fff',
-      edge: '#85161c',
+      edge: '#b30511ff',
       outline: '#fff',
     },
     cubeMap: DEFAULT_CUBEMAP
