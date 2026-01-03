@@ -283,6 +283,27 @@ function initLobby() {
 if (typeof window !== 'undefined') {
   initLobby();
 
+  // Auto-reconnect when tracker URL changes
+  let lastTrackerUrl = get(trackerUrl);
+  trackerUrl.subscribe(newUrl => {
+    if (newUrl === lastTrackerUrl) return;
+    lastTrackerUrl = newUrl;
+
+    console.log('Tracker URL changed, reconnecting...');
+
+    // Reconnect Lobby
+    if (get(lobbyStatus) !== 'disconnected') {
+      lastLobbyJoinAttempt = 0; // Bypass rate limit
+      joinLobby();
+    }
+
+    // Reconnect Campaign
+    if (get(syncState).roomId) {
+      lastCampaignJoinAttempt = 0; // Bypass rate limit
+      reconnectCampaign();
+    }
+  });
+
   // Cleanup on page unload to prevent dangling peer connections
   window.addEventListener('beforeunload', () => {
     cleanupAllConnections();
