@@ -187,8 +187,8 @@
         <div class="space-y-6">
             <!-- 3D Dice Canvas (when enabled) -->
             {#if enable3DDice}
-                <div class="rounded-2xl overflow-hidden border border-white/10 relative h-[200px]">
-                     <DiceRoller bind:this={diceRoller} height={200} />
+                <div class="rounded-2xl overflow-hidden border border-white/10 relative h-[300px]">
+                     <DiceRoller bind:this={diceRoller} height={300} />
                      <!-- Overlay to disable interaction while rolling -->
                      {#if isRolling}
                         <div class="absolute inset-0 bg-transparent z-10"></div>
