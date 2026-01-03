@@ -47,6 +47,7 @@ let connectionMonitorInterval: any = null;
 let lastLobbyJoinAttempt = 0;
 let lastCampaignJoinAttempt = 0;
 const MIN_JOIN_INTERVAL_MS = 2000; // Minimum 2 seconds between join attempts
+const CHECK_INTERVAL_MS = 120000; // Check every 2 minutes
 
 // Global Discovery
 export const publicCampaigns = writable<any[]>([]);
@@ -58,7 +59,7 @@ export const lobbyStatus = writable<LobbyStatus>('disconnected');
 /**
  * Check connectivity to a WebSocket tracker
  */
-async function checkTrackerConnection(url: string, timeout = 10000): Promise<boolean> {
+async function checkTrackerConnection(url: string, timeout = 60000): Promise<boolean> {
   if (!url) return false;
   return new Promise((resolve) => {
     let ws: WebSocket | null = null;
@@ -116,7 +117,7 @@ function startConnectionMonitor(url: string) {
   if (connectionMonitorInterval) clearInterval(connectionMonitorInterval);
   connectionMonitorInterval = setInterval(async () => {
     // Increased timeout for monitor
-    const isOnline = await checkTrackerConnection(url, 10000);
+    const isOnline = await checkTrackerConnection(url, 60000);
     syncState.update(s => {
       if (!isOnline && s.connectionStatus === 'connected') {
         return { ...s, connectionStatus: 'reconnecting' };
@@ -125,7 +126,7 @@ function startConnectionMonitor(url: string) {
       }
       return s;
     });
-  }, 20000); // Check every 20s
+  }, CHECK_INTERVAL_MS); // Check every 70s
 }
 
 /**
@@ -156,7 +157,7 @@ let lobbyMonitorInterval: any = null;
 function startLobbyMonitor(url: string) {
   if (lobbyMonitorInterval) clearInterval(lobbyMonitorInterval);
   lobbyMonitorInterval = setInterval(async () => {
-    const isOnline = await checkTrackerConnection(url, 10000);
+    const isOnline = await checkTrackerConnection(url, 60000);
     lobbyStatus.update(s => {
       if (!isOnline && s === 'connected') {
         console.warn('Lobby monitor: Tracker unreachable');
@@ -165,7 +166,7 @@ function startLobbyMonitor(url: string) {
       if (isOnline && (s === 'disconnected' || s === 'error')) return 'connected';
       return s;
     });
-  }, 20000); // Check every 20s
+  }, CHECK_INTERVAL_MS); // Check every 70s
 }
 
 let sendDiscovery: any;
