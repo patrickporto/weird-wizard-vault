@@ -53,18 +53,16 @@ export const THEMES: Record<string, DiceTheme> = {
         d20: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20']
       }
     },
-    // Override para boons (opcional)
     boon: {
-      background: '#1a4d2e',  // Verde escuro
-      foreground: '#fff',  // Verde claro
-      edge: '#1a4d2e',
-      outline: '#fff',
+      background: '#fff',
+      foreground: '#000',
+      edge: '#fff',
+      outline: '#000',
     },
-    // Override para banes (opcional)
     bane: {
-      background: '#4d1a1a',  // Vermelho escuro
-      foreground: '#fff',  // Vermelho claro
-      edge: '#4d1a1a',
+      background: '#85161c',
+      foreground: '#fff',
+      edge: '#85161c',
       outline: '#fff',
     },
     cubeMap: DEFAULT_CUBEMAP
@@ -98,9 +96,9 @@ export const THEMES: Record<string, DiceTheme> = {
       }
     },
     bane: {
-      background: '#ff0000',
+      background: '#85161c',
       foreground: '#fff',
-      edge: '#ff0000',
+      edge: '#85161c',
       outline: '#fff',
       fontOffsetY: -15,
     },
