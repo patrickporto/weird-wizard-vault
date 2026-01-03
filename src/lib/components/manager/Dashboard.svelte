@@ -272,7 +272,11 @@
             players: current.players || [],
             backupEnabled: formData.backupEnabled || false,
             backupHash: formData.backupHash || '',
-            system: formData.system || DEFAULT_SYSTEM
+            system: formData.system || DEFAULT_SYSTEM,
+            tier: formData.tier || current.tier || getDefaultTier(formData.system || DEFAULT_SYSTEM),
+            healthDisplayModePlayer: formData.healthDisplayModePlayer || current.healthDisplayModePlayer || 'bar',
+            healthDisplayModeEnemy: formData.healthDisplayModeEnemy || current.healthDisplayModeEnemy || 'bar',
+            lastUpdate: Date.now()
         };
 
         // Handle password updates
@@ -352,7 +356,7 @@
                     }
 
                     if (changed) {
-                        campaignsMap.set(camp.id, camp);
+                        campaignsMap.set(camp.id, { ...camp, lastUpdate: Date.now() });
                     }
                 });
 

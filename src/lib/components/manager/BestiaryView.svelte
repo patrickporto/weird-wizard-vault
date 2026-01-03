@@ -68,7 +68,8 @@
             ...data,
             id,
             campaignId: campId,
-            system: campaign?.system || 'sofww'
+            system: campaign?.system || 'sofww',
+            lastUpdate: Date.now()
         });
         isEnemyModalOpen = false;
     }
@@ -95,7 +96,7 @@
 
     function saveEncounter(data: any) {
         const id = editingEncounterId || uuidv7();
-        encountersMap.set(id, { ...data, id, system: currentSystem });
+        encountersMap.set(id, { ...data, id, system: currentSystem, lastUpdate: Date.now() });
         isEncounterModalOpen = false;
     }
 
@@ -136,7 +137,7 @@
              }
         });
 
-        campaignsMap.set(campId, { ...latestCamp, activeEnemies: [...activeEnemies, ...newEnemies] });
+        campaignsMap.set(campId, { ...latestCamp, activeEnemies: [...activeEnemies, ...newEnemies], lastUpdate: Date.now() });
     }
 
     // Drag and Drop Logic
