@@ -124,7 +124,14 @@
             "password_empty_placeholder": "Leave blank for no password",
             "password_remove": "Remove Password",
             "password_remove_info": "The password will be removed upon saving.",
-            "password_info": "Set a password to protect the invitation to this campaign."
+            "password_info": "Set a password to protect the invitation to this campaign.",
+            "health_display_player": "Health Display - Players",
+            "health_display_enemy": "Health Display - Enemies",
+            "health_display_modes": {
+                "bar": "Full Bar",
+                "estimate": "Estimate"
+            },
+            "health_display_info": "How players see enemy health in the combat viewer."
         },
         "difficulty": {
             "title": "Combat Difficulty",
@@ -637,6 +644,19 @@
             "title": "End of Round",
             "summary": "Summary of effects that occur now.",
             "advance": "Advance Round"
+        },
+        "combat_viewer": {
+            "title": "Combat View",
+            "open": "Open Combat View",
+            "no_combat": "No active combat.",
+            "waiting": "Waiting for the GM to start combat...",
+            "health_estimates": {
+                "healthy": "Healthy",
+                "wounded": "Wounded",
+                "injured": "Injured",
+                "critical": "Critical",
+                "incapacitated": "Incapacitated"
+            }
         },
         "manage_session": {
             "title": "Manage Session",

@@ -15,6 +15,7 @@
     import { calculateDiceRoll } from '$lib/logic/dice';
     import { onMount } from 'svelte';
     import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncCharacter } from '$lib/logic/sync';
+    import { broadcastCampaignUpdate } from '$lib/logic/tabSync';
     import type { InitiativeStyle, TierLevel } from '$lib/systems';
     import { DEFAULT_SYSTEM, getDefaultTier } from '$lib/systems';
     import { sortCombatants } from '$lib/logic/initiative';
@@ -156,6 +157,9 @@
         if (updates.name || updates.gmName) {
             syncCampaign(campaign.id, { name: updated.name, gmName: updated.gmName });
         }
+
+        // Broadcast to other tabs in same browser (for combat viewer window)
+        broadcastCampaignUpdate(campaign.id, updated);
     }
 
     function toggleSessionPresence(charId: string) {
@@ -663,7 +667,7 @@
         <div class="space-y-3 pb-20">
             {#each sortedCombatants as entity (entity.type === 'player' ? entity.id : entity.instanceId)}
                 <div animate:flip={{duration: 300}}>
-                   <CombatCard {entity} {updateEnemy} {removeFromCombat} updatePlayer={updatePlayerInCampaign} />
+                   <CombatCard {entity} campaignId={campaign.id} {updateEnemy} {removeFromCombat} updatePlayer={updatePlayerInCampaign} />
                 </div>
             {/each}
             {#if sortedCombatants.length === 0}

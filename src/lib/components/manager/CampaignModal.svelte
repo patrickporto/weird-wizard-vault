@@ -1,6 +1,6 @@
 <script lang="ts">
     import { t } from 'svelte-i18n';
-    import { Shield, Gamepad2, TrendingUp } from 'lucide-svelte';
+    import { Shield, Gamepad2, TrendingUp, Eye } from 'lucide-svelte';
     import Modal from '$lib/components/common/Modal.svelte';
     import { SYSTEMS, DEFAULT_SYSTEM, getDefaultTier, getAvailableTiers } from '$lib/systems';
     import type { TierLevel } from '$lib/systems';
@@ -19,7 +19,7 @@
         onSave
     }: Props = $props();
 
-    let form = $state({ name: '', description: '', gmName: '', password: '', removePassword: false, system: DEFAULT_SYSTEM, tier: getDefaultTier(DEFAULT_SYSTEM) as TierLevel });
+    let form = $state({ name: '', description: '', gmName: '', password: '', removePassword: false, system: DEFAULT_SYSTEM, tier: getDefaultTier(DEFAULT_SYSTEM) as TierLevel, healthDisplayModePlayer: 'bar' as 'bar' | 'estimate', healthDisplayModeEnemy: 'bar' as 'bar' | 'estimate' });
     let hasPassword = $state(false);
     let isEditing = $state(false); // True if editing existing campaign
 
@@ -35,12 +35,14 @@
                     password: '',
                     removePassword: false,
                     system: data.system || DEFAULT_SYSTEM,
-                    tier: data.tier || getDefaultTier(data.system || DEFAULT_SYSTEM)
+                    tier: data.tier || getDefaultTier(data.system || DEFAULT_SYSTEM),
+                    healthDisplayModePlayer: data.healthDisplayModePlayer || 'bar',
+                    healthDisplayModeEnemy: data.healthDisplayModeEnemy || 'bar'
                 };
                 hasPassword = !!data.passwordHash;
                 isEditing = !!data.id;
             } catch (e) {
-                form = { name: '', description: '', gmName: '', password: '', removePassword: false, system: DEFAULT_SYSTEM, tier: getDefaultTier(DEFAULT_SYSTEM) };
+                form = { name: '', description: '', gmName: '', password: '', removePassword: false, system: DEFAULT_SYSTEM, tier: getDefaultTier(DEFAULT_SYSTEM), healthDisplayModePlayer: 'bar', healthDisplayModeEnemy: 'bar' };
                 hasPassword = false;
                 isEditing = false;
             }
@@ -139,6 +141,67 @@
             {/if}
         </div>
 
+        <!-- Health Display for Players -->
+        <div>
+            <label class="text-xs text-slate-500 uppercase font-black block mb-2 tracking-widest flex items-center gap-1">
+                <Eye size={12} /> {$t('campaign.settings.health_display_player')}
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+                <button
+                    class="relative flex items-center p-3 rounded-lg border text-left transition-all {form.healthDisplayModePlayer === 'bar' ? 'bg-indigo-600/20 border-indigo-500 text-white' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-600'}"
+                    onclick={() => form.healthDisplayModePlayer = 'bar'}
+                >
+                    <div class="flex-1">
+                        <div class="font-bold text-sm">{$t('campaign.settings.health_display_modes.bar')}</div>
+                    </div>
+                    {#if form.healthDisplayModePlayer === 'bar'}
+                        <div class="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>
+                    {/if}
+                </button>
+                <button
+                    class="relative flex items-center p-3 rounded-lg border text-left transition-all {form.healthDisplayModePlayer === 'estimate' ? 'bg-indigo-600/20 border-indigo-500 text-white' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-600'}"
+                    onclick={() => form.healthDisplayModePlayer = 'estimate'}
+                >
+                    <div class="flex-1">
+                        <div class="font-bold text-sm">{$t('campaign.settings.health_display_modes.estimate')}</div>
+                    </div>
+                    {#if form.healthDisplayModePlayer === 'estimate'}
+                        <div class="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>
+                    {/if}
+                </button>
+            </div>
+        </div>
+
+        <!-- Health Display for Enemies -->
+        <div>
+            <label class="text-xs text-slate-500 uppercase font-black block mb-2 tracking-widest flex items-center gap-1">
+                <Eye size={12} /> {$t('campaign.settings.health_display_enemy')}
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+                <button
+                    class="relative flex items-center p-3 rounded-lg border text-left transition-all {form.healthDisplayModeEnemy === 'bar' ? 'bg-indigo-600/20 border-indigo-500 text-white' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-600'}"
+                    onclick={() => form.healthDisplayModeEnemy = 'bar'}
+                >
+                    <div class="flex-1">
+                        <div class="font-bold text-sm">{$t('campaign.settings.health_display_modes.bar')}</div>
+                    </div>
+                    {#if form.healthDisplayModeEnemy === 'bar'}
+                        <div class="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>
+                    {/if}
+                </button>
+                <button
+                    class="relative flex items-center p-3 rounded-lg border text-left transition-all {form.healthDisplayModeEnemy === 'estimate' ? 'bg-indigo-600/20 border-indigo-500 text-white' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-600'}"
+                    onclick={() => form.healthDisplayModeEnemy = 'estimate'}
+                >
+                    <div class="flex-1">
+                        <div class="font-bold text-sm">{$t('campaign.settings.health_display_modes.estimate')}</div>
+                    </div>
+                    {#if form.healthDisplayModeEnemy === 'estimate'}
+                        <div class="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>
+                    {/if}
+                </button>
+            </div>
+        </div>
 
     </div>
     <div class="flex flex-col-reverse sm:flex-row gap-3 mt-6">

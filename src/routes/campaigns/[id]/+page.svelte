@@ -10,7 +10,7 @@
     import { isHistoryOpen, appSettings } from '$lib/stores/characterStore';
     import CampaignModal from '$lib/components/manager/CampaignModal.svelte';
     import { syncCampaign } from '$lib/logic/sync';
-    import { Sword, Library, Dices, ChevronUp, ChevronDown, X, Calculator, ArrowLeft, Send } from 'lucide-svelte';
+    import { Sword, Library, Dices, ChevronUp, ChevronDown, X, Calculator, ArrowLeft, Send, Eye } from 'lucide-svelte';
     import { calculateDiceRoll, evaluateDiceFormula } from '$lib/logic/dice';
     import { characterActions } from '$lib/stores/characterStore';
     import { get } from 'svelte/store';
@@ -331,4 +331,15 @@
         onRoll={confirmQuickRoll}
         initialModifier={0}
     />
+
+    <!-- Combat Viewer Floating Button (Desktop) -->
+    <div class="hidden md:block fixed bottom-8 right-8 z-[60]">
+        <button
+            onclick={() => window.open(`/campaigns/${id}/combat`, '_blank', 'width=500,height=700,resizable=yes,scrollbars=yes')}
+            class="w-14 h-14 bg-slate-800 hover:bg-slate-700 text-indigo-400 hover:text-white rounded-full shadow-lg flex items-center justify-center transition-all active:scale-90 border border-white/10"
+            title={$t('session.combat_viewer.open')}
+        >
+            <Eye size={24} />
+        </button>
+    </div>
 </div>

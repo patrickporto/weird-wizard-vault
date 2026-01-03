@@ -9,6 +9,7 @@
 
     interface Props {
         entity: any;
+        campaignId?: string; // Needed for broadcast sync
         updateEnemy?: (instanceId: string, updates: any) => void;
         updatePlayer?: (charId: string, updates: any) => void;
         removeFromCombat?: (instanceId: string) => void;
@@ -16,6 +17,7 @@
 
     let {
         entity,
+        campaignId,
         updateEnemy = (id: string, u: any) => {},
         updatePlayer = (id: string, u: any) => {},
         removeFromCombat = (id: string) => {}
@@ -60,6 +62,7 @@
     });
 
     import { syncCharacter } from '$lib/logic/sync';
+    import { broadcastCharacterUpdate } from '$lib/logic/tabSync';
 
     // Helper for player updates
     function handleUpdatePlayer(updates: any) {
@@ -68,7 +71,14 @@
         // 1. Update GM's view/local storage
         const currentLocal = charactersMap.get(entity.id);
         if (currentLocal) {
-            charactersMap.set(entity.id, { ...currentLocal, ...updates });
+            const updated = { ...currentLocal, ...updates };
+            charactersMap.set(entity.id, updated);
+            // Broadcast to other tabs (combat viewer)
+            // Use prop campaignId if available, otherwise check entity
+            const cId = campaignId || entity.campaignId;
+            if (cId) {
+                broadcastCharacterUpdate(cId, updated);
+            }
         }
 
         // 2. Notify parent (SessionView) to update campaign member state

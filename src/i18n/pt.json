@@ -127,7 +127,13 @@
       "password_empty_placeholder": "Deixe em branco para sem senha",
       "password_remove": "Remover Senha",
       "password_remove_info": "A senha será removida ao salvar.",
-      "password_info": "Defina uma senha para proteger o convite desta campanha."
+      "password_info": "Defina uma senha para proteger o convite desta campanha.",
+      "health_display_player": "Exibição de Vida - Jogadores",
+      "health_display_enemy": "Exibição de Vida - Inimigos",
+      "health_display_modes": {
+        "bar": "Barra Completa",
+        "estimate": "Estimativa"
+      }
     },
     "difficulty": {
       "title": "Dificuldade do Combate",
@@ -631,6 +637,19 @@
       "title": "Fim da Rodada",
       "summary": "Resumo dos efeitos que ocorrem agora.",
       "advance": "Avançar Rodada"
+    },
+    "combat_viewer": {
+      "title": "Visão do Combate",
+      "open": "Abrir Visão do Combate",
+      "no_combat": "Nenhum combate ativo.",
+      "waiting": "Aguardando o Mestre iniciar o combate...",
+      "health_estimates": {
+        "healthy": "Ileso",
+        "wounded": "Machucado",
+        "injured": "Ferido",
+        "critical": "Gravemente Ferido",
+        "incapacitated": "Incapacitado"
+      }
     },
     "manage_session": {
       "title": "Gerenciar Sessão",
