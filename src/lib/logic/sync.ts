@@ -121,6 +121,27 @@ export function joinLobby() {
 
 let sendDiscovery: any;
 
+/**
+ * Immediately announce a campaign to the public lobby.
+ * Should be called when a campaign is published to ensure immediate visibility.
+ */
+export function announceCampaign(campaignData: { id: string; name: string; gmName?: string; description?: string; system?: string }) {
+  if (!sendDiscovery) {
+    console.warn('Cannot announce campaign: lobby not initialized');
+    return false;
+  }
+
+  sendDiscovery({
+    id: campaignData.id,
+    name: campaignData.name,
+    gmName: campaignData.gmName || 'Mestre',
+    description: campaignData.description,
+    system: campaignData.system
+  });
+
+  return true;
+}
+
 function initLobby() {
     if (typeof window !== 'undefined') {
         // Use sessionStorage to track initialization across HMR reloads

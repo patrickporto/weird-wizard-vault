@@ -14,7 +14,7 @@
     import { flip } from 'svelte/animate';
     import { calculateDiceRoll } from '$lib/logic/dice';
     import { onMount } from 'svelte';
-    import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncCharacter } from '$lib/logic/sync';
+    import { joinCampaignRoom, leaveCampaignRoom, syncCombat, syncCampaign, syncCharacter, announceCampaign } from '$lib/logic/sync';
     import { broadcastCampaignUpdate } from '$lib/logic/tabSync';
     import type { InitiativeStyle, TierLevel } from '$lib/systems';
     import { DEFAULT_SYSTEM, getDefaultTier } from '$lib/systems';
@@ -503,7 +503,17 @@
              <div class="pt-4 border-t border-slate-800 space-y-3">
                   {#if !campaign?.isPublished}
                     <button
-                        onclick={() => updateCampaign({ isPublished: true })}
+                        onclick={() => {
+                            updateCampaign({ isPublished: true });
+                            // Immediately announce to the public lobby
+                            announceCampaign({
+                                id: campaign.id,
+                                name: campaign.name,
+                                gmName: campaign.gmName,
+                                description: campaign.description,
+                                system: campaign.system
+                            });
+                        }}
                         class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-black uppercase text-[10px] tracking-[0.2em] shadow-lg shadow-indigo-900/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                     >
                         <Globe size={14}/> {$t('session.publish.publish_session')}
