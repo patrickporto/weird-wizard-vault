@@ -42,7 +42,7 @@ vi.mock('$lib/stores/characterStore', () => ({
 
 // Import modules under test
 import { syncToCloud, googleSession } from '$lib/logic/googleDrive';
-import { campaignsMap } from '$lib/db';
+import { campaignsMap, charactersMap, deletedIdsMap } from '$lib/db';
 
 describe('Google Drive Sync Regression - Player Removal', () => {
     beforeEach(() => {
@@ -59,7 +59,10 @@ describe('Google Drive Sync Regression - Player Removal', () => {
 
         global.fetch = vi.fn();
         mockCampaignsData = [];
+      mockCharactersData = [];
         (campaignsMap as Map<string, any>).clear();
+      (charactersMap as Map<string, any>).clear();
+      (deletedIdsMap as Map<string, any>).clear();
     });
 
     afterEach(() => {
@@ -145,4 +148,82 @@ describe('Google Drive Sync Regression - Player Removal', () => {
         expect(syncedCamp.members).toHaveLength(1, 'Campaign should have only 1 member after removal');
         expect(syncedCamp.members[0].id).toBe('player-1');
     });
+
+  it('should correctly sync character update when an item is removed', async () => {
+    const charId = 'char-1';
+    let charData = {
+      id: charId,
+      name: 'Test Wizard',
+      equipment: [
+        { id: 'item-1', name: 'Staff', quantity: 1 },
+        { id: 'item-2', name: 'Potion', quantity: 1 }
+      ],
+      lastUpdate: Date.now()
+    };
+
+    // 1. Initial State
+    mockCharactersData = [charData];
+    (charactersMap as Map<string, any>).set(charId, charData);
+
+    // Mock fetches
+    (global.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ files: [{ id: 'backup-char-id', name: 'weird-wizard-backup.json' }] })
+    });
+    (global.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ id: 'backup-char-id' })
+    });
+
+    // Sync 1
+    await syncToCloud();
+    await vi.advanceTimersByTimeAsync(2500);
+
+    // Verify Sync 1
+    const firstCall = (global.fetch as any).mock.calls.find((call: any[]) =>
+      call[1].method === 'PATCH'
+    );
+    const firstBody = JSON.parse(firstCall[1].body);
+    const syncedChar1 = firstBody.characters.find((c: any) => c.id === charId);
+    expect(syncedChar1.equipment).toHaveLength(2);
+
+    // 2. Remove Item (Potion)
+    (global.fetch as any).mockClear();
+
+    charData = {
+      ...charData,
+      equipment: [{ id: 'item-1', name: 'Staff', quantity: 1 }],
+      lastUpdate: Date.now() + 1000 // Newer timestamp
+    };
+
+    mockCharactersData = [charData];
+    (charactersMap as Map<string, any>).set(charId, charData);
+
+    // Mock fetches for Sync 2
+    (global.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ files: [{ id: 'backup-char-id' }] })
+    });
+    (global.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ id: 'backup-char-id' })
+    });
+
+    // Sync 2
+    await syncToCloud();
+    await vi.advanceTimersByTimeAsync(2500);
+
+    // Verify Sync 2
+    const secondCall = (global.fetch as any).mock.calls.find((call: any[]) =>
+      call[1].method === 'PATCH'
+    );
+
+    expect(secondCall).toBeDefined();
+    const secondBody = JSON.parse(secondCall[1].body);
+
+    const syncedChar2 = secondBody.characters.find((c: any) => c.id === charId);
+    expect(syncedChar2).toBeDefined();
+    expect(syncedChar2.equipment).toHaveLength(1, 'Character should have only 1 item after removal');
+    expect(syncedChar2.equipment[0].id).toBe('item-1');
+  });
 });
