@@ -46,7 +46,9 @@
             "label": "Synchronization",
             "connected": "Connected",
             "peers": "Peers: {count}",
-            "offline": "Offline"
+            "offline": "Offline",
+            "reconnecting": "Reconnecting...",
+            "connecting": "Connecting..."
         },
         "systems": {
             "sofww": {

@@ -15,13 +15,17 @@ export function getTrackerConfig() {
   };
 }
 
+// Connection Status
+export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'reconnecting' | 'error';
+
 export const syncState = writable({
   roomId: null as string | null,
   peers: [] as string[],
   currentCharacterId: null as string | null,
   lastGmUpdate: 0,
   isGM: false,
-  isConnected: false
+  isConnected: false,
+  connectionStatus: 'disconnected' as ConnectionStatus
 });
 
 export const isGmOnline = derived(syncState, $s => {
@@ -37,6 +41,7 @@ let broadcastCharacterUpdate: any = null;
 let broadcastCampaign: any = null;
 let lobbyCleanupInterval: any = null;
 let campaignHeartbeatInterval: any = null;
+let connectionMonitorInterval: any = null;
 
 // Track connection attempts for rate limiting
 let lastLobbyJoinAttempt = 0;
@@ -49,6 +54,58 @@ export const publicCampaigns = writable<any[]>([]);
 // Lobby connection status
 export type LobbyStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
 export const lobbyStatus = writable<LobbyStatus>('disconnected');
+
+/**
+ * Check connectivity to a WebSocket tracker
+ */
+async function checkTrackerConnection(url: string, timeout = 5000): Promise<boolean> {
+  if (!url) return false;
+  return new Promise((resolve) => {
+    let ws: WebSocket | null = null;
+    try {
+      ws = new WebSocket(url);
+
+      const timer = setTimeout(() => {
+        if (ws) {
+          ws.onopen = null;
+          ws.onerror = null;
+          try { ws.close(); } catch { }
+        }
+        resolve(false);
+      }, timeout);
+
+      ws.onopen = () => {
+        clearTimeout(timer);
+        if (ws) {
+          try { ws.close(); } catch { }
+        }
+        resolve(true);
+      };
+
+      ws.onerror = () => {
+        clearTimeout(timer);
+        resolve(false); // Connection failed
+      };
+    } catch (e) {
+      resolve(false);
+    }
+  });
+}
+
+function startConnectionMonitor(url: string) {
+  if (connectionMonitorInterval) clearInterval(connectionMonitorInterval);
+  connectionMonitorInterval = setInterval(async () => {
+    const isOnline = await checkTrackerConnection(url, 3000);
+    syncState.update(s => {
+      if (!isOnline && s.connectionStatus === 'connected') {
+        return { ...s, connectionStatus: 'reconnecting' };
+      } else if (isOnline && s.connectionStatus === 'reconnecting') {
+        return { ...s, connectionStatus: 'connected' };
+      }
+      return s;
+    });
+  }, 15000); // Check every 15s to be responsive
+}
 
 /**
  * Safely leave a room/lobby, handling any errors gracefully
@@ -74,7 +131,7 @@ function canAttemptJoin(lastAttempt: number): boolean {
 
 let sendDiscovery: any;
 
-export function joinLobby() {
+export async function joinLobby() {
   // If lobby already exists, check if tracker config changed (advanced check omitted for simplicity, assumes reconnect on reload for now or manual reconnect)
 
   // If lobby already exists, return the existing sendDiscovery function
@@ -103,6 +160,17 @@ export function joinLobby() {
   lobby = null;
 
   lobbyStatus.set('connecting');
+
+  // Verify tracker connectivity first
+  const trackerConf = get(trackerUrl);
+  const isOnline = await checkTrackerConnection(trackerConf);
+
+  if (!isOnline) {
+    console.warn(`Tracker ${trackerConf} appears offline.`);
+    lobbyStatus.set('error');
+    lobby = null;
+    return null;
+  }
 
   try {
     const config = getTrackerConfig();
@@ -161,12 +229,8 @@ export function announceCampaign(campaignData: { id: string; name: string; gmNam
 
 function initLobby() {
   if (typeof window !== 'undefined') {
-    // joinLobby now handles duplicate detection internally
-    // It will return the existing sendDiscovery if lobby is already connected
-    const result = joinLobby();
-    if (result) {
-      sendDiscovery = result;
-    }
+    // joinLobby now handles duplicate detection internally and sets sendDiscovery
+    joinLobby().catch(err => console.error('Error initializing lobby:', err));
   }
 }
 
@@ -177,6 +241,21 @@ if (typeof window !== 'undefined') {
   // Cleanup on page unload to prevent dangling peer connections
   window.addEventListener('beforeunload', () => {
     cleanupAllConnections();
+  });
+
+  window.addEventListener('online', () => {
+    syncState.update(s => s.isConnected ? { ...s, connectionStatus: 'reconnecting' } : s);
+    // Optionally trigger a reconnnect logic here if needed, but WebRTC might handle it.
+    // For UI feedback, show reconnecting.
+    setTimeout(() => {
+      if (get(syncState).isConnected) {
+        syncState.update(s => ({ ...s, connectionStatus: 'connected' }));
+      }
+    }, 2000);
+  });
+
+  window.addEventListener('offline', () => {
+    syncState.update(s => s.isConnected ? { ...s, connectionStatus: 'disconnected' } : s);
   });
 
   // Note: Removed visibilitychange cleanup as it was causing excessive reconnections
@@ -195,18 +274,23 @@ function cleanupAllConnections() {
     clearInterval(campaignHeartbeatInterval);
     campaignHeartbeatInterval = null;
   }
+  if (connectionMonitorInterval) {
+    clearInterval(connectionMonitorInterval);
+    connectionMonitorInterval = null;
+  }
   safeLeave(lobby, 'lobby');
   safeLeave(room, 'room');
   lobby = null;
   room = null;
   sendDiscovery = null; // Reset to prevent using stale function reference
   lobbyStatus.set('disconnected');
+  syncState.update(s => ({ ...s, isConnected: false, connectionStatus: 'disconnected' }));
 }
 
 
 let currentRoomId: string | null = null;
 
-export function joinCampaignRoom(campaignId: string, isGM: boolean = false, charId: string | null = null) {
+export async function joinCampaignRoom(campaignId: string, isGM: boolean = false, charId: string | null = null) {
   const targetRoomId = `campaign-${campaignId}`;
 
   // Prevent duplicate connections to the same room
@@ -215,13 +299,14 @@ export function joinCampaignRoom(campaignId: string, isGM: boolean = false, char
     syncState.update(s => ({
       ...s,
       isGM,
-      currentCharacterId: charId
+      currentCharacterId: charId,
+      connectionStatus: 'connected'
     }));
     return room;
   }
 
-  // Rate limit campaign join attempts
-  if (!canAttemptJoin(lastCampaignJoinAttempt)) {
+  // Rate limit campaign join attempts (reduced logic for reconnections)
+  if (!canAttemptJoin(lastCampaignJoinAttempt) && currentRoomId !== targetRoomId) {
     console.warn('Campaign join rate limited. Skipping duplicate join attempt.');
     return room;
   }
@@ -236,11 +321,23 @@ export function joinCampaignRoom(campaignId: string, isGM: boolean = false, char
   room = null;
   currentRoomId = null;
 
+  syncState.update(s => ({ ...s, connectionStatus: 'connecting' }));
+
   // Clear broadcasters
   broadcastCombat = null;
   broadcastHistory = null;
   broadcastCharacterUpdate = null;
   broadcastCampaign = null;
+
+  // Verify tracker connectivity first
+  const trackerConf = get(trackerUrl);
+  const isOnline = await checkTrackerConnection(trackerConf);
+
+  if (!isOnline) {
+    console.warn(`Tracker ${trackerConf} appears offline.`);
+    syncState.update(s => ({ ...s, connectionStatus: 'error', isConnected: false }));
+    return null;
+  }
 
   try {
     currentRoomId = targetRoomId;
@@ -249,12 +346,16 @@ export function joinCampaignRoom(campaignId: string, isGM: boolean = false, char
 
     syncState.set({
       isConnected: true,
+      connectionStatus: 'connected',
       isGM,
       currentCharacterId: charId,
       peers: [],
       roomId: campaignId,
       lastGmUpdate: 0
     });
+
+    // Start monitoring connection stability
+    startConnectionMonitor(trackerConf);
 
     // Actions
     const [sendCombat, getCombat] = room.makeAction('combat');
@@ -418,7 +519,13 @@ export function joinCampaignRoom(campaignId: string, isGM: boolean = false, char
       }
     });
 
+    // Setup room events
     room.onPeerJoin((peerId: string) => {
+      console.log('Peer joined:', peerId);
+      // Send current character data if player
+      if (!isGM && charId) {
+        broadcastCharacterUpdate({ type: 'full', character: get(appSettings).characters?.[charId] });
+      }
       syncState.update(s => ({ ...s, peers: [...s.peers, peerId] }));
       // If GM, send current state to the new peer
       if (isGM) {
@@ -436,6 +543,7 @@ export function joinCampaignRoom(campaignId: string, isGM: boolean = false, char
     });
 
     room.onPeerLeave((peerId: string) => {
+      console.log('Peer left:', peerId);
       syncState.update(s => ({ ...s, peers: s.peers.filter(p => p !== peerId) }));
     });
 
@@ -444,14 +552,7 @@ export function joinCampaignRoom(campaignId: string, isGM: boolean = false, char
     console.error('Failed to join campaign room:', e);
     room = null;
     currentRoomId = null;
-    syncState.set({
-      isConnected: false,
-      isGM: false,
-      currentCharacterId: null,
-      peers: [],
-      roomId: null,
-      lastGmUpdate: 0
-    });
+    syncState.update(s => ({ ...s, isConnected: false, connectionStatus: 'error' }));
     return null;
   }
 }
@@ -491,6 +592,10 @@ export function leaveCampaignRoom() {
     clearInterval(campaignHeartbeatInterval);
     campaignHeartbeatInterval = null;
   }
+  if (connectionMonitorInterval) {
+    clearInterval(connectionMonitorInterval);
+    connectionMonitorInterval = null;
+  }
   safeLeave(room, 'campaign room');
   room = null;
   currentRoomId = null;
@@ -500,12 +605,31 @@ export function leaveCampaignRoom() {
   broadcastCampaign = null;
   syncState.set({
     isConnected: false,
+    connectionStatus: 'disconnected',
     isGM: false,
     currentCharacterId: null,
     peers: [],
     roomId: null,
     lastGmUpdate: 0
   });
+}
+
+/**
+ * Manually attempt to reconnect to the current campaign room
+ */
+export function reconnectCampaign() {
+  const state = get(syncState);
+  if (state.roomId) {
+    console.log('Manual reconnection triggered');
+    // Force status to connecting immediately for UI feedback
+    syncState.update(s => ({ ...s, connectionStatus: 'connecting' }));
+    // Small delay to ensure UI updates before heavy work
+    setTimeout(() => {
+      joinCampaignRoom(state.roomId!, state.isGM, state.currentCharacterId);
+    }, 100);
+  } else {
+    console.warn('Cannot reconnect: no active campaign session found');
+  }
 }
 
 export function resetSyncStateForTesting() {

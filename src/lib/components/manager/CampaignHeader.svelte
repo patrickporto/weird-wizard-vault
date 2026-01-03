@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { ChevronLeft, LayoutDashboard, History, Sword, Library, Settings, Wifi, WifiOff, Users } from 'lucide-svelte';
+  import { ChevronLeft, LayoutDashboard, History, Sword, Library, Settings, Wifi, WifiOff, Users, Loader2, AlertCircle } from 'lucide-svelte';
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import { isHistoryOpen, hasUnreadRolls, rollHistory } from '$lib/stores/characterStore';
-  import { syncState } from '$lib/logic/sync';
+  import { syncState, reconnectCampaign } from '$lib/logic/sync';
   import { t } from 'svelte-i18n';
 
   interface Props {
@@ -70,22 +70,46 @@
           <!-- Lado Direito: Ações -->
           <div class="flex items-center gap-1 sm:gap-2">
              <div class="flex items-center gap-2 mr-2 border-r border-white/10 pr-2">
-                {#if $syncState.isConnected}
-                    <div class="flex items-center gap-1 text-emerald-400" title={$t('common.status.connected')}>
+                {#if $syncState.connectionStatus === 'connected'}
+                    <button
+                        class="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer"
+                        title={$t('common.status.connected')}
+                        onclick={reconnectCampaign}
+                    >
                         <Wifi size={16} />
                         <span class="text-xs font-bold hidden sm:block">{$t('common.status.connected')}</span>
-                    </div>
+                    </button>
                     {#if $syncState.peers.length > 0}
                          <div class="flex items-center gap-1 text-slate-400 ml-1" title={$t('common.status.peers', { values: { count: $syncState.peers.length } })}>
                             <Users size={14} />
                             <span class="text-xs">{$syncState.peers.length}</span>
                         </div>
                     {/if}
+                {:else if $syncState.connectionStatus === 'connecting' || $syncState.connectionStatus === 'reconnecting'}
+                     <div class="flex items-center gap-1 text-yellow-400 animate-pulse" title={$t('common.status.' + $syncState.connectionStatus)}>
+                        <Loader2 size={16} class="animate-spin" />
+                        <span class="text-xs font-bold hidden sm:block">
+                            {$t('common.status.' + $syncState.connectionStatus)}
+                        </span>
+                    </div>
+                {:else if $syncState.connectionStatus === 'error'}
+                     <button
+                        onclick={reconnectCampaign}
+                        class="flex items-center gap-1 text-red-400 hover:text-red-300 transition-colors cursor-pointer animate-pulse"
+                        title={$t('common.status.error')}
+                    >
+                        <AlertCircle size={16} />
+                        <span class="text-xs font-bold hidden sm:block">{$t('common.status.error')}</span>
+                    </button>
                 {:else}
-                    <div class="flex items-center gap-1 text-slate-500" title={$t('common.status.offline')}>
+                    <button
+                        onclick={reconnectCampaign}
+                        class="flex items-center gap-1 text-slate-500 hover:text-white transition-colors cursor-pointer"
+                        title={$t('common.status.offline')}
+                    >
                         <WifiOff size={16} />
                         <span class="text-xs hidden sm:block">{$t('common.status.offline')}</span>
-                    </div>
+                    </button>
                 {/if}
              </div>
 

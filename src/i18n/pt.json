@@ -41,13 +41,15 @@
     "status": {
       "syncing": "Sincronizando",
       "saved": "Salvo",
-      "error": "Erro no Sync",
+      "error": "Erro Sinc.",
       "synced": "Sincronizado",
-      "last_sync": "Último sync",
+      "last_sync": "Última sinc.",
       "label": "Sincronização",
       "connected": "Conectado",
       "peers": "Pares: {count}",
-      "offline": "Desconectado"
+      "offline": "Offline",
+      "reconnecting": "Reconectando...",
+      "connecting": "Conectando..."
     },
     "systems": {
       "sofww": {
