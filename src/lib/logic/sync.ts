@@ -9,10 +9,7 @@ export const roomConfig = {
   appId,
   trackerUrls: [
     'wss://tracker.openwebtorrent.com',
-    'wss://tracker.files.fm:7073/announce',
-    'wss://tracker.webtorrent.dev',
-    'wss://toad.vibe.community:443/announce',
-    'wss://tracker.btorrent.xyz'
+    'wss://tracker.files.fm:7073/announce'
   ]
 };
 
