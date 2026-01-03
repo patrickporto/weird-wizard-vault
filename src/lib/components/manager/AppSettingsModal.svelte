@@ -2,7 +2,8 @@
     import { t, locale } from 'svelte-i18n';
     import { appSettings } from '$lib/stores/characterStore';
     import { googleSession } from '$lib/logic/googleDrive';
-    import { X, Settings, History, Monitor, Smartphone, Palette, Globe, ArrowLeft, Check, User, Dices } from 'lucide-svelte';
+    import { trackerUrl, DEFAULT_TRACKER_URL, AVAILABLE_TRACKERS } from '$lib/stores/settingsStore';
+    import { X, Settings, History, Monitor, Smartphone, Palette, Globe, ArrowLeft, Check, User, Dices, Wifi, ChevronDown } from 'lucide-svelte';
     import Toggle from '../common/Toggle.svelte';
     import DiceThemeSelector from '$lib/components/dice/DiceThemeSelector.svelte';
     import { slide, fly, fade } from 'svelte/transition';
@@ -101,6 +102,54 @@
                             label={$t('settings.options.enable_3d_dice.label')}
                             description={$t('settings.options.enable_3d_dice.description')}
                         />
+                    </div>
+                </div>
+
+
+                <!-- Section: Connection -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-2 mb-2 text-cyan-400">
+                        <Wifi size={16} />
+                        <h3 class="text-xs font-black uppercase tracking-widest">{$t('settings.sections.connection') || 'Connection'}</h3>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label for="settings-tracker-url" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+                                {$t('settings.options.tracker_url.label') || 'WebRTC Tracker URL'}
+                            </label>
+                            <div class="relative">
+                                <select
+                                    id="settings-tracker-url"
+                                    class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 pr-10 text-white focus:border-cyan-500 outline-none transition-all text-xs appearance-none cursor-pointer"
+                                    value={$trackerUrl}
+                                    onchange={(e) => trackerUrl.set(e.currentTarget.value)}
+                                >
+                                    {#each AVAILABLE_TRACKERS as tracker}
+                                        <option value={tracker.value} class="bg-slate-900 text-white">
+                                            {tracker.label}
+                                        </option>
+                                    {/each}
+                                </select>
+                                <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                    <ChevronDown size={14} />
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-start mt-2">
+                                <p class="text-[10px] text-slate-500 max-w-[200px]">
+                                    {$t('settings.options.tracker_url.description') || 'Change this only if you are experiencing connection issues.'}
+                                </p>
+                                {#if $trackerUrl !== DEFAULT_TRACKER_URL}
+                                    <button
+                                        onclick={() => trackerUrl.set(DEFAULT_TRACKER_URL)}
+                                        class="text-[10px] text-cyan-400 hover:text-white uppercase font-bold px-2 py-0.5 hover:bg-cyan-500/10 rounded transition-all shrink-0"
+                                    >
+                                        {$t('common.buttons.reset') || 'Reset'}
+                                    </button>
+                                {/if}
+                            </div>
+                        </div>
                     </div>
                 </div>
 

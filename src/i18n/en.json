@@ -1424,5 +1424,39 @@
             "spell": "Spell",
             "talent": "Talent"
         }
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Manage application preferences",
+      "sections": {
+        "interface": "Interface",
+        "dice_theme": "Dice Theme",
+        "identity": "Identity",
+        "appearance": "Appearance",
+        "connection": "Connection"
+      },
+      "options": {
+        "auto_open_history": {
+          "label": "Auto-open History",
+          "description": "Automatically open sidebar after rolling dice"
+        },
+        "enable_3d_dice": {
+          "label": "Enable 3D Dice",
+          "description": "Show 3D animations when rolling dice"
+        },
+        "theme": {
+          "label": "App Theme",
+          "description": "Coming soon: Light/Dark modes"
+        },
+        "user_name": {
+          "label": "Your Name (Public)",
+          "placeholder": "What should we call you?"
+        },
+        "tracker_url": {
+          "label": "WebRTC Tracker URL",
+          "description": "Sets the P2P connection server. Change only if necessary."
+        }
+      },
+      "sync_info": "Your settings are automatically synced with your Google Drive whenever changed."
     }
 }

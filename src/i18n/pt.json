@@ -891,24 +891,29 @@
       "interface": "Interface",
       "dice_theme": "Tema dos Dados",
       "identity": "Identidade",
-      "appearance": "Aparência"
+      "appearance": "Aparência",
+      "connection": "Conexão"
     },
     "options": {
       "auto_open_history": {
         "label": "Auto-abrir Histórico",
-        "description": "Abre a barra lateral automaticamente sempre que um dado for rolado."
-      },
-      "user_name": {
-        "label": "Nome de Usuário (Padrão)",
-        "placeholder": "Seu nome ou apelido"
-      },
-      "theme": {
-        "label": "Tema (Em breve)",
-        "description": "O Vault será apenas escuro por enquanto."
+        "description": "Abrir barra lateral automaticamente após rolar dados"
       },
       "enable_3d_dice": {
         "label": "Habilitar Dados 3D",
-        "description": "Mostra dados 3D animados ao rolar. Requer mais poder de processamento."
+        "description": "Mostrar animações 3D ao rolar dados"
+      },
+      "theme": {
+        "label": "Tema do App",
+        "description": "Em breve: Modos Claro/Escuro"
+      },
+      "user_name": {
+        "label": "Seu Nome (Público)",
+        "placeholder": "Como você quer ser chamado?"
+      },
+      "tracker_url": {
+        "label": "URL do Rastreador (Tracker)",
+        "description": "Define o servidor de conexão P2P. Altere apenas se necessário."
       }
     },
     "sync_info": "Suas configurações são sincronizadas automaticamente com sua conta do Google Drive sempre que forem alteradas."

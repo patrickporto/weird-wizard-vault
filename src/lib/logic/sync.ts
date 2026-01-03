@@ -4,14 +4,16 @@ import { characterActions, character, isHistoryOpen, damage, currentHealth, norm
 import { sotdlCharacter, sotdlCharacterActions } from '$lib/stores/characterStoreSotDL';
 import { campaignsMap } from '$lib/db';
 import { appId } from '../../app';
+import { trackerUrl } from '../stores/settingsStore';
 
-export const roomConfig = {
-  appId,
-  trackerUrls: [
-    'wss://tracker.openwebtorrent.com',
-    'wss://tracker.files.fm:7073/announce'
-  ]
-};
+// Dynamic config to support user-defined tracker URL
+export function getTrackerConfig() {
+  const url = get(trackerUrl);
+  return {
+    appId,
+    trackerUrls: [url]
+  };
+}
 
 export const syncState = writable({
   roomId: null as string | null,
@@ -42,7 +44,6 @@ let lastCampaignJoinAttempt = 0;
 const MIN_JOIN_INTERVAL_MS = 2000; // Minimum 2 seconds between join attempts
 
 // Global Discovery
-const lobbyConfig = { appId };
 export const publicCampaigns = writable<any[]>([]);
 
 // Lobby connection status
@@ -71,9 +72,14 @@ function canAttemptJoin(lastAttempt: number): boolean {
   return (now - lastAttempt) >= MIN_JOIN_INTERVAL_MS;
 }
 
+let sendDiscovery: any;
+
 export function joinLobby() {
+  // If lobby already exists, check if tracker config changed (advanced check omitted for simplicity, assumes reconnect on reload for now or manual reconnect)
+
   // If lobby already exists, return the existing sendDiscovery function
   if (lobby && sendDiscovery) {
+    const currentTracker = get(trackerUrl);
     console.log('Lobby already connected, reusing existing connection');
     lobbyStatus.set('connected');
     return sendDiscovery;
@@ -99,7 +105,8 @@ export function joinLobby() {
   lobbyStatus.set('connecting');
 
   try {
-    lobby = joinRoom(lobbyConfig, 'public-discovery');
+    const config = getTrackerConfig();
+    lobby = joinRoom(config, 'public-discovery');
     const [sendFn, getDiscovery] = lobby.makeAction('discovery');
 
     getDiscovery((data: any) => {
@@ -121,6 +128,7 @@ export function joinLobby() {
     }, 60000);
 
     lobbyStatus.set('connected');
+    sendDiscovery = sendFn; // Store for reuse and announceCampaign
     return sendFn;
   } catch (e) {
     console.error('Failed to join lobby:', e);
@@ -129,9 +137,6 @@ export function joinLobby() {
     return null;
   }
 }
-
-
-let sendDiscovery: any;
 
 /**
  * Immediately announce a campaign to the public lobby.
@@ -239,7 +244,8 @@ export function joinCampaignRoom(campaignId: string, isGM: boolean = false, char
 
   try {
     currentRoomId = targetRoomId;
-    room = joinRoom(roomConfig, currentRoomId);
+    const config = getTrackerConfig();
+    room = joinRoom(config, currentRoomId);
 
     syncState.set({
       isConnected: true,
@@ -297,7 +303,8 @@ export function joinCampaignRoom(campaignId: string, isGM: boolean = false, char
             id: campaignId,
             name: current.name,
             gmName: current.gmName || 'Mestre',
-            description: current.description
+            description: current.description,
+            system: current.system
           });
         }
       }, 30000);
