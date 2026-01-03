@@ -22,7 +22,8 @@
             "locked": "Locked",
             "increase": "Increase",
             "decrease": "Decrease",
-            "roll": "Roll"
+            "roll": "Roll",
+            "reset": "Reset"
         },
         "labels": {
             "level": "Level",

@@ -22,7 +22,8 @@
       "locked": "Travado",
       "increase": "Aumentar",
       "decrease": "Diminuir",
-      "roll": "Rolar"
+      "roll": "Rolar",
+      "reset": "Redefinir"
     },
     "labels": {
       "level": "Nível",
