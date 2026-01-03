@@ -538,6 +538,16 @@ export async function syncFromCloud() {
         }
 
         const localChar = charactersMap.get(charId);
+
+        // CONFLICT RESOLUTION: Check timestamps
+        const cloudTime = cloudChar.lastUpdate || 0;
+        const localTime = localChar?.lastUpdate || 0;
+
+        if (localChar && localTime > cloudTime) {
+          console.log('[DEBUG] Skipping cloud overwrite for character, local is newer:', { id: charId, localTime, cloudTime });
+          continue;
+        }
+
         // OVERWRITE: If syncing from cloud, we assume cloud has the authoritative backup
         // In a future version, we could check for newer modification dates
         console.log('[DEBUG] Syncing character from cloud:', { id: charId, name: cloudChar.name, status: localChar ? 'OVERWRITING' : 'ADDING' });
@@ -564,6 +574,15 @@ export async function syncFromCloud() {
               campaignsMap.delete(key);
             }
           }
+          continue;
+        }
+
+        const localCamp = campaignsMap.get(campId);
+        const cloudTime = cloudCamp.lastUpdate || 0;
+        const localTime = localCamp?.lastUpdate || 0;
+
+        if (localCamp && localTime > cloudTime) {
+          console.log('[DEBUG] Skipping cloud overwrite for campaign, local is newer:', { id: campId, localTime, cloudTime });
           continue;
         }
 

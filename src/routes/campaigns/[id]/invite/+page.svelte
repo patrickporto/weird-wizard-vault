@@ -3,7 +3,7 @@
     import { page } from '$app/stores';
     import { liveCharacters } from '$lib/stores/live';
     import { character } from '$lib/stores/characterStore';
-    import { Users, Check, Wifi, AlertTriangle, Gamepad2 } from 'lucide-svelte';
+    import { Users, Check, Wifi, WifiOff, AlertTriangle, Gamepad2 } from 'lucide-svelte';
     import { DEFAULT_SYSTEM, getSystem } from '$lib/systems';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -114,9 +114,13 @@
              <div class="mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded bg-slate-800 text-[10px] text-slate-400 border border-slate-700 font-bold uppercase tracking-wider">
                  <Gamepad2 size={12} /> {$t(getSystem(campaignSystem).nameKey)}
              </div>
-            {#if !$isGmOnline}
+            {#if $isGmOnline}
+                <div class="mt-4 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full text-[10px] text-green-500 font-bold uppercase tracking-wider flex items-center gap-2">
+                    <Wifi size={12}/> {$t('invite.gm_online')}
+                </div>
+            {:else}
                 <div class="mt-4 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full text-[10px] text-amber-500 font-bold uppercase tracking-wider animate-pulse flex items-center gap-2">
-                    <Wifi size={12}/> {$t('invite.waiting_gm')}
+                    <WifiOff size={12}/> {$t('invite.waiting_gm')}
                 </div>
             {/if}
         </div>

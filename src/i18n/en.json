@@ -550,6 +550,7 @@
     "invite": {
         "title": "Campaign Invite",
         "invited_to": "You have been invited to join",
+        "gm_online": "GM Online",
         "waiting_gm": "Waiting for the Game Master to come online...",
         "password": {
             "required": "Password Required",

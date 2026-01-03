@@ -543,6 +543,7 @@
   "invite": {
     "title": "Convite para Campanha",
     "invited_to": "Você foi convidado para participar de",
+    "gm_online": "Mestre Online",
     "waiting_gm": "Aguardando o Mestre ficar online...",
     "password": {
       "required": "Senha Necessária",

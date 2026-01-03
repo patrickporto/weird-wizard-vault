@@ -145,7 +145,7 @@
     function updateCampaign(updates: any) {
         if (!campaign?.id) return;
         const current = campaignsMap.get(campaign.id) || campaign;
-        const updated = { ...current, ...updates };
+        const updated = { ...current, ...updates, lastUpdate: Date.now() };
         campaignsMap.set(campaign.id, updated);
 
         // Sync combat state if it changed

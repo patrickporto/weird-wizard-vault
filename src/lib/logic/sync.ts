@@ -260,8 +260,10 @@ export function joinCampaignRoom(campaignId: string, isGM: boolean = false, char
         });
 
         // Heartbeat discovery for this campaign if GM
-        if (isGM && sendDiscovery) {
+        if (isGM) {
             campaignHeartbeatInterval = setInterval(() => {
+                if (!sendDiscovery) return;
+
                 const current = campaignsMap.get(campaignId);
                 if (current && current.isPublished) {
                     sendDiscovery({

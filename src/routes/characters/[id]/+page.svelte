@@ -105,7 +105,7 @@
              const charData = $sotdlCharacter;
 
              // Sync to local Yjs
-             charactersMap.set(currentId, charData);
+             charactersMap.set(currentId, { ...charData, lastUpdate: Date.now() });
 
              // Sync to GM/Peers if in campaign
              if (charData.campaignId) {
@@ -144,7 +144,7 @@
         const maxH = $effectiveMaxHealth;
 
         // Save to local Yjs
-        const toSave = { ...charData, normalHealth: nh, currentHealth: ch, damage: dmg };
+        const toSave = { ...charData, normalHealth: nh, currentHealth: ch, damage: dmg, lastUpdate: Date.now() };
         charactersMap.set(currentId, toSave);
 
         // Sync to GM if in campaign
