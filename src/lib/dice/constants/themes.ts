@@ -33,7 +33,7 @@ export const THEMES: Record<string, DiceTheme> = {
       foreground: '#fff',
       background: '#000',
       outline: '#fff',
-      edge: '#fff',
+      edge: '#000',
       texture: 'none',
       material: 'perfectmetal',
       font: '"Uncial Antiqua", system-ui',
